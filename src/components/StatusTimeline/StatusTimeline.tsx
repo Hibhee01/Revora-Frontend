@@ -19,11 +19,11 @@ import {
   Check,
   Circle,
   AlertTriangle,
-  Loader2,
   ChevronDown,
   Clock,
   Minus,
 } from 'lucide-react';
+import { LoadingSpinner } from '../LoadingSpinner';
 import './StatusTimeline.css';
 
 /* ─── Types ─────────────────────────────────────────────────── */
@@ -86,7 +86,7 @@ function getDefaultIcon(status: MilestoneStatus): React.ReactNode {
     case 'completed':
       return <Check size={16} aria-hidden="true" />;
     case 'in-progress':
-      return <Loader2 size={16} aria-hidden="true" />;
+      return <LoadingSpinner size={16} aria-hidden="true" />;
     case 'blocked':
       return <AlertTriangle size={14} aria-hidden="true" />;
     case 'skipped':
@@ -96,6 +96,7 @@ function getDefaultIcon(status: MilestoneStatus): React.ReactNode {
       return <Circle size={12} aria-hidden="true" />;
   }
 }
+
 
 function getConnectorState(
   currentStatus: MilestoneStatus,

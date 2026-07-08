@@ -187,6 +187,12 @@
   --rc-title-size: 1.25rem;                         /* month title size                  */
   --rc-cell-size-text: 0.875rem;                    /* day number font size              */
   --rc-legend-size: 0.75rem;                        /* legend font size                  */
+  --shimmer-gradient: linear-gradient(
+    90deg,
+    rgba(148, 163, 184, 0.06) 25%,
+    rgba(148, 163, 184, 0.18) 50%,
+    rgba(148, 163, 184, 0.06) 75%
+  );
 }
 
 /* ─── Density mode overrides ─────────────────────────────────────
@@ -924,3 +930,129 @@ input:focus-visible,
 /* RTL-aware text alignment */
 [dir="rtl"] .text-left { text-align: right; }
 [dir="rtl"] .text-right { text-align: left; }
+
+/* ─── Branded Loading States & Shimmer ────────────────────────────── */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  background: var(--shimmer-gradient);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s infinite linear;
+}
+
+@keyframes spin-loader {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-loader {
+  animation: spin-loader 0.8s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-shimmer {
+    animation-play-state: paused;
+    background: rgba(148, 163, 184, 0.1);
+  }
+  .animate-spin-loader {
+    animation-duration: 3s;
+  }
+}
+
+/* Inline Progress Bar */
+.progress-bar-container {
+  width: 100%;
+  height: 6px;
+  background: rgba(148, 163, 184, 0.1);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: var(--primary);
+  transition: width 0.2s ease-out;
+}
+
+.progress-bar-indeterminate {
+  width: 100%;
+  height: 100%;
+  background: var(--shimmer-gradient);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s infinite linear;
+}
+
+/* Page Loader */
+.page-loader-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(2, 6, 23, 0.8);
+  backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  gap: var(--spacing-md);
+  color: var(--text-main);
+}
+
+.page-loader-text {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* Skeletons */
+.skeleton {
+  border-radius: var(--radius-md);
+  background: var(--shimmer-gradient);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s infinite linear;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.skeleton-text {
+  height: 1rem;
+  width: 100%;
+}
+
+.skeleton-text-short {
+  height: 1rem;
+  width: 60%;
+}
+
+.skeleton-title {
+  height: 1.75rem;
+  width: 40%;
+}
+
+.skeleton-avatar {
+  width: 3rem;
+  height: 3rem;
+  border-radius: var(--radius-full);
+}
+
+.skeleton-rect {
+  width: 100%;
+  height: 10rem;
+}

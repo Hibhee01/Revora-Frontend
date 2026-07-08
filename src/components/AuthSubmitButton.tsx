@@ -1,5 +1,6 @@
 import React from 'react';
-import { CheckCircle, Loader2 } from 'lucide-react';
+import { CheckCircle } from 'lucide-react';
+import { LoadingSpinner } from './LoadingSpinner';
 
 export type SubmitButtonState = 'idle' | 'loading' | 'success';
 
@@ -32,9 +33,16 @@ export const AuthSubmitButton: React.FC<AuthSubmitButtonProps> = ({
       aria-busy={isLoading}
       data-state={state}
     >
-      {isLoading && <Loader2 className="auth-submit-button__icon auth-submit-button__spinner" size={18} aria-hidden="true" />}
+      {isLoading && (
+        <LoadingSpinner 
+          className="auth-submit-button__icon auth-submit-button__spinner" 
+          size={18} 
+          aria-hidden="true" 
+        />
+      )}
       {isSuccess && <CheckCircle className="auth-submit-button__icon" size={18} aria-hidden="true" />}
       <span>{label}</span>
     </button>
   );
 };
+

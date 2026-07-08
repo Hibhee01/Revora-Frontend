@@ -1,5 +1,6 @@
 import React, { forwardRef } from 'react';
-import { Loader2, Check } from 'lucide-react';
+import { Check } from 'lucide-react';
+import { LoadingSpinner } from './LoadingSpinner';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary';
@@ -29,7 +30,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {loading && (
-          <Loader2 className="btn-spinner" size={18} aria-hidden="true" />
+          <LoadingSpinner className="btn-spinner" size={18} aria-hidden="true" />
         )}
         {success && (
           <Check className="btn-check-icon" size={18} aria-hidden="true" />
@@ -41,3 +42,4 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 );
 
 Button.displayName = 'Button';
+

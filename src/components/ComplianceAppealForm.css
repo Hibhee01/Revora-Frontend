@@ -1,0 +1,596 @@
+/**
+ * ComplianceAppealForm styles (Issue #286).
+ *
+ * WCAG 2.1 AA, responsive, reduced-motion, high-contrast, RTL, print.
+ */
+
+/* ─── Dialog Overlay ────────────────────────────────────────────────── */
+
+.caf-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  padding: var(--spacing-md);
+  animation: cafFadeIn 0.2s ease-out;
+}
+
+.caf-dialog {
+  width: 100%;
+  max-width: 540px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-xl);
+  animation: cafSlideUp 0.2s ease-out;
+}
+
+/* ─── Header ────────────────────────────────────────────────────────── */
+
+.caf-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-lg) var(--spacing-xl);
+  border-bottom: 1px solid var(--glass-border);
+  flex-shrink: 0;
+}
+
+.caf-dialog-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-main);
+  margin: 0;
+}
+
+.caf-dialog-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-muted);
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.caf-dialog-close:hover {
+  background: rgba(148, 163, 184, 0.1);
+  color: var(--text-main);
+}
+
+.caf-dialog-close:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* ─── Draft Restored Banner ────────────────────────────────────────── */
+
+.caf-draft-restored {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-xl);
+  font-size: var(--font-size-xs);
+  color: var(--primary);
+  background: rgba(99, 102, 241, 0.08);
+  border-bottom: 1px solid rgba(99, 102, 241, 0.15);
+}
+
+/* ─── Submit Error ──────────────────────────────────────────────────── */
+
+.caf-submit-error {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-xl);
+  font-size: var(--font-size-sm);
+  color: var(--error);
+  background: rgba(239, 68, 68, 0.08);
+  border-bottom: 1px solid rgba(239, 68, 68, 0.15);
+}
+
+/* ─── Scroll Area ──────────────────────────────────────────────────── */
+
+.caf-scroll-area {
+  overflow-y: auto;
+  padding: var(--spacing-xl);
+  flex: 1;
+}
+
+/* ─── Context ───────────────────────────────────────────────────────── */
+
+.caf-context {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  margin-bottom: var(--spacing-lg);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: rgba(148, 163, 184, 0.06);
+  border-radius: var(--radius-lg);
+}
+
+.caf-context strong {
+  color: var(--text-main);
+}
+
+/* ─── Form Fields ───────────────────────────────────────────────────── */
+
+.caf-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.caf-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2xs);
+}
+
+.caf-label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-main);
+}
+
+.caf-select,
+.caf-textarea {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  background: rgba(2, 6, 23, 0.3);
+  color: var(--text-main);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+  transition: border-color 0.15s ease;
+}
+
+.caf-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  padding-right: 2rem;
+}
+
+.caf-select:focus,
+.caf-textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+}
+
+.caf-textarea {
+  resize: vertical;
+  min-height: 6rem;
+}
+
+.caf-hint {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  line-height: var(--line-height-normal);
+}
+
+.caf-field-error {
+  font-size: var(--font-size-xs);
+  color: var(--error);
+  margin: 0;
+  line-height: var(--line-height-normal);
+}
+
+/* ─── Dropzone ──────────────────────────────────────────────────────── */
+
+.caf-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xl) var(--spacing-md);
+  border: 2px dashed var(--glass-border);
+  border-radius: var(--radius-lg);
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.caf-dropzone:hover,
+.caf-dropzone:focus-visible {
+  border-color: var(--primary);
+  background: rgba(99, 102, 241, 0.04);
+}
+
+.caf-dropzone:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.caf-file-input {
+  display: none;
+}
+
+/* ─── File List ─────────────────────────────────────────────────────── */
+
+.caf-file-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2xs);
+}
+
+.caf-file-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: rgba(148, 163, 184, 0.06);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs);
+}
+
+.caf-file-type {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 1.5rem;
+  border-radius: var(--radius-xs);
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--primary);
+  font-weight: var(--font-weight-bold);
+  font-size: 0.625rem;
+  flex-shrink: 0;
+}
+
+.caf-file-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-main);
+}
+
+.caf-file-size {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.caf-file-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--text-muted);
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.caf-file-remove:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--error);
+}
+
+/* ─── Autosave Chip ────────────────────────────────────────────────── */
+
+.caf-autosave-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  line-height: 1;
+  width: fit-content;
+}
+
+.caf-autosave-chip--saving {
+  color: var(--text-muted);
+  background: rgba(148, 163, 184, 0.08);
+}
+
+.caf-autosave-chip--saved {
+  color: var(--success);
+  background: rgba(16, 185, 129, 0.08);
+}
+
+.caf-spin {
+  animation: cafSpin 1s linear infinite;
+}
+
+/* ─── Actions ───────────────────────────────────────────────────────── */
+
+.caf-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.caf-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  padding: 0.625rem 1.25rem;
+  border: none;
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.caf-btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.caf-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.caf-btn--primary {
+  background: var(--primary);
+  color: white;
+}
+
+.caf-btn--primary:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.caf-btn--secondary {
+  background: var(--glass-bg-accent);
+  color: var(--text-main);
+  border: 1px solid var(--glass-border);
+}
+
+.caf-btn--secondary:hover:not(:disabled) {
+  background: rgba(148, 163, 184, 0.2);
+}
+
+.caf-btn--full {
+  width: 100%;
+}
+
+/* ─── Confirmation Screen ──────────────────────────────────────────── */
+
+.caf-confirmation {
+  padding: var(--spacing-2xl) var(--spacing-xl);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--spacing-lg);
+}
+
+.caf-confirmation-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: 50%;
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--success);
+}
+
+.caf-confirmation-title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-main);
+  margin: 0;
+}
+
+.caf-confirmation-text {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  line-height: var(--line-height-relaxed);
+  margin: 0;
+  max-width: 28rem;
+}
+
+/* ─── Timeline ──────────────────────────────────────────────────────── */
+
+.caf-confirmation-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+  max-width: 24rem;
+  margin: 0;
+  padding: 0;
+}
+
+.caf-timeline-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  position: relative;
+}
+
+.caf-timeline-dot {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 50%;
+  background: var(--glass-border);
+  margin-top: 0.35rem;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.caf-timeline-dot--active {
+  background: var(--primary);
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+}
+
+.caf-timeline-dot--success {
+  background: var(--success);
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);
+}
+
+.caf-timeline-item:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 0.25rem;
+  top: 0.8rem;
+  bottom: -0.4rem;
+  width: 1px;
+  background: var(--glass-border);
+}
+
+.caf-timeline-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding-bottom: var(--spacing-md);
+}
+
+.caf-timeline-title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-main);
+}
+
+.caf-timeline-desc {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  line-height: var(--line-height-normal);
+}
+
+/* ─── Confirmation Note ────────────────────────────────────────────── */
+
+.caf-confirmation-note {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  background: rgba(148, 163, 184, 0.06);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-lg);
+  text-align: left;
+  width: 100%;
+  max-width: 28rem;
+  line-height: var(--line-height-normal);
+}
+
+/* ─── Animations ────────────────────────────────────────────────────── */
+
+@keyframes cafFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes cafSlideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes cafSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ─── Responsive ────────────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .caf-dialog {
+    max-height: 95vh;
+    border-radius: var(--radius-xl);
+  }
+
+  .caf-scroll-area {
+    padding: var(--spacing-md);
+  }
+
+  .caf-dialog-header {
+    padding: var(--spacing-md);
+  }
+}
+
+/* ─── Reduced Motion ────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .caf-overlay,
+  .caf-dialog {
+    animation: none;
+  }
+
+  .caf-spin {
+    animation: none;
+  }
+}
+
+/* ─── High Contrast ─────────────────────────────────────────────────── */
+
+@media (prefers-contrast: high) {
+  .caf-overlay {
+    background: rgba(0, 0, 0, 0.85);
+  }
+
+  .caf-dialog {
+    border: 2px solid var(--text-main);
+  }
+
+  .caf-select,
+  .caf-textarea {
+    border: 2px solid var(--text-main);
+  }
+
+  .caf-dropzone {
+    border: 2px solid var(--text-main);
+  }
+}
+
+/* ─── Print ──────────────────────────────────────────────────────────── */
+
+@media print {
+  .caf-overlay {
+    position: static;
+    background: none;
+    padding: 0;
+  }
+
+  .caf-dialog {
+    max-height: none;
+    box-shadow: none;
+    border: 1px solid #ccc;
+  }
+
+  .caf-dialog-close,
+  .caf-btn {
+    display: none;
+  }
+}
+
+/* ─── RTL ────────────────────────────────────────────────────────────── */
+
+[dir="rtl"] .caf-select {
+  background-position: left 0.75rem center;
+  padding-right: 0.75rem;
+  padding-left: 2rem;
+}

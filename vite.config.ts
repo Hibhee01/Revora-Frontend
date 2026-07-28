@@ -39,6 +39,8 @@ export default defineConfig({
         'src/components/PayoutStatusPill/payoutStatuses.ts',
         'src/components/PayoutStatusPill/PayoutStatusPill.tsx',
         'src/pages/PayoutSchedule.tsx',
+        // Issue #225 - Thumbnail Preview Grid
+        'src/components/ThumbnailGrid/ThumbnailGrid.tsx',
       ],
       thresholds: {
         'src/components/NetworkSwitcher/ChainMismatchModal.tsx': {
@@ -152,6 +154,13 @@ export default defineConfig({
           functions: 70,
           lines: 70,
           statements: 70,
+        },
+        // Issue #225 - Thumbnail Preview Grid
+        'src/components/ThumbnailGrid/ThumbnailGrid.tsx': {
+          branches: 95,
+          functions: 95,
+          lines: 95,
+          statements: 95,
         },
       }
     }

@@ -1,0 +1,297 @@
+/**
+ * Thumbnail Preview Grid — Issue #225
+ *
+ * Scannable thumbnail grid for successfully uploaded documents and images.
+ *
+ * Tile anatomy:
+ *   - Preview area (type-specific icon for non-previewable files, or <img>)
+ *   - Filename (truncated with ellipsis)
+ *   - File size
+ *   - Quick action buttons (view, replace, remove) in hover/focus overlay
+ *
+ * Accessibility (WCAG 2.1 AA):
+ *   - Focus-visible rings on all interactive elements
+ *   - Sufficient contrast ratios on all text/background combinations
+ *   - Reduced-motion disables transitions and hover micro-animations
+ *   - Forced-colors preserves focus rings and active-state indicators
+ *
+ * Responsive:
+ *   - Desktop >=1024px: 4-column grid
+ *   - Tablet  768-1023px: 3-column grid
+ *   - Mobile  <768px: 2-column grid
+ *   - Very narrow <480px: 1-column grid
+ *
+ * RTL: uses logical properties (margin-inline, padding-inline, inset-inline,
+ *      border-inline) throughout; reorder arrows are reversed via [dir="rtl"].
+ */
+
+/* ─── Root grid ─────────────────────────────────────────────── */
+
+.thumbnail-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--spacing-md);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.thumbnail-grid--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+  border: 2px dashed var(--glass-border);
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+}
+
+.thumbnail-grid__empty-text {
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  margin: 0;
+}
+
+/* ─── Tile ──────────────────────────────────────────────────── */
+
+.thumbnail-grid__tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+  overflow: hidden;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  cursor: default;
+  outline: none;
+}
+
+.thumbnail-grid__tile:hover,
+.thumbnail-grid__tile:focus-visible {
+  border-color: var(--glass-border-bright);
+  box-shadow: var(--shadow-md);
+}
+
+.thumbnail-grid__tile:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* ─── Preview area ──────────────────────────────────────────── */
+
+.thumbnail-grid__preview {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--glass-bg-accent);
+  overflow: hidden;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.thumbnail-grid__preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.thumbnail-grid__preview-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+/* ─── Hover/focus overlay ──────────────────────────────────── */
+
+.thumbnail-grid__overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  background: rgba(2, 6, 23, 0.75);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.thumbnail-grid__tile:hover .thumbnail-grid__overlay,
+.thumbnail-grid__tile:focus-within .thumbnail-grid__overlay {
+  opacity: 1;
+}
+
+.thumbnail-grid__action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--glass-border-bright);
+  border-radius: var(--radius-full);
+  background: rgba(15, 23, 42, 0.85);
+  color: var(--text-main);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.thumbnail-grid__action-btn:hover,
+.thumbnail-grid__action-btn:focus-visible {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+.thumbnail-grid__action-btn--remove:hover,
+.thumbnail-grid__action-btn--remove:focus-visible {
+  background: var(--error);
+  border-color: var(--error);
+}
+
+.thumbnail-grid__action-btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* ─── Reorder controls ──────────────────────────────────────── */
+
+.thumbnail-grid__reorder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2xs);
+  padding: var(--spacing-2xs) var(--spacing-xs);
+  border-bottom: 1px solid var(--glass-border);
+  background: var(--glass-bg-accent);
+}
+
+.thumbnail-grid__reorder-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.thumbnail-grid__reorder-btn:hover:not(:disabled),
+.thumbnail-grid__reorder-btn:focus-visible:not(:disabled) {
+  color: var(--primary);
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.thumbnail-grid__reorder-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.thumbnail-grid__reorder-btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+
+.thumbnail-grid__reorder-index {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-muted);
+  min-width: 1.2em;
+  text-align: center;
+  line-height: 1;
+}
+
+/* ─── Metadata ──────────────────────────────────────────────── */
+
+.thumbnail-grid__meta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  min-width: 0;
+}
+
+.thumbnail-grid__filename {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: var(--line-height-snug);
+}
+
+.thumbnail-grid__filesize {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  line-height: var(--line-height-snug);
+}
+
+/* ─── Responsive breakpoints ────────────────────────────────── */
+
+@media (max-width: 1023px) {
+  .thumbnail-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 767px) {
+  .thumbnail-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-sm);
+  }
+}
+
+@media (max-width: 479px) {
+  .thumbnail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ─── Reduced motion ────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .thumbnail-grid__tile,
+  .thumbnail-grid__overlay,
+  .thumbnail-grid__action-btn,
+  .thumbnail-grid__reorder-btn {
+    transition: none;
+  }
+}
+
+/* ─── Forced colors mode ────────────────────────────────────── */
+
+@media (forced-colors: active) {
+  .thumbnail-grid__tile:focus-visible {
+    outline: 2px solid ButtonText;
+    outline-offset: 2px;
+  }
+
+  .thumbnail-grid__action-btn:focus-visible,
+  .thumbnail-grid__reorder-btn:focus-visible {
+    outline: 2px solid ButtonText;
+    outline-offset: 1px;
+  }
+
+  .thumbnail-grid__overlay {
+    background: Canvas;
+    border: 1px solid ButtonText;
+  }
+}
+
+/* ─── RTL overrides ─────────────────────────────────────────── */
+
+[dir="rtl"] .thumbnail-grid__reorder-btn:first-child svg {
+  transform: scaleX(-1);
+}
+
+[dir="rtl"] .thumbnail-grid__reorder-btn:last-child svg {
+  transform: scaleX(-1);
+}

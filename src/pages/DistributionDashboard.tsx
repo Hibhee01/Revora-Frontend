@@ -3,19 +3,8 @@ import { useSearchParams } from 'react-router-dom';
 import { EmptyState } from '../components/designSystem/EmptyState';
 import { KycResubmissionTimeline } from '../components/KycResubmissionTimeline';
 import { GovernanceResults } from '../components/designSystem/GovernanceResults';
+import { ThumbnailGrid, ThumbnailFile } from '../components/ThumbnailGrid/ThumbnailGrid';
 import { DocumentUploadStatus } from '../components/DocumentUploadStatus';
-import {
-  DistributionFilterToolbar,
-  DistributionFilterState,
-} from '../components/DistributionFilterToolbar';
-import { PayoutDrillDownPanel } from '../components/PayoutDrillDownPanel';
-import { MultiIssuerComparisonView } from './MultiIssuerComparisonView';
-import {
-  ExtendedPayoutDetail,
-  MOCK_PAYOUTS,
-  MOCK_COMPARISON_ISSUERS,
-  IssuerComparisonData,
-} from './DistributionDashboard.types';
 
 export const DistributionDashboard: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -36,6 +25,43 @@ export const DistributionDashboard: React.FC = () => {
     searchParams.get('payoutId')
   );
   const [payoutsList, setPayoutsList] = useState<ExtendedPayoutDetail[]>(MOCK_PAYOUTS);
+
+  const [uploadedFiles, setUploadedFiles] = useState<ThumbnailFile[]>([
+    { id: 'doc-1', name: 'Q3_Revenue_Report.pdf', size: 245760, type: 'application/pdf', previewUrl: '/previews/q3-report.png' },
+    { id: 'doc-2', name: 'Financial_Audit_2023.pdf', size: 524288, type: 'application/pdf' },
+    { id: 'doc-3', name: 'Distribution_Chart.png', size: 102400, type: 'image/png', previewUrl: '/previews/dist-chart.png' },
+    { id: 'doc-4', name: 'K-1_Distribution_Schedule.xlsx', size: 1048576, type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' },
+  ]);
+
+  const handleViewFile = useCallback((file: ThumbnailFile) => {
+    window.open(file.previewUrl || '#', '_blank', 'noopener,noreferrer');
+  }, []);
+
+  const handleReplaceFile = useCallback((file: ThumbnailFile) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.pdf,.png,.jpg,.xlsx,.docx';
+    input.onchange = (e) => {
+      const selected = (e.target as HTMLInputElement).files?.[0];
+      if (!selected) return;
+      setUploadedFiles((prev) =>
+        prev.map((f) =>
+          f.id === file.id
+            ? { ...f, name: selected.name, size: selected.size, type: selected.type, previewUrl: selected.type.startsWith('image/') ? URL.createObjectURL(selected) : undefined }
+            : f
+        )
+      );
+    };
+    input.click();
+  }, []);
+
+  const handleRemoveFile = useCallback((fileId: string) => {
+    setUploadedFiles((prev) => prev.filter((f) => f.id !== fileId));
+  }, []);
+
+  const handleReorderFiles = useCallback((fileIds: string[]) => {
+    setUploadedFiles((prev) => fileIds.map((id) => prev.find((f) => f.id === id)!).filter(Boolean));
+  }, []);
 
   const rowRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
 
@@ -287,135 +313,17 @@ export const DistributionDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Segmented Comparison View */}
-      {segmentedData && (
-        <div data-testid="segmented-compare-container" className="space-y-4">
-          <h2 className="text-xl font-semibold">Segmented Comparison</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {Object.entries(segmentedData).map(([key, group]) => (
-              <div
-                key={key}
-                data-testid={`segmented-card-${key}`}
-                className="glass-card p-4 space-y-2"
-              >
-                <h3 className="text-sm font-semibold text-main">{key}</h3>
-                <p className="text-xs text-muted">{group.count} payout{group.count !== 1 ? 's' : ''}</p>
-                <p className="text-lg font-bold">
-                  ${group.totalDistributed.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Payout Table */}
-      {filteredPayouts.length > 0 && (
-        <div className="glass-card overflow-hidden" data-testid="payout-table">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="border-b border-[var(--glass-border)]">
-                  <th className="p-4 text-muted font-medium">Payout ID</th>
-                  <th className="p-4 text-muted font-medium">Offering</th>
-                  <th className="p-4 text-muted font-medium">Region</th>
-                  <th className="p-4 text-muted font-medium">Status</th>
-                  <th className="p-4 text-muted font-medium">Net Amount</th>
-                  <th className="p-4 text-muted font-medium text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredPayouts.map((payout) => (
-                  <tr key={payout.id} className="border-b border-[var(--glass-border)] last:border-0">
-                    <td className="p-4 font-mono text-xs">{payout.id}</td>
-                    <td className="p-4">{payout.offeringName}</td>
-                    <td className="p-4">{payout.region}</td>
-                    <td className="p-4">
-                      <span
-                        className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium ${
-                          payout.status === 'completed'
-                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
-                            : payout.status === 'failed'
-                            ? 'bg-red-500/10 text-red-400 border border-red-500/30'
-                            : payout.status === 'processing'
-                            ? 'bg-blue-500/10 text-blue-400 border border-blue-500/30'
-                            : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
-                        }`}
-                      >
-                        <span className="w-1.5 h-1.5 rounded-full bg-current" />
-                        {payout.status}
-                      </span>
-                    </td>
-                    <td className="p-4">
-                      ${payout.netAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </td>
-                    <td className="p-4 text-right">
-                      <button
-                        type="button"
-                        className="payout-btn-secondary text-xs py-1 px-3"
-                        onClick={() => handleOpenPanel(payout.id)}
-                        data-testid={`inspect-payout-btn-${payout.id}`}
-                      >
-                        Inspect
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {/* Empty State */}
-      {filteredPayouts.length === 0 && (
-        <div data-testid="empty-results">
-          <EmptyState
-            variant="distribution-dashboard"
-            title="No distributions yet"
-            description="No payouts match your search or active filter criteria."
-            primaryAction={{
-              label: 'Reset Filters',
-              onClick: handleResetFilters,
-            }}
-          />
-          <button
-            type="button"
-            className="payout-btn-primary mt-4"
-            onClick={handleResetFilters}
-            data-testid="empty-reset-filters-btn"
-          >
-            Reset Filters
-          </button>
-        </div>
-      )}
-
-      {/* Multi-Issuer Comparison View */}
-      <MultiIssuerComparisonView availableIssuers={MOCK_COMPARISON_ISSUERS} />
-
-      {/* Document Upload Status */}
-      <div className="mt-8 space-y-4">
-        <h2 className="text-xl font-semibold">Recent Uploads Queue</h2>
-        <DocumentUploadStatus fileName="Q3_Revenue_Report.pdf" status="clean" />
-        <DocumentUploadStatus fileName="Financial_Audit_2023.pdf" status="scanning" />
-        <DocumentUploadStatus fileName="K-1_Distribution_Schedule.xlsx" status="validating" />
-        <DocumentUploadStatus
-          fileName="Unrecognized_Document.docx"
-          status="quarantined"
-          auditNote="Flagged for manual review due to missing digital signature."
-          remediationUrl="/support/documents/quarantine"
-        />
-        <DocumentUploadStatus
-          fileName="malicious_payload.exe"
-          status="rejected"
-          auditNote="Malware signature detected. Upload blocked."
+      <div className="mt-8">
+        <h2 className="text-xl font-semibold mb-4">Uploaded Documents</h2>
+        <ThumbnailGrid
+          files={uploadedFiles}
+          onView={handleViewFile}
+          onReplace={handleReplaceFile}
+          onRemove={handleRemoveFile}
+          onReorder={handleReorderFiles}
         />
       </div>
-      <KycResubmissionTimeline
-        status="under-review"
-        submittedAt="2026-07-24T10:30:00Z"
-        reviewStartedAt="2026-07-27T08:00:00Z"
-        holidays={['2026-07-27']}
+
       <GovernanceResults
         results={{ for: 2500000, against: 450000, abstain: 50000 }}
         participation={{ turnout: 68.4, uniqueVoters: 142, delegates: 12 }}

@@ -4,7 +4,7 @@ import { PasswordStrength } from '../components/PasswordStrength';
 import { evaluatePasswordStrength } from '../utils/passwordStrength';
 import { Mail, Lock, User, Briefcase, TrendingUp, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Button } from '../components/Button';
+import ConfirmationNextSteps from '../components/ConfirmationNextSteps';
 
 type Step = 'persona' | 'form' | 'success';
 
@@ -54,20 +54,19 @@ export const Signup: React.FC = () => {
   if (step === 'success') {
     return (
       <AuthLayout title="Check your inbox">
-        <div className="text-center space-y-6">
-          <div className="flex justify-center">
-            <div className="w-16 h-16 rounded-full bg-[rgba(16,185,129,0.1)] flex items-center justify-center text-success border border-[rgba(16,185,129,0.2)]">
-              <Mail size={32} />
-            </div>
-          </div>
-          <p className="text-muted">
-            We've sent a verification link to <span className="text-main font-medium">{email}</span>. 
-            Please click the link to verify your account and get started.
-          </p>
-          <button onClick={() => setStep('persona')} className="btn btn--secondary btn--block btn--md">
-            Back to persona selection
-          </button>
-        </div>
+        <ConfirmationNextSteps
+          email={email}
+          title="Check your inbox"
+          onResend={async (e) => {
+            // mock resend -- wire to API
+            console.log('Resend verification for:', e);
+            return new Promise<void>((res) => setTimeout(res, 600));
+          }}
+          onChangeEmail={() => setStep('form')}
+          primaryLabel="Back to persona selection"
+          onPrimary={() => setStep('persona')}
+          primaryTo={undefined}
+        />
       </AuthLayout>
     );
   }

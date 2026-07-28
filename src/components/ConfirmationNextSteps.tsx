@@ -100,12 +100,12 @@ export const ConfirmationNextSteps: React.FC<Props> = ({
 
         {primaryTo ? (
           <Link to={primaryTo} className="btn-primary w-full inline-flex items-center justify-center focus-ring" aria-label={primaryLabel} onClick={onPrimary}>
-            <ArrowLeft size={16} className="mr-2 icon-rtl" />
+            <ArrowLeft size={16} className="mr-2" />
             {primaryLabel}
           </Link>
         ) : (
           <button type="button" onClick={onPrimary} className="btn-primary w-full inline-flex items-center justify-center focus-ring" aria-label={primaryLabel}>
-            <ArrowLeft size={16} className="mr-2 icon-rtl" />
+            <ArrowLeft size={16} className="mr-2" />
             {primaryLabel}
           </button>
         )}

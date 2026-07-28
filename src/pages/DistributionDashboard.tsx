@@ -5,6 +5,7 @@ import { KycResubmissionTimeline } from '../components/KycResubmissionTimeline';
 import { GovernanceResults } from '../components/designSystem/GovernanceResults';
 import { ThumbnailGrid, ThumbnailFile } from '../components/ThumbnailGrid/ThumbnailGrid';
 import { DocumentUploadStatus } from '../components/DocumentUploadStatus';
+import { TokenSupplyBlock } from '../components/TokenSupplyBlock/TokenSupplyBlock';
 
 export const DistributionDashboard: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -276,6 +277,11 @@ export const DistributionDashboard: React.FC = () => {
         onFilterChange={updateFiltersAndUrl}
         onResetFilters={handleResetFilters}
       />
+
+      {/* Token Supply Configuration */}
+      <div className="mt-8">
+        <TokenSupplyBlock />
+      </div>
 
       {/* KPI Summary Cards */}
       <div

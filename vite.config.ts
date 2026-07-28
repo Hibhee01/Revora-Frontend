@@ -32,6 +32,8 @@ export default defineConfig({
         'src/components/DensityProvider/DensityProvider.tsx',
         'src/components/DensityToggle/DensityToggle.tsx',
         'src/hooks/useDensity.ts',
+        // Issue #271 – Wizard stepper RTL mirror
+        'src/components/WizardStepper/WizardStepper.tsx',
       ],
       thresholds: {
         'src/components/DensityProvider/DensityProvider.tsx': {
@@ -41,6 +43,9 @@ export default defineConfig({
           branches: 95, functions: 95, lines: 95, statements: 95,
         },
         'src/hooks/useDensity.ts': {
+          branches: 95, functions: 95, lines: 95, statements: 95,
+        },
+        'src/components/WizardStepper/WizardStepper.tsx': {
           branches: 95, functions: 95, lines: 95, statements: 95,
         },
         'src/components/InvestorDiscovery.tsx': {

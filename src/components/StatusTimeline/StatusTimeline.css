@@ -120,7 +120,12 @@
   top: calc(var(--st-marker-size) + 4px);
   bottom: calc(-1 * var(--st-gap) + 4px);
   width: var(--st-connector-width);
+  /* Logical centering: avoid physical translateX that breaks RTL */
   transform: translateX(-50%);
+}
+
+[dir="rtl"] .status-timeline--vertical .st-connector {
+  transform: translateX(50%);
 }
 
 .st-connector--completed {

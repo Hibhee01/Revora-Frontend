@@ -1,0 +1,227 @@
+/* WizardStepper — Issue #271 RTL mirror pass
+ *
+ * Layout uses CSS logical properties so the step row, connectors, and progress
+ * fill mirror automatically under `dir="rtl"`. Gradients (not logical) get an
+ * explicit RTL override. Numeric badges stay LTR via .wizard-stepper__num.
+ */
+
+.wizard-stepper {
+  --ws-marker-size: 1.75rem;
+  --ws-connector-height: 2px;
+  --ws-gap: var(--spacing-sm, 0.75rem);
+  --ws-completed: #10b981;
+  --ws-active: var(--primary, #3b82f6);
+  --ws-pending: rgba(148, 163, 184, 0.35);
+  --ws-track-bg: rgba(148, 163, 184, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm, 0.75rem);
+  width: 100%;
+  margin-block-end: var(--spacing-lg, 1.5rem);
+}
+
+/* ── Continuous progress track (fills from inline-start) ─────────── */
+
+.wizard-stepper__track {
+  width: 100%;
+  height: 4px;
+  border-radius: var(--radius-full, 9999px);
+  background: var(--ws-track-bg);
+  overflow: hidden;
+  position: relative;
+}
+
+.wizard-stepper__fill {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: var(--ws-progress, 0%);
+  max-width: 100%;
+  border-radius: inherit;
+  background: linear-gradient(
+    to right,
+    var(--ws-completed),
+    var(--ws-active)
+  );
+  transform-origin: left center;
+  transition: width 0.35s ease;
+}
+
+/* In RTL the fill still grows via width from the inline-start edge (right).
+   Mirror the gradient angle so the "leading" colour points toward progress. */
+[dir="rtl"] .wizard-stepper__fill {
+  background: linear-gradient(
+    to left,
+    var(--ws-completed),
+    var(--ws-active)
+  );
+  transform-origin: right center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wizard-stepper__fill {
+    transition: none;
+  }
+}
+
+/* ── Step list ───────────────────────────────────────────────────── */
+
+.wizard-stepper__list {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 0;
+  width: 100%;
+}
+
+.wizard-stepper__item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+}
+
+/* ── Marker (circle) ─────────────────────────────────────────────── */
+
+.wizard-stepper__marker {
+  width: var(--ws-marker-size);
+  height: var(--ws-marker-size);
+  border-radius: var(--radius-full, 9999px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-xs, 0.75rem);
+  font-weight: var(--font-weight-semibold, 600);
+  z-index: 2;
+  border: 2px solid var(--ws-pending);
+  background: var(--bg-elevated, #0f172a);
+  color: var(--text-muted, #94a3b8);
+  transition: background 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+}
+
+.wizard-stepper__item--completed .wizard-stepper__marker {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: var(--ws-completed);
+  color: var(--ws-completed);
+}
+
+.wizard-stepper__item--active .wizard-stepper__marker {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: var(--ws-active);
+  color: var(--ws-active);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+}
+
+/* ── Numeric labels: always LTR (Unicode bidi) ───────────────────── */
+
+.wizard-stepper__num {
+  direction: ltr;
+  unicode-bidi: isolate;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Connectors between markers ────────────────────────────────────
+   Positioned with inset-inline-* so the segment sits between this
+   marker and the next in both LTR and RTL without DOM reversal. */
+
+.wizard-stepper__connector {
+  position: absolute;
+  top: calc(var(--ws-marker-size) / 2);
+  inset-inline-start: calc(50% + var(--ws-marker-size) / 2 + 2px);
+  inset-inline-end: calc(-50% + var(--ws-marker-size) / 2 + 2px);
+  height: var(--ws-connector-height);
+  transform: translateY(-50%);
+  z-index: 1;
+  border-radius: var(--radius-full, 9999px);
+  background: var(--ws-pending);
+}
+
+.wizard-stepper__connector--completed {
+  background: var(--ws-completed);
+}
+
+/* Active connector: gradient flows toward the next (pending) step.
+   LTR: completed colour on the left → active on the right.
+   RTL: mirror angle (to left) so the active colour still leads. */
+.wizard-stepper__connector--active {
+  background: linear-gradient(
+    to right,
+    var(--ws-completed),
+    var(--ws-active)
+  );
+}
+
+[dir="rtl"] .wizard-stepper__connector--active {
+  background: linear-gradient(
+    to left,
+    var(--ws-completed),
+    var(--ws-active)
+  );
+}
+
+.wizard-stepper__connector--pending {
+  background: var(--ws-pending);
+}
+
+/* ── Labels ──────────────────────────────────────────────────────── */
+
+.wizard-stepper__label {
+  margin-block-start: var(--spacing-xs, 0.5rem);
+  font-size: var(--font-size-xs, 0.75rem);
+  font-weight: var(--font-weight-medium, 500);
+  color: var(--text-muted, #94a3b8);
+  line-height: 1.3;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  /* Mixed-direction titles: let Unicode bidi algorithm resolve per locale */
+  unicode-bidi: plaintext;
+}
+
+.wizard-stepper__item--active .wizard-stepper__label {
+  color: var(--text-main, #e2e8f0);
+  font-weight: var(--font-weight-semibold, 600);
+}
+
+.wizard-stepper__item--completed .wizard-stepper__label {
+  color: var(--text-main, #e2e8f0);
+}
+
+.wizard-stepper__status {
+  margin: 0;
+  font-size: var(--font-size-sm, 0.875rem);
+  color: var(--text-muted, #94a3b8);
+  text-align: start;
+}
+
+/* ── Mobile: compact markers, hide per-step labels ───────────────── */
+
+@media (max-width: 640px) {
+  .wizard-stepper {
+    --ws-marker-size: 1.5rem;
+  }
+
+  .wizard-stepper__label {
+    display: none;
+  }
+
+  .wizard-stepper__status {
+    font-size: var(--font-size-xs, 0.75rem);
+  }
+}
+
+/* ── AppShell-hosted wizards: slightly tighter spacing ───────────── */
+
+.app-shell .wizard-stepper,
+.appshell .wizard-stepper {
+  margin-block-end: var(--spacing-md, 1rem);
+}

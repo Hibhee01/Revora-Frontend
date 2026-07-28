@@ -30,16 +30,20 @@ beforeEach(() => {
 // ─── Step indicator ───────────────────────────────────────────────────────────
 
 describe('Step indicator', () => {
+  function statusEl() {
+    return screen.getByTestId('wizard-stepper').querySelector('.wizard-stepper__status');
+  }
+
   it('shows step 1 as active on mount', () => {
     renderSetup();
-    expect(screen.getByText(/step 1 of 5/i)).toBeInTheDocument();
+    expect(statusEl()).toHaveTextContent(/step 1 of 5/i);
   });
 
   it('updates live region when step advances', async () => {
     const user = userEvent.setup();
     renderSetup();
     await user.click(screen.getByRole('button', { name: /authenticator app/i }));
-    expect(screen.getByText(/step 2 of 5/i)).toBeInTheDocument();
+    expect(statusEl()).toHaveTextContent(/step 2 of 5/i);
   });
 });
 
@@ -412,8 +416,13 @@ describe('Accessibility', () => {
 
   it('step list items have sr-only step info', () => {
     renderSetup();
-    const srItems = screen.getAllByText(/step \d+:/i);
-    expect(srItems.length).toBeGreaterThanOrEqual(5);
+    const srItems = screen
+      .getByTestId('wizard-stepper')
+      .querySelectorAll('.wizard-stepper__item .sr-only');
+    expect(srItems.length).toBe(5);
+    srItems.forEach((el, index) => {
+      expect(el).toHaveTextContent(new RegExp(`step ${index + 1}:`, 'i'));
+    });
   });
 
   it('cancel button has explicit aria-label', () => {

@@ -1001,6 +1001,9 @@ input:focus-visible,
   border-radius: var(--radius-full);
   overflow: hidden;
   position: relative;
+  display: flex;
+  justify-content: flex-start; /* physical fallback */
+  justify-content: start; /* logical: pack toward inline-start (right in RTL) */
 }
 
 .progress-bar-fill {
@@ -1008,6 +1011,12 @@ input:focus-visible,
   border-radius: var(--radius-full);
   background: var(--primary);
   transition: width 0.2s ease-out;
+  flex-shrink: 0;
+  transform-origin: left center;
+}
+
+[dir="rtl"] .progress-bar-fill {
+  transform-origin: right center;
 }
 
 .progress-bar-indeterminate {
@@ -1078,4 +1087,4 @@ input:focus-visible,
 .skeleton-rect {
   width: 100%;
   height: 10rem;
-}
+}

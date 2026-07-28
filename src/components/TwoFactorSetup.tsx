@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Button } from './Button';
 import { FormError } from './FormError';
+import { WizardStepper, type WizardStep } from './WizardStepper';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -55,34 +56,24 @@ const STEP_LABELS: Record<Step, string> = {
 };
 const TOTAL_STEPS = 5;
 
+const WIZARD_STEPS: WizardStep[] = (
+  Object.keys(STEP_LABELS) as unknown as Step[]
+).map((s) => {
+  const step = Number(s) as Step;
+  return { id: `tfa-step-${step}`, label: STEP_LABELS[step], number: step };
+});
+
 interface StepIndicatorProps {
   current: Step;
 }
 
 const StepIndicator: React.FC<StepIndicatorProps> = ({ current }) => (
-  <nav aria-label="Setup progress" className="tfa-steps">
-    <ol className="tfa-steps__list">
-      {(Object.keys(STEP_LABELS) as unknown as Step[]).map((s) => {
-        const step = Number(s) as Step;
-        const state =
-          step < current ? 'completed' : step === current ? 'active' : 'pending';
-        return (
-          <li key={step} className={`tfa-steps__item tfa-steps__item--${state}`}>
-            <span className="tfa-steps__dot" aria-hidden="true">
-              {state === 'completed' ? <Check size={10} /> : step}
-            </span>
-            <span className="sr-only">
-              Step {step}: {STEP_LABELS[step]}{' '}
-              {state === 'completed' ? '(completed)' : state === 'active' ? '(current)' : ''}
-            </span>
-          </li>
-        );
-      })}
-    </ol>
-    <p className="tfa-steps__label" aria-live="polite">
-      Step {current} of {TOTAL_STEPS}: {STEP_LABELS[current]}
-    </p>
-  </nav>
+  <WizardStepper
+    steps={WIZARD_STEPS}
+    currentIndex={current - 1}
+    ariaLabel="Setup progress"
+    showProgressTrack
+  />
 );
 
 // ─── Step 1: Choose method ────────────────────────────────────────────────────
@@ -112,7 +103,7 @@ const Step1: React.FC<Step1Props> = ({ onSelect }) => (
             Use Google Authenticator, Authy, or any TOTP-compatible app.
           </span>
         </div>
-        <ChevronRight size={18} className="text-muted flex-shrink-0" aria-hidden="true" />
+        <ChevronRight size={18} className="text-muted flex-shrink-0 icon-rtl" aria-hidden="true" />
       </button>
 
       <button
@@ -130,7 +121,7 @@ const Step1: React.FC<Step1Props> = ({ onSelect }) => (
             Receive a one-time code via text message. Requires a mobile number.
           </span>
         </div>
-        <ChevronRight size={18} className="text-muted flex-shrink-0" aria-hidden="true" />
+        <ChevronRight size={18} className="text-muted flex-shrink-0 icon-rtl" aria-hidden="true" />
       </button>
     </div>
   </div>

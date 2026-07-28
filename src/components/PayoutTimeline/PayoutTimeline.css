@@ -1,0 +1,362 @@
+/* PayoutTimeline — Issue #272 RTL mirror pass
+ *
+ * Chronological document order is preserved. Layout, today marker, tooltips,
+ * and scroll behaviour mirror under `dir="rtl"` via logical properties and
+ * explicit RTL overrides for non-logical bits (gradients, physical arrows).
+ */
+
+.payout-timeline {
+  --pt-marker: 0.875rem;
+  --pt-line: 2px;
+  --pt-paid: #10b981;
+  --pt-scheduled: var(--primary, #3b82f6);
+  --pt-processing: #f59e0b;
+  --pt-missed: #ef4444;
+  --pt-pending: rgba(148, 163, 184, 0.35);
+  --pt-track-min: 48rem;
+  --pt-today: #f472b6;
+  width: 100%;
+}
+
+/* Scrollport: inherits page `dir` so overflow-x scrolls toward inline-start
+   (left in LTR, right in RTL). Keyboard focusable for a11y. */
+.payout-timeline__scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  width: 100%;
+  padding-block: var(--spacing-md, 1rem) var(--spacing-sm, 0.75rem);
+  scroll-behavior: smooth;
+  outline: none;
+}
+
+.payout-timeline__scroll:focus-visible {
+  box-shadow: 0 0 0 2px var(--primary, #3b82f6);
+  border-radius: var(--radius-md, 0.5rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .payout-timeline__scroll {
+    scroll-behavior: auto;
+  }
+}
+
+.payout-timeline__track {
+  position: relative;
+  min-width: var(--pt-track-min);
+  padding-block-start: 2.75rem; /* room for tooltips above */
+  padding-block-end: 0.5rem;
+}
+
+.payout-timeline__list {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  position: relative;
+  z-index: 1;
+}
+
+.payout-timeline__item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1 0 0;
+  min-width: 7rem;
+  text-align: center;
+  padding-inline: 0.25rem;
+}
+
+/* Very long durations / many events: allow items to grow the scroll width */
+.payout-timeline__item:nth-child(n + 8) {
+  flex: 0 0 7.5rem;
+}
+
+.payout-timeline__marker {
+  width: calc(var(--pt-marker) + 1.25rem);
+  height: calc(var(--pt-marker) + 1.25rem);
+  border: none;
+  background: transparent;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: var(--radius-full, 9999px);
+  z-index: 2;
+}
+
+.payout-timeline__marker:focus-visible {
+  outline: 2px solid var(--primary, #3b82f6);
+  outline-offset: 2px;
+}
+
+.payout-timeline__dot {
+  width: var(--pt-marker);
+  height: var(--pt-marker);
+  border-radius: var(--radius-full, 9999px);
+  border: 2px solid var(--pt-pending);
+  background: var(--bg-elevated, #0f172a);
+  display: block;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.payout-timeline__item--paid .payout-timeline__dot {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: var(--pt-paid);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+}
+
+.payout-timeline__item--scheduled .payout-timeline__dot {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: var(--pt-scheduled);
+}
+
+.payout-timeline__item--processing .payout-timeline__dot {
+  background: rgba(245, 158, 11, 0.2);
+  border-color: var(--pt-processing);
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.12);
+}
+
+.payout-timeline__item--missed .payout-timeline__dot {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: var(--pt-missed);
+}
+
+/* Connectors use inset-inline so they mirror without DOM reversal */
+.payout-timeline__connector {
+  position: absolute;
+  top: calc((var(--pt-marker) + 1.25rem) / 2);
+  inset-inline-start: calc(50% + var(--pt-marker) / 2 + 4px);
+  inset-inline-end: calc(-50% + var(--pt-marker) / 2 + 4px);
+  height: var(--pt-line);
+  transform: translateY(-50%);
+  background: var(--pt-pending);
+  z-index: 0;
+  border-radius: var(--radius-full, 9999px);
+}
+
+.payout-timeline__connector--paid {
+  background: var(--pt-paid);
+}
+
+.payout-timeline__connector--processing {
+  background: linear-gradient(to right, var(--pt-paid), var(--pt-processing));
+}
+
+[dir="rtl"] .payout-timeline__connector--processing {
+  background: linear-gradient(to left, var(--pt-paid), var(--pt-processing));
+}
+
+.payout-timeline__connector--scheduled {
+  background: linear-gradient(to right, var(--pt-scheduled), var(--pt-pending));
+}
+
+[dir="rtl"] .payout-timeline__connector--scheduled {
+  background: linear-gradient(to left, var(--pt-scheduled), var(--pt-pending));
+}
+
+.payout-timeline__connector--missed {
+  background: var(--pt-missed);
+}
+
+/* Dates: always LTR isolate (Unicode bidi) */
+.payout-timeline__date,
+.payout-timeline__num,
+.payout-timeline__tooltip-date,
+.payout-timeline__tooltip-amount {
+  direction: ltr;
+  unicode-bidi: isolate;
+  font-variant-numeric: tabular-nums;
+}
+
+.payout-timeline__date {
+  margin-block-start: var(--spacing-xs, 0.5rem);
+  font-size: var(--font-size-xs, 0.75rem);
+  color: var(--text-muted, #94a3b8);
+}
+
+.payout-timeline__label {
+  font-size: var(--font-size-xs, 0.75rem);
+  font-weight: var(--font-weight-medium, 500);
+  color: var(--text-main, #e2e8f0);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  unicode-bidi: plaintext;
+}
+
+/* ── Tooltips: RTL-first placement (prefer inline-start) ───────────
+   Default: sit above the marker, anchored toward inline-start so in RTL
+   the body opens toward the right (reading start) without clipping the
+   leading edge of the scrollport as often. */
+
+.payout-timeline__tooltip {
+  position: absolute;
+  bottom: calc(100% - 0.35rem);
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+  min-width: 9rem;
+  max-width: 14rem;
+  padding: 0.45rem 0.65rem;
+  border-radius: var(--radius-md, 0.5rem);
+  background: rgba(15, 23, 42, 0.96);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  text-align: start;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  z-index: 5;
+}
+
+[dir="rtl"] .payout-timeline__tooltip {
+  /* RTL-first: shift slightly toward inline-start (physical right) */
+  inset-inline-start: auto;
+  inset-inline-end: 0;
+  transform: none;
+}
+
+.payout-timeline__marker:hover + .payout-timeline__tooltip,
+.payout-timeline__marker:focus-visible + .payout-timeline__tooltip,
+.payout-timeline__item:focus-within .payout-timeline__tooltip {
+  opacity: 1;
+}
+
+.payout-timeline__tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: rgba(148, 163, 184, 0.35);
+}
+
+[dir="rtl"] .payout-timeline__tooltip::after {
+  inset-inline-start: auto;
+  inset-inline-end: 1rem;
+  transform: none;
+}
+
+.payout-timeline__tooltip-date {
+  font-size: 0.7rem;
+  color: var(--text-muted, #94a3b8);
+}
+
+.payout-timeline__tooltip-label {
+  font-size: var(--font-size-xs, 0.75rem);
+  font-weight: 600;
+  color: var(--text-main, #e2e8f0);
+}
+
+.payout-timeline__tooltip-amount {
+  font-size: var(--font-size-sm, 0.875rem);
+  color: var(--pt-paid);
+  font-weight: 600;
+}
+
+.payout-timeline__tooltip-detail {
+  font-size: 0.7rem;
+  color: var(--text-muted, #94a3b8);
+  unicode-bidi: plaintext;
+}
+
+.payout-timeline__tooltip-status {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted, #94a3b8);
+}
+
+/* ── Today marker ──────────────────────────────────────────────────
+   Positioned with inset-inline-start so "now" sits from the reading-start
+   side of the track percentage (right in RTL). */
+
+.payout-timeline__today {
+  position: absolute;
+  inset-block-start: 0;
+  inset-block-end: 0;
+  inset-inline-start: var(--pt-today);
+  width: 0;
+  z-index: 3;
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+[dir="rtl"] .payout-timeline__today {
+  transform: translateX(50%);
+}
+
+.payout-timeline__today-line {
+  position: absolute;
+  inset-block-start: 1.5rem;
+  inset-block-end: 2.5rem;
+  inset-inline-start: 0;
+  width: 2px;
+  background: var(--pt-today);
+  opacity: 0.85;
+  box-shadow: 0 0 0 1px rgba(244, 114, 182, 0.25);
+}
+
+.payout-timeline__today-label {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--pt-today);
+  background: rgba(15, 23, 42, 0.9);
+  padding: 0.15rem 0.4rem;
+  border-radius: var(--radius-sm, 0.35rem);
+  border: 1px solid rgba(244, 114, 182, 0.35);
+}
+
+[dir="rtl"] .payout-timeline__today-label {
+  transform: translateX(50%);
+}
+
+/* Dark mode: tokens already dark-first; bump contrast for missed/today */
+@media (prefers-color-scheme: dark) {
+  .payout-timeline__tooltip {
+    background: rgba(2, 6, 23, 0.98);
+    border-color: rgba(148, 163, 184, 0.45);
+  }
+
+  .payout-timeline__today-line {
+    opacity: 1;
+  }
+}
+
+/* Explicit dark class used by some AppShell themes */
+[data-theme="dark"] .payout-timeline__tooltip,
+.dark .payout-timeline__tooltip {
+  background: rgba(2, 6, 23, 0.98);
+  border-color: rgba(148, 163, 184, 0.5);
+}
+
+/* Mobile: shorter track min-width, denser markers, still RTL-scrollable */
+@media (max-width: 640px) {
+  .payout-timeline {
+    --pt-track-min: 28rem;
+  }
+
+  .payout-timeline__item {
+    min-width: 5.5rem;
+  }
+
+  .payout-timeline__label {
+    font-size: 0.65rem;
+  }
+}

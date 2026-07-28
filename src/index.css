@@ -152,6 +152,17 @@
   --st-pending-border: rgba(148, 163, 184, 0.25);  /* ○ pending ring / connector        */
   --st-pending-fg: #94a3b8;                         /* ○ pending icon                    */
 
+  /* ─── Network Switcher Tokens (UIUX) ────────────────────────────── */
+  --ns-chip-bg: rgba(15, 23, 42, 0.7);
+  --ns-chip-border: rgba(148, 163, 184, 0.2);
+  --ns-warning-bg: rgba(245, 158, 11, 0.12);
+  --ns-warning-border: rgba(245, 158, 11, 0.4);
+  --ns-warning-fg: #f59e0b;
+  --ns-required-bg: rgba(16, 185, 129, 0.12);
+  --ns-required-border: rgba(16, 185, 129, 0.4);
+  --ns-required-fg: #10b981;
+
+
   /* ─── Density Mode Tokens (Issue #174) ───────────────────────────────
    * Three modes: comfortable (spacious), cozy (normal), compact.
    * Applied by setting data-density="comfortable|cozy|compact" on <html>.

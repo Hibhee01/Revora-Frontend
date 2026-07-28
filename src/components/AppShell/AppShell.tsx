@@ -4,12 +4,17 @@ import './AppShell.css';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import { KeyboardShortcutsOverlay } from '../KeyboardShortcutsOverlay/KeyboardShortcutsOverlay';
 import { DensityToggle } from '../DensityToggle';
+import {
+  NetworkSwitcherBadge,
+  ChainMismatchModal,
+  NetworkSwitcherProvider,
+} from '../NetworkSwitcher';
 
 interface AppShellProps {
   children: React.ReactNode;
 }
 
-const AppShell: React.FC<AppShellProps> = ({ children }) => {
+const AppShellContent: React.FC<AppShellProps> = ({ children }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const {
@@ -67,6 +72,9 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
 
           {/* Account & Notifications */}
           <div className="header-actions">
+            {/* Network Switcher Status Badge */}
+            <NetworkSwitcherBadge />
+
             <button className="notifications-btn" aria-label="Notifications">
               🔔
             </button>
@@ -144,7 +152,18 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
         isMac={isMac}
         isMobile={isMobile}
       />
+
+      {/* Network Switcher Chain Mismatch Modal */}
+      <ChainMismatchModal />
     </div>
+  );
+};
+
+export const AppShell: React.FC<AppShellProps> = (props) => {
+  return (
+    <NetworkSwitcherProvider>
+      <AppShellContent {...props} />
+    </NetworkSwitcherProvider>
   );
 };
 

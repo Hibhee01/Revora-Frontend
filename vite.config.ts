@@ -39,8 +39,51 @@ export default defineConfig({
         'src/components/designSystem/OnchainRejectionIllustration.tsx',
         'src/components/StatusTimeline/OnchainRejectionCard.tsx',
         'src/components/StatusTimeline/onchainRejectionCopy.ts',
+        // Network Switcher Mismatch Modal
+        'src/components/NetworkSwitcher/ChainMismatchModal.tsx',
+        'src/components/NetworkSwitcher/NetworkSwitcherBadge.tsx',
+        'src/components/NetworkSwitcher/NetworkSwitcherContext.tsx',
+        'src/hooks/useNetworkSwitcher.ts',
+        'src/constants/chains.ts',
+        'src/constants/walletCapabilities.ts',
       ],
       thresholds: {
+        'src/components/NetworkSwitcher/ChainMismatchModal.tsx': {
+          branches: 80,
+          functions: 95,
+          lines: 90,
+          statements: 90,
+        },
+        'src/components/NetworkSwitcher/NetworkSwitcherBadge.tsx': {
+          branches: 95,
+          functions: 95,
+          lines: 95,
+          statements: 95,
+        },
+        'src/components/NetworkSwitcher/NetworkSwitcherContext.tsx': {
+          branches: 80,
+          functions: 95,
+          lines: 95,
+          statements: 95,
+        },
+        'src/hooks/useNetworkSwitcher.ts': {
+          branches: 95,
+          functions: 95,
+          lines: 95,
+          statements: 95,
+        },
+        'src/constants/chains.ts': {
+          branches: 90,
+          functions: 95,
+          lines: 95,
+          statements: 95,
+        },
+        'src/constants/walletCapabilities.ts': {
+          branches: 90,
+          functions: 95,
+          lines: 95,
+          statements: 90,
+        },
         'src/components/designSystem/OnchainRejectionIllustration.tsx': {
           branches: 95,
           functions: 95,

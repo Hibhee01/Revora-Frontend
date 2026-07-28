@@ -1,5 +1,5 @@
-import React from 'react';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import React, { act } from 'react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { axe, toHaveNoViolations } from 'jest-axe';
 import { DistributionDashboard } from './DistributionDashboard';
@@ -22,10 +22,11 @@ describe('DistributionDashboard', () => {
     localStorage.clear();
   });
 
-  it('renders distribution dashboard header and KPI summary cards', () => {
+  it('renders distribution dashboard header, filter toolbar, and KPI summary cards', () => {
     renderWithRouter();
 
     expect(screen.getByRole('heading', { level: 1, name: /distribution dashboard/i })).toBeInTheDocument();
+    expect(screen.getByTestId('distribution-filter-toolbar')).toBeInTheDocument();
     expect(screen.getByTestId('kpi-total-distributed')).toBeInTheDocument();
     expect(screen.getByTestId('kpi-active-payouts')).toBeInTheDocument();
     expect(screen.getByTestId('kpi-gas-spent')).toBeInTheDocument();
@@ -38,40 +39,53 @@ describe('DistributionDashboard', () => {
     expect(screen.getByTestId('payout-table')).toBeInTheDocument();
     expect(screen.getByText('PO-2026-004')).toBeInTheDocument();
     expect(screen.getByText('Nexus Cloud Series A')).toBeInTheDocument();
+    expect(screen.getByText('North America')).toBeInTheDocument();
     expect(screen.getByText('PO-2026-003')).toBeInTheDocument();
-    expect(screen.getByText('AeroDynamics AI')).toBeInTheDocument();
+    expect(screen.getByText('Europe')).toBeInTheDocument();
   });
 
-  it('filters payout rows when typing into search input', () => {
+  it('filters payout rows when typing into toolbar search input', () => {
     renderWithRouter();
 
-    const searchInput = screen.getByTestId('payout-dashboard-search');
+    const searchInput = screen.getByTestId('filter-search-input');
     fireEvent.change(searchInput, { target: { value: 'AeroDynamics' } });
 
     expect(screen.getByText('PO-2026-003')).toBeInTheDocument();
     expect(screen.queryByText('PO-2026-004')).not.toBeInTheDocument();
   });
 
-  it('filters payout rows when selecting status from dropdown', () => {
+  it('renders segmented comparison view when Compare Mode toggle is activated', () => {
     renderWithRouter();
 
-    const statusFilter = screen.getByTestId('payout-status-filter');
-    fireEvent.change(statusFilter, { target: { value: 'failed' } });
+    expect(screen.queryByTestId('segmented-compare-container')).not.toBeInTheDocument();
 
-    expect(screen.getByText('PO-2026-003')).toBeInTheDocument();
-    expect(screen.queryByText('PO-2026-004')).not.toBeInTheDocument();
+    const compareToggle = screen.getByTestId('filter-compare-toggle');
+    fireEvent.click(compareToggle);
+
+    expect(screen.getByTestId('segmented-compare-container')).toBeInTheDocument();
   });
 
-  it('clears filters when clicking clear filters button in empty filter state', () => {
+  it('renders segmented comparison cards when segmentBy is selected', () => {
     renderWithRouter();
 
-    const searchInput = screen.getByTestId('payout-dashboard-search');
+    const segmentSelect = screen.getByTestId('filter-segment-select');
+    fireEvent.change(segmentSelect, { target: { value: 'region' } });
+
+    expect(screen.getByTestId('segmented-compare-container')).toBeInTheDocument();
+    expect(screen.getByTestId('segmented-card-North America')).toBeInTheDocument();
+    expect(screen.getByTestId('segmented-card-Europe')).toBeInTheDocument();
+  });
+
+  it('clears filters when clicking clear all filters button in empty results view', () => {
+    renderWithRouter();
+
+    const searchInput = screen.getByTestId('filter-search-input');
     fireEvent.change(searchInput, { target: { value: 'NonExistentPayout' } });
 
-    expect(screen.getByText('No payouts match your search or filter criteria.')).toBeInTheDocument();
+    expect(screen.getByText('No payouts match your search or active filter criteria.')).toBeInTheDocument();
 
-    const clearBtn = screen.getByRole('button', { name: /clear filters/i });
-    fireEvent.click(clearBtn);
+    const resetBtn = screen.getByTestId('empty-reset-filters-btn');
+    fireEvent.click(resetBtn);
 
     expect(screen.getByTestId('payout-table')).toBeInTheDocument();
   });

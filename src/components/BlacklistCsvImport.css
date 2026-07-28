@@ -1,0 +1,631 @@
+/**
+ * Blacklist CSV Import — Issue #207
+ *
+ * Styles for the CSV import wizard: Upload, Map, Preview, Confirm.
+ * Uses existing design-system tokens from index.css :root.
+ *
+ * Responsive breakpoints:
+ * - Desktop: ≥768px (side-by-side elements)
+ * - Mobile: <768px (stacked layout)
+ */
+
+/* ─── Design Tokens ─────────────────────────────────────────────── */
+
+:root {
+  /* Conflict colours */
+  --bci-conflict-existing: #f59e0b;
+  --bci-conflict-checksum: #ef4444;
+  --bci-conflict-duplicate: #8b5cf6;
+  --bci-clean: #10b981;
+
+  /* Wizard sizing */
+  --bci-max-w: 800px;
+}
+
+/* ─── Container ─────────────────────────────────────────────────── */
+
+.bci-container {
+  width: 100%;
+  max-width: var(--bci-max-w);
+  margin: 0 auto;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-xl);
+  backdrop-filter: var(--glass-blur);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-xl);
+}
+
+/* ─── Header ────────────────────────────────────────────────────── */
+
+.bci-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.bci-title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-main);
+  margin: 0;
+}
+
+.bci-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: 1px solid var(--glass-border);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.bci-close:hover {
+  background: rgba(148, 163, 184, 0.1);
+  color: var(--text-main);
+}
+
+.bci-close:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* ─── Step Indicator ────────────────────────────────────────────── */
+
+.bci-steps {
+  padding-bottom: var(--spacing-md);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.bci-steps-list {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: var(--spacing-xs);
+}
+
+.bci-step {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2xs);
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.bci-step--current {
+  color: var(--primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.bci-step--completed {
+  color: var(--bci-clean);
+}
+
+.bci-step-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--glass-border);
+  font-size: 0.625rem;
+  font-weight: var(--font-weight-bold);
+  flex-shrink: 0;
+}
+
+.bci-step--current .bci-step-number {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+.bci-step--completed .bci-step-number {
+  background: var(--bci-clean);
+  border-color: var(--bci-clean);
+  color: #fff;
+}
+
+/* ─── Content ───────────────────────────────────────────────────── */
+
+.bci-content {
+  min-height: 200px;
+}
+
+/* ─── Upload Step ───────────────────────────────────────────────── */
+
+.bci-upload {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.bci-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-3xl) var(--spacing-xl);
+  border: 2px dashed var(--glass-border);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+}
+
+.bci-dropzone:hover,
+.bci-dropzone--active {
+  border-color: var(--primary);
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.bci-dropzone:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.bci-upload-icon {
+  color: var(--text-muted);
+}
+
+.bci-upload-text {
+  font-size: var(--font-size-sm);
+  color: var(--text-main);
+  margin: 0;
+}
+
+.bci-upload-link {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.bci-upload-hint {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.bci-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.bci-upload-error {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2xs);
+  font-size: var(--font-size-xs);
+  color: var(--error, #ef4444);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: rgba(239, 68, 68, 0.1);
+  border-radius: var(--radius-sm);
+}
+
+/* ─── Map Step ──────────────────────────────────────────────────── */
+
+.bci-map {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.bci-map-description {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.bci-map-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-md);
+}
+
+@media (max-width: 600px) {
+  .bci-map-fields {
+    grid-template-columns: 1fr;
+  }
+}
+
+.bci-map-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2xs);
+}
+
+.bci-map-label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-main);
+}
+
+.bci-required {
+  color: var(--error, #ef4444);
+}
+
+.bci-map-optional {
+  color: var(--text-muted);
+  font-weight: var(--font-weight-normal);
+}
+
+.bci-map-select {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  background: var(--glass-bg-accent);
+  color: var(--text-main);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.bci-map-select:hover {
+  border-color: var(--glass-border-bright);
+}
+
+.bci-map-select:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+
+.bci-map-preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.bci-map-preview-label {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.bci-map-preview-headers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2xs);
+}
+
+.bci-map-preview-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: var(--spacing-2xs) var(--spacing-xs);
+  font-size: var(--font-size-xs);
+  background: var(--glass-bg-accent);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  color: var(--text-muted);
+}
+
+.bci-map-preview-chip--address {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.bci-map-preview-chip--checksum {
+  border-color: var(--bci-conflict-duplicate);
+  color: var(--bci-conflict-duplicate);
+  background: rgba(139, 92, 246, 0.1);
+}
+
+.bci-chip-icon {
+  flex-shrink: 0;
+}
+
+/* ─── Preview Step ──────────────────────────────────────────────── */
+
+.bci-preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.bci-preview-summary {
+  display: flex;
+  gap: var(--spacing-md);
+}
+
+.bci-preview-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--spacing-2xs);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--glass-bg-accent);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  min-width: 80px;
+}
+
+.bci-preview-stat-value {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-main);
+  line-height: 1;
+}
+
+.bci-preview-stat-label {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+.bci-preview-stat--clean .bci-preview-stat-value {
+  color: var(--bci-clean);
+}
+
+.bci-preview-stat--conflict .bci-preview-stat-value {
+  color: var(--bci-conflict-checksum);
+}
+
+/* Preview table */
+
+.bci-preview-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+}
+
+.bci-preview-table-wrap:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.bci-preview-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-xs);
+}
+
+.bci-preview-table th {
+  text-align: left;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--glass-border);
+  background: var(--glass-bg-accent);
+  white-space: nowrap;
+}
+
+.bci-preview-table td {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-bottom: 1px solid var(--glass-border);
+  color: var(--text-main);
+  vertical-align: middle;
+}
+
+.bci-tr--conflict {
+  background: rgba(239, 68, 68, 0.04);
+}
+
+.bci-td-row {
+  color: var(--text-muted);
+  width: 2.5rem;
+  text-align: center;
+}
+
+.bci-address-code,
+.bci-checksum-code {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.6875rem;
+  word-break: break-all;
+}
+
+.bci-no-data {
+  color: var(--text-muted);
+}
+
+/* Conflict badges */
+
+.bci-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: 0.625rem;
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+}
+
+.bci-badge--existing_entry {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+}
+
+.bci-badge--invalid_checksum {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.bci-badge--duplicate_row {
+  background: rgba(139, 92, 246, 0.15);
+  color: #8b5cf6;
+}
+
+.bci-badge--clean {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+
+/* Pagination */
+
+.bci-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+}
+
+.bci-pagination-info {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+/* ─── Confirm Step ──────────────────────────────────────────────── */
+
+.bci-confirm {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-lg);
+  text-align: center;
+}
+
+.bci-confirm-summary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.bci-confirm-icon {
+  color: var(--bci-clean);
+}
+
+.bci-confirm-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-main);
+  margin: 0;
+}
+
+.bci-confirm-description {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  margin: 0;
+  max-width: 400px;
+}
+
+.bci-confirm-warnings {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-md);
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  border-radius: var(--radius-md);
+  text-align: left;
+  max-width: 500px;
+  color: var(--bci-conflict-existing);
+}
+
+.bci-confirm-warnings p {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--text-main);
+}
+
+.bci-confirm-rollback {
+  padding: var(--spacing-md);
+  background: var(--glass-bg-accent);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  max-width: 500px;
+}
+
+.bci-rollback-text {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  margin: 0;
+  line-height: var(--line-height-normal);
+}
+
+.bci-confirm-btn {
+  margin-top: var(--spacing-sm);
+}
+
+/* ─── Footer ────────────────────────────────────────────────────── */
+
+.bci-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-sm);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--glass-border);
+}
+
+/* ─── RTL Support ───────────────────────────────────────────────── */
+
+[dir='rtl'] .bci-step {
+  flex-direction: row-reverse;
+}
+
+[dir='rtl'] .bci-confirm-warnings {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+/* ─── Reduced Motion ────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .bci-dropzone,
+  .bci-close,
+  .bci-map-select,
+  .bci-badge {
+    transition: none;
+  }
+}
+
+/* ─── High Contrast Mode ────────────────────────────────────────── */
+
+@media (forced-colors: active) {
+  .bci-dropzone {
+    border: 2px dashed ButtonText;
+  }
+
+  .bci-badge {
+    forced-color-adjust: none;
+  }
+
+  .bci-preview-table th {
+    border-bottom: 2px solid ButtonText;
+  }
+
+  .bci-preview-table td {
+    border-bottom: 1px solid ButtonText;
+  }
+}
+
+/* ─── Print Styles ──────────────────────────────────────────────── */
+
+@media print {
+  .bci-container {
+    box-shadow: none;
+    border: 1px solid #ccc;
+    padding: var(--spacing-md);
+  }
+
+  .bci-footer,
+  .bci-close,
+  .bci-pagination,
+  .bci-steps {
+    display: none;
+  }
+
+  .bci-badge {
+    border: 1px solid #333;
+  }
+}

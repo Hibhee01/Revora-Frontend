@@ -218,6 +218,13 @@
      motion-reduce:bg-red-700) to fall back to a static state. The static badge uses 
      a darker background (--bell-badge-bg-static) and a distinct ring (--bell-badge-ring-static) 
      to maintain at least a 3:1 contrast ratio against the header. */
+
+  /* ─── Chart Tooltip & Axis Tokens (Issue #268) ──────────────────────── */
+  --chart-tooltip-bg: #0f172a;                      /* Dark surface for tooltip */
+  --chart-tooltip-fg: #f8fafc;                      /* High contrast foreground */
+  --chart-tooltip-border: #334155;                  /* Visible border on dark surface */
+  --chart-axis-label-color: #94a3b8;                /* WCAG AA contrast for dark surfaces */
+  --chart-axis-label-size: 0.75rem;                 /* 12px for axis text */
 }
 
 /* ─── Density mode overrides ─────────────────────────────────────

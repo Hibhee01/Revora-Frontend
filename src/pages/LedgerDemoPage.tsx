@@ -143,6 +143,23 @@ export const LedgerDemoPage: React.FC = () => {
         pageSize={50}
         defaultDensity="normal"
         ariaLabel="Ledger entries table"
+        groupableColumns={[
+          { key: 'date', label: 'Date' },
+          { key: 'type', label: 'Type' },
+          { key: 'status', label: 'Status' }
+        ]}
+        renderGroupHeader={(value, items) => {
+          const totalAmount = items.reduce((sum, item) => sum + item.amount, 0);
+          return (
+            <span className="font-medium flex items-center gap-4">
+              <span>{value}</span>
+              <span className="text-muted text-sm">({items.length} items)</span>
+              <span className="text-sm font-mono bg-black/10 px-2 py-0.5 rounded ml-4">
+                Total: {totalAmount.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+              </span>
+            </span>
+          );
+        }}
       />
     </div>
   );

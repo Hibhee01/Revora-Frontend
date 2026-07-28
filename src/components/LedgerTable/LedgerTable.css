@@ -438,3 +438,43 @@
   outline: 2px solid var(--primary);
   outline-offset: -2px;
 }
+
+.lt-group-select {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--text-main);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+}
+
+.lt-row--group {
+  background-color: var(--glass-bg-accent);
+  cursor: pointer;
+}
+
+.lt-row--group:hover {
+  background-color: var(--glass-border-bright);
+}
+
+.lt-cell--group-header {
+  grid-column: 1 / -1;
+  padding-left: var(--spacing-md);
+  font-weight: var(--font-weight-medium);
+}
+
+.lt-group-toggle {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 0;
+}
+
+.lt-group-toggle:focus-visible {
+  outline: 2px solid var(--primary);
+  border-radius: 2px;
+}
+

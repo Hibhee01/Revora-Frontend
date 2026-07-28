@@ -1,0 +1,60 @@
+/* src/components/ActivityDateGroup.css */
+
+.activity-date-group {
+  /* Sticky behavior alongside app-shell header */
+  position: sticky;
+  top: 64px; /* Default offset based on app-shell header height */
+  z-index: 10;
+  
+  /* Background scrim for better contrast while scrolling */
+  background: linear-gradient(
+    to bottom,
+    var(--bg-color, #f9fafb) 0%,
+    transparent 100%
+  );
+  backdrop-filter: var(--glass-blur, blur(12px));
+  
+  padding: var(--spacing-md, 1rem) 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+/* Disable sticky below a threshold viewport height */
+@media (max-height: 600px) {
+  .activity-date-group {
+    position: static;
+  }
+}
+
+.activity-date-group .date-label {
+  /* Pill design */
+  display: inline-block;
+  padding: var(--spacing-xs, 0.5rem) var(--spacing-md, 1rem);
+  border-radius: var(--radius-full, 9999px);
+  font-size: var(--font-size-sm, 0.875rem);
+  font-weight: var(--font-weight-semibold, 600);
+  
+  /* Contrast tokens for themes */
+  color: var(--text-main, #1f2937);
+  background-color: var(--glass-bg, rgba(255, 255, 255, 0.85));
+  border: 1px solid var(--glass-border, rgba(229, 231, 235, 1));
+  box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.05));
+}
+
+@media (prefers-color-scheme: dark) {
+  .activity-date-group {
+    background: linear-gradient(
+      to bottom,
+      var(--bg-color, #020617) 0%,
+      transparent 100%
+    );
+  }
+  
+  .activity-date-group .date-label {
+    color: var(--text-main, #e5e7eb);
+    background-color: var(--glass-bg, rgba(15, 23, 42, 0.85));
+    border-color: var(--glass-border, rgba(148, 163, 184, 0.15));
+  }
+}

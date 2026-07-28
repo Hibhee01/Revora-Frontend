@@ -12,17 +12,38 @@ export interface Activity {
   description: string;
 }
 
-// Helper to group by date (YYYY-MM-DD)
+// Helper to group by date relative categories
 const groupByDate = (items: Activity[]) => {
   const groups: Record<string, Activity[]> = {};
+  
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+
   items.forEach(item => {
-    const date = new Date(item.timestamp).toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-    if (!groups[date]) groups[date] = [];
-    groups[date].push(item);
+    const itemDate = new Date(item.timestamp);
+    itemDate.setHours(0, 0, 0, 0);
+
+    const diffTime = now.getTime() - itemDate.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    let groupKey = '';
+    if (diffDays === 0) {
+      groupKey = 'Today';
+    } else if (diffDays === 1) {
+      groupKey = 'Yesterday';
+    } else if (diffDays <= 7) {
+      groupKey = 'This Week';
+    } else {
+      // For older items, use the actual date string
+      groupKey = new Date(item.timestamp).toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      });
+    }
+
+    if (!groups[groupKey]) groups[groupKey] = [];
+    groups[groupKey].push(item);
   });
   return groups;
 };

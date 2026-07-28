@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import ActivityItem from './ActivityItem';
 import ActivityDateGroup from './ActivityDateGroup';
 import { EmptyState } from './designSystem/EmptyState';
+import './ActivityFeed.css';
 
 // Mock data type
 export interface Activity {
@@ -10,6 +11,7 @@ export interface Activity {
   timestamp: string; // ISO string
   title: string;
   description: string;
+  isRead?: boolean;
 }
 
 // Helper to group by date relative categories
@@ -54,6 +56,10 @@ const ActivityFeed: React.FC = () => {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [showUndo, setShowUndo] = useState(false);
+  const [announcement, setAnnouncement] = useState('');
+  const previousActivitiesRef = useRef<Activity[]>([]);
+  const undoTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Simulate fetching data
   useEffect(() => {
@@ -71,6 +77,7 @@ const ActivityFeed: React.FC = () => {
           timestamp: now.toISOString(),
           title: `${type.charAt(0).toUpperCase() + type.slice(1)} Event ${i}`,
           description: `Description for ${type} event ${i}`,
+          isRead: i > 4, // First 5 items are unread
         };
       });
       // Simulate network latency
@@ -79,12 +86,45 @@ const ActivityFeed: React.FC = () => {
       setLoading(false);
     };
     fetchData();
+    
+    return () => {
+      if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
+    };
   }, []);
 
   const grouped = groupByDate(activities.slice(0, page * PAGE_SIZE));
   const dates = Object.keys(grouped);
 
   const loadMore = () => setPage(prev => prev + 1);
+
+  const hasUnread = activities.some(a => !a.isRead);
+
+  const handleMarkAllRead = () => {
+    previousActivitiesRef.current = activities;
+    setActivities(activities.map(a => ({ ...a, isRead: true })));
+    setShowUndo(true);
+    setAnnouncement('All activities marked as read.');
+    
+    if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
+    undoTimeoutRef.current = setTimeout(() => {
+      setShowUndo(false);
+    }, 10000);
+  };
+
+  const handleUndo = () => {
+    if (previousActivitiesRef.current.length > 0) {
+      setActivities(previousActivitiesRef.current);
+      setShowUndo(false);
+      setAnnouncement('Mark all read undone.');
+      if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
+    }
+  };
+
+  const handleMarkRead = (id: string) => {
+    setActivities(acts => acts.map(a => a.id === id ? { ...a, isRead: true } : a));
+    setAnnouncement('Activity marked as read.');
+    setShowUndo(false);
+  };
 
   if (loading) {
     return <div className="activity-feed-loading" aria-live="polite">Loading activity feed…</div>;
@@ -107,13 +147,31 @@ const ActivityFeed: React.FC = () => {
 
   return (
     <section className="activity-feed" aria-label="In‑app activity feed">
+      <div className="visually-hidden" aria-live="polite">{announcement}</div>
+      
+      <header className="activity-feed-header">
+        <h2 className="visually-hidden">Recent Activity</h2>
+        {hasUnread && (
+          <button className="mark-all-read-btn" onClick={handleMarkAllRead}>
+            Mark all read
+          </button>
+        )}
+      </header>
+
+      {showUndo && (
+        <div className="undo-banner" role="status">
+          <span>All activities marked as read.</span>
+          <button className="undo-btn" onClick={handleUndo}>Undo</button>
+        </div>
+      )}
+
       <ul role="list" className="activity-list">
         {dates.map(date => (
           <React.Fragment key={date}>
             <ActivityDateGroup date={date} />
             {grouped[date].map(item => (
               <li role="listitem" key={item.id}>
-                <ActivityItem activity={item} />
+                <ActivityItem activity={item} onMarkRead={handleMarkRead} />
               </li>
             ))}
           </React.Fragment>

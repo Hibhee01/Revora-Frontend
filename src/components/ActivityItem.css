@@ -1,0 +1,73 @@
+/* src/components/ActivityItem.css */
+
+.activity-item {
+  position: relative;
+  display: flex;
+  gap: var(--spacing-md, 1rem);
+  padding: var(--spacing-md, 1rem);
+  align-items: flex-start;
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.activity-item-indicator {
+  width: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding-top: 6px;
+}
+
+.unread-dot {
+  width: 8px;
+  height: 8px;
+  background-color: var(--primary, #3b82f6);
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.activity-item.unread {
+  background-color: var(--glass-bg-accent, rgba(30, 41, 59, 0.5));
+}
+
+.activity-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--spacing-xs, 0.5rem);
+  margin-left: auto;
+}
+
+.mark-read-btn {
+  opacity: 0;
+  background: var(--primary, #3b82f6);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm, 6px);
+  padding: var(--spacing-3xs, 0.25rem) var(--spacing-xs, 0.5rem);
+  font-size: var(--font-size-xs, 0.75rem);
+  cursor: pointer;
+  transition: opacity 0.2s, background-color 0.2s;
+}
+
+.mark-read-btn:hover {
+  background: var(--primary-hover, #2563eb);
+}
+
+.mark-read-btn:focus-visible {
+  opacity: 1;
+  outline: 2px solid var(--primary, #3b82f6);
+  outline-offset: 2px;
+}
+
+.activity-item:hover .mark-read-btn,
+.activity-item:focus-within .mark-read-btn {
+  opacity: 1;
+}
+
+/* Fallbacks for mobile devices - always show the button if unread */
+@media (hover: none) {
+  .mark-read-btn {
+    opacity: 1;
+  }
+}

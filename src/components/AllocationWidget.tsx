@@ -15,16 +15,16 @@ interface AllocationWidgetProps {
   __initialView?: "donut" | "bar";
 }
 
-// Accessible colour palette — sufficient contrast on dark backgrounds
+// Accessible categorical chart palette — guaranteed >= 3:1 contrast on dark surfaces
 const SLICE_COLOURS = [
-  "#3b82f6", // blue   (--primary)
-  "#10b981", // emerald
-  "#f59e0b", // amber
-  "#8b5cf6", // violet
-  "#ef4444", // red
-  "#06b6d4", // cyan
-  "#f97316", // orange
-  "#ec4899", // pink
+  "var(--chart-cat-1, #60a5fa)", // blue
+  "var(--chart-cat-2, #34d399)", // emerald
+  "var(--chart-cat-3, #fbbf24)", // amber
+  "var(--chart-cat-4, #a78bfa)", // violet
+  "var(--chart-cat-5, #f87171)", // rose
+  "var(--chart-cat-6, #22d3ee)", // cyan
+  "var(--chart-cat-7, #fb923c)", // orange
+  "var(--chart-cat-8, #f472b6)", // pink
 ];
 
 function DonutChart({ slices }: { slices: AllocationSlice[] }) {

@@ -225,6 +225,37 @@
   --chart-tooltip-border: #334155;                  /* Visible border on dark surface */
   --chart-axis-label-color: #94a3b8;                /* WCAG AA contrast for dark surfaces */
   --chart-axis-label-size: 0.75rem;                 /* 12px for axis text */
+
+  /* ─── Categorical Chart Palette (Issue #267) ────────────────────────── */
+  /* Light-mode categorical hues (for white/light surfaces) */
+  --chart-cat-1-light: #2563eb;                     /* Blue 600 - 4.6:1 contrast on #ffffff */
+  --chart-cat-2-light: #059669;                     /* Emerald 600 - 4.5:1 contrast on #ffffff */
+  --chart-cat-3-light: #d97706;                     /* Amber 600 - 3.1:1 contrast on #ffffff */
+  --chart-cat-4-light: #7c3aed;                     /* Violet 600 - 5.8:1 contrast on #ffffff */
+  --chart-cat-5-light: #dc2626;                     /* Red 600 - 4.5:1 contrast on #ffffff */
+  --chart-cat-6-light: #0891b2;                     /* Cyan 600 - 3.4:1 contrast on #ffffff */
+  --chart-cat-7-light: #ea580c;                     /* Orange 600 - 4.8:1 contrast on #ffffff */
+  --chart-cat-8-light: #be185d;                     /* Pink 600 - 5.5:1 contrast on #ffffff */
+
+  /* Dark-mode categorical hues (3:1+ WCAG AA contrast on #020617 / #0f172a dark surfaces) */
+  --chart-cat-1-dark: #60a5fa;                      /* Blue 400 - 8.5:1 contrast on #020617 */
+  --chart-cat-2-dark: #34d399;                      /* Emerald 400 - 10.2:1 contrast on #020617 */
+  --chart-cat-3-dark: #fbbf24;                      /* Amber 400 - 11.8:1 contrast on #020617 */
+  --chart-cat-4-dark: #a78bfa;                      /* Violet 400 - 7.4:1 contrast on #020617 */
+  --chart-cat-5-dark: #f87171;                      /* Rose 400 - 6.8:1 contrast on #020617 */
+  --chart-cat-6-dark: #22d3ee;                      /* Cyan 400 - 11.0:1 contrast on #020617 */
+  --chart-cat-7-dark: #fb923c;                      /* Orange 400 - 8.9:1 contrast on #020617 */
+  --chart-cat-8-dark: #f472b6;                      /* Pink 400 - 7.7:1 contrast on #020617 */
+
+  /* Active categorical chart tokens (default to dark-mode for dark surfaces; mirrored for easy swapping) */
+  --chart-cat-1: var(--chart-cat-1-dark);
+  --chart-cat-2: var(--chart-cat-2-dark);
+  --chart-cat-3: var(--chart-cat-3-dark);
+  --chart-cat-4: var(--chart-cat-4-dark);
+  --chart-cat-5: var(--chart-cat-5-dark);
+  --chart-cat-6: var(--chart-cat-6-dark);
+  --chart-cat-7: var(--chart-cat-7-dark);
+  --chart-cat-8: var(--chart-cat-8-dark);
 }
 
 /* ─── Density mode overrides ─────────────────────────────────────

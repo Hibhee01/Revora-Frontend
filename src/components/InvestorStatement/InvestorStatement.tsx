@@ -40,8 +40,14 @@ const formatCurrency = (value: number, currency = "USD"): string =>
   });
 
 const SLICE_COLOURS = [
-  "#3b82f6", "#10b981", "#f59e0b", "#8b5cf6",
-  "#ef4444", "#06b6d4", "#f97316", "#ec4899",
+  "var(--chart-cat-1, #60a5fa)",
+  "var(--chart-cat-2, #34d399)",
+  "var(--chart-cat-3, #fbbf24)",
+  "var(--chart-cat-4, #a78bfa)",
+  "var(--chart-cat-5, #f87171)",
+  "var(--chart-cat-6, #22d3ee)",
+  "var(--chart-cat-7, #fb923c)",
+  "var(--chart-cat-8, #f472b6)",
 ];
 
 // ─── PDF/UA Compliant Investor Statement Component ─────────────────────────

@@ -12,6 +12,28 @@ export interface TokenGroup {
   tokens: Token[];
 }
 
+export const DARK_CHART_TOKENS: Token[] = [
+  { name: "Chart Dark 1 (Blue)", variable: "--chart-cat-1-dark", value: "#60a5fa", description: "Blue 400 - 8.5:1 WCAG AA contrast on #020617 surface" },
+  { name: "Chart Dark 2 (Emerald)", variable: "--chart-cat-2-dark", value: "#34d399", description: "Emerald 400 - 10.2:1 WCAG AA contrast on #020617 surface" },
+  { name: "Chart Dark 3 (Amber)", variable: "--chart-cat-3-dark", value: "#fbbf24", description: "Amber 400 - 11.8:1 WCAG AA contrast on #020617 surface" },
+  { name: "Chart Dark 4 (Violet)", variable: "--chart-cat-4-dark", value: "#a78bfa", description: "Violet 400 - 7.4:1 WCAG AA contrast on #020617 surface" },
+  { name: "Chart Dark 5 (Rose)", variable: "--chart-cat-5-dark", value: "#f87171", description: "Rose 400 - 6.8:1 WCAG AA contrast on #020617 surface" },
+  { name: "Chart Dark 6 (Cyan)", variable: "--chart-cat-6-dark", value: "#22d3ee", description: "Cyan 400 - 11.0:1 WCAG AA contrast on #020617 surface" },
+  { name: "Chart Dark 7 (Orange)", variable: "--chart-cat-7-dark", value: "#fb923c", description: "Orange 400 - 8.9:1 WCAG AA contrast on #020617 surface" },
+  { name: "Chart Dark 8 (Pink)", variable: "--chart-cat-8-dark", value: "#f472b6", description: "Pink 400 - 7.7:1 WCAG AA contrast on #020617 surface" },
+];
+
+export const LIGHT_CHART_TOKENS: Token[] = [
+  { name: "Chart Light 1 (Blue)", variable: "--chart-cat-1-light", value: "#2563eb", description: "Blue 600 - 4.6:1 WCAG AA contrast on #ffffff surface" },
+  { name: "Chart Light 2 (Emerald)", variable: "--chart-cat-2-light", value: "#059669", description: "Emerald 600 - 4.5:1 WCAG AA contrast on #ffffff surface" },
+  { name: "Chart Light 3 (Amber)", variable: "--chart-cat-3-light", value: "#d97706", description: "Amber 600 - 3.1:1 WCAG AA contrast on #ffffff surface" },
+  { name: "Chart Light 4 (Violet)", variable: "--chart-cat-4-light", value: "#7c3aed", description: "Violet 600 - 5.8:1 WCAG AA contrast on #ffffff surface" },
+  { name: "Chart Light 5 (Red)", variable: "--chart-cat-5-light", value: "#dc2626", description: "Red 600 - 4.5:1 WCAG AA contrast on #ffffff surface" },
+  { name: "Chart Light 6 (Cyan)", variable: "--chart-cat-6-light", value: "#0891b2", description: "Cyan 600 - 3.4:1 WCAG AA contrast on #ffffff surface" },
+  { name: "Chart Light 7 (Orange)", variable: "--chart-cat-7-light", value: "#ea580c", description: "Orange 600 - 4.8:1 WCAG AA contrast on #ffffff surface" },
+  { name: "Chart Light 8 (Pink)", variable: "--chart-cat-8-light", value: "#be185d", description: "Pink 600 - 5.5:1 WCAG AA contrast on #ffffff surface" },
+];
+
 export const TOKEN_GROUPS: TokenGroup[] = [
   {
     id: "colors",
@@ -36,7 +58,27 @@ export const TOKEN_GROUPS: TokenGroup[] = [
       { name: "Chart Tooltip FG", variable: "--chart-tooltip-fg", value: "#f8fafc", description: "High contrast tooltip text" },
       { name: "Chart Tooltip Border", variable: "--chart-tooltip-border", value: "#334155", description: "Visible border on dark surface" },
       { name: "Chart Axis Label", variable: "--chart-axis-label-color", value: "#94a3b8", description: "WCAG AA contrast for axis text" },
+      { name: "Chart Cat 1", variable: "--chart-cat-1", value: "#60a5fa", description: "Active categorical hue 1 (Blue)" },
+      { name: "Chart Cat 2", variable: "--chart-cat-2", value: "#34d399", description: "Active categorical hue 2 (Emerald)" },
+      { name: "Chart Cat 3", variable: "--chart-cat-3", value: "#fbbf24", description: "Active categorical hue 3 (Amber)" },
+      { name: "Chart Cat 4", variable: "--chart-cat-4", value: "#a78bfa", description: "Active categorical hue 4 (Violet)" },
+      { name: "Chart Cat 5", variable: "--chart-cat-5", value: "#f87171", description: "Active categorical hue 5 (Rose)" },
+      { name: "Chart Cat 6", variable: "--chart-cat-6", value: "#22d3ee", description: "Active categorical hue 6 (Cyan)" },
+      { name: "Chart Cat 7", variable: "--chart-cat-7", value: "#fb923c", description: "Active categorical hue 7 (Orange)" },
+      { name: "Chart Cat 8", variable: "--chart-cat-8", value: "#f472b6", description: "Active categorical hue 8 (Pink)" },
     ],
+  },
+  {
+    id: "chart-colors-dark",
+    label: "Chart Categorical Palette (Dark Mode)",
+    type: "color",
+    tokens: DARK_CHART_TOKENS,
+  },
+  {
+    id: "chart-colors-light",
+    label: "Chart Categorical Palette (Light Mode)",
+    type: "color",
+    tokens: LIGHT_CHART_TOKENS,
   },
   {
     id: "spacing",

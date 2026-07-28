@@ -75,6 +75,8 @@ describe("DesignTokensPage", () => {
   it("renders all section headings", () => {
     render(<DesignTokensPage />);
     expect(screen.getByText("Colors")).toBeInTheDocument();
+    expect(screen.getByText("Chart Categorical Palette (Dark Mode)")).toBeInTheDocument();
+    expect(screen.getByText("Chart Categorical Palette (Light Mode)")).toBeInTheDocument();
     expect(screen.getByText("Spacing")).toBeInTheDocument();
     expect(screen.getByText("Border Radius")).toBeInTheDocument();
     expect(screen.getByText("Typography")).toBeInTheDocument();

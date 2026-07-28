@@ -330,11 +330,59 @@ export const DistributionDashboard: React.FC = () => {
         />
       </div>
 
-      <GovernanceResults
-        results={{ for: 2500000, against: 450000, abstain: 50000 }}
-        participation={{ turnout: 68.4, uniqueVoters: 142, delegates: 12 }}
-        status="passed"
-      />
+      <div className="mt-8">
+        <h2 className="text-xl font-semibold mb-4">Governance Overview</h2>
+        <GovernanceResults
+          results={{ for: 2500000, against: 450000, abstain: 50000 }}
+          participation={{ turnout: 68.4, uniqueVoters: 142, delegates: 12 }}
+          status="passed"
+        />
+      </div>
+
+      {/* Governance Empty States Demo */}
+      <div className="mt-8 space-y-4">
+        <h2 className="text-xl font-semibold">Governance States (Empty & Print)</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <EmptyState
+            variant="governance-proposals"
+            title="No Active Proposals"
+            description="There are currently no proposals open for voting in this period. Check back later or start a new discussion."
+            primaryAction={{ label: 'Start Discussion', onClick: () => {} }}
+            className="glass-card h-full"
+          />
+          <EmptyState
+            variant="governance-votes"
+            title="No Votes Cast"
+            description="You haven't participated in any governance votes yet. Review past proposals to see how the community voted."
+            primaryAction={{ label: 'View History', onClick: () => {} }}
+            className="glass-card h-full"
+          />
+          <EmptyState
+            variant="governance-delegates"
+            title="No Delegates Assigned"
+            description="Delegate your voting power to a trusted community member to ensure your voice is heard even when you're away."
+            primaryAction={{ label: 'Find Delegates', onClick: () => {} }}
+            secondaryAction={{ label: 'Learn More', onClick: () => {} }}
+            className="glass-card h-full"
+          />
+        </div>
+        
+        {/* Print / Monochrome demo */}
+        <div className="mt-6 p-6 bg-white rounded-2xl shadow-sm border border-slate-200">
+          <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4">Print / Monochrome Variant (Fallback)</h3>
+          <p className="text-sm text-slate-500 mb-4">Used for print exports or high-contrast fallback (exported as SVG/PNG). Validated WCAG 2.1 AA.</p>
+          <div className="max-w-md">
+            <EmptyState
+              variant="governance-proposals"
+              title="No Active Proposals"
+              description="This view is optimized for printing and high-contrast environments."
+              primaryAction={{ label: 'Export as PDF', onClick: () => {} }}
+              isMonochrome={true}
+              className="bg-transparent border border-slate-300"
+            />
+          </div>
+        </div>
+      </div>
 
       {/* Drill-down Panel */}
       <PayoutDrillDownPanel

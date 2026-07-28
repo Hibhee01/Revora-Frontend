@@ -8,7 +8,10 @@ export type EmptyStateVariant =
   | 'ledger'
   | 'audit-trail'
   | 'notifications'
-  | 'revenue-reports';
+  | 'revenue-reports'
+  | 'governance-proposals'
+  | 'governance-votes'
+  | 'governance-delegates';
 
 export type EmptyStateSeverity = 'default' | 'error';
 
@@ -38,6 +41,8 @@ export type EmptyStateProps = {
   className?: string;
   /** Optional context node (e.g. echoed search query for filtered states) */
   context?: React.ReactNode;
+  /** Use monochrome colors, optimized for print */
+  isMonochrome?: boolean;
 };
 
 const DEFAULT_SIZE = 96;
@@ -69,6 +74,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   size = DEFAULT_SIZE,
   className = '',
   context,
+  isMonochrome = false,
 }) => {
   const headingId = `empty-state-heading-${variant}-${severity}`;
   const isError = severity === 'error';
@@ -111,7 +117,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
     >
       {/* Decorative illustration */}
       <div className="empty-state-icon-wrap" aria-hidden="true">
-        <EmptyStateIllustration variant={variant} size={size} severity={severity} />
+        <EmptyStateIllustration variant={variant} size={size} severity={severity} isMonochrome={isMonochrome} />
       </div>
 
       {/* Text content */}
@@ -138,6 +144,7 @@ type IllustrationProps = {
   variant: EmptyStateVariant;
   size: number;
   severity: EmptyStateSeverity;
+  isMonochrome?: boolean;
 };
 
 /**
@@ -153,11 +160,16 @@ type IllustrationProps = {
  *  - aria-hidden="true" by default (purely decorative).
  *  - role="presentation" when aria-hidden.
  */
-const EmptyStateIllustration: React.FC<IllustrationProps> = ({ variant, size, severity }) => {
+const EmptyStateIllustration: React.FC<IllustrationProps> = ({ variant, size, severity, isMonochrome }) => {
   const isError = severity === 'error';
-  const primaryColor = isError ? 'var(--error)' : 'var(--primary)';
-  const mutedColor = 'var(--text-muted)';
-  const accentColor = 'var(--text-accent)';
+  
+  const primaryColor = isMonochrome ? '#000000' : (isError ? 'var(--error)' : 'var(--primary)');
+  const mutedColor = isMonochrome ? '#555555' : 'var(--text-muted)';
+  const accentColor = isMonochrome ? '#333333' : 'var(--text-accent)';
+  const badgeOuterFill = isMonochrome ? '#ffffff' : 'rgba(15,23,42,0.6)';
+  const badgeInnerFill = isMonochrome ? '#f8f9fa' : 'rgba(15,23,42,0.4)';
+  const badgeOuterStroke = isMonochrome ? '#e2e8f0' : (isError ? 'rgba(239,68,68,0.25)' : 'rgba(148,163,184,0.2)');
+  const badgeInnerStroke = isMonochrome ? '#cbd5e1' : (isError ? 'rgba(239,68,68,0.15)' : 'rgba(148,163,184,0.12)');
 
   const glyph = (() => {
     switch (variant) {
@@ -173,6 +185,12 @@ const EmptyStateIllustration: React.FC<IllustrationProps> = ({ variant, size, se
         return <NotificationsGlyph primaryColor={primaryColor} mutedColor={mutedColor} isError={isError} />;
       case 'revenue-reports':
         return <RevenueReportsGlyph primaryColor={primaryColor} mutedColor={mutedColor} accentColor={accentColor} isError={isError} />;
+      case 'governance-proposals':
+        return <GovernanceProposalsGlyph primaryColor={primaryColor} mutedColor={mutedColor} isError={isError} />;
+      case 'governance-votes':
+        return <GovernanceVotesGlyph primaryColor={primaryColor} mutedColor={mutedColor} isError={isError} />;
+      case 'governance-delegates':
+        return <GovernanceDelegatesGlyph primaryColor={primaryColor} mutedColor={mutedColor} isError={isError} />;
       default:
         return null;
     }
@@ -195,18 +213,18 @@ const EmptyStateIllustration: React.FC<IllustrationProps> = ({ variant, size, se
       </defs>
 
       {/* Outer badge */}
-      <g filter="url(#es-shadow)" transform="translate(48 48)">
+      <g filter={isMonochrome ? '' : "url(#es-shadow)"} transform="translate(48 48)">
         <circle
           r="44"
-          fill="rgba(15,23,42,0.6)"
-          stroke={isError ? 'rgba(239,68,68,0.25)' : 'rgba(148,163,184,0.2)'}
+          fill={badgeOuterFill}
+          stroke={badgeOuterStroke}
           strokeWidth="1.5"
         />
         {/* Icon well */}
         <circle
           r="30"
-          fill="rgba(15,23,42,0.4)"
-          stroke={isError ? 'rgba(239,68,68,0.15)' : 'rgba(148,163,184,0.12)'}
+          fill={badgeInnerFill}
+          stroke={badgeInnerStroke}
           strokeWidth="1.5"
         />
         {/* Decorative accent ring */}
@@ -479,6 +497,53 @@ const RevenueReportsGlyph: React.FC<{ primaryColor: string; mutedColor: string; 
         <circle cx="8" cy="-8" r="4" fill={accentColor} fillOpacity="0.15" stroke={accentColor} strokeOpacity="0.5" strokeWidth="1.5" />
         <text x="8" y="-5" textAnchor="middle" fontSize="6" fill={accentColor} fontWeight="bold" fontFamily="Inter, system-ui, sans-serif">$</text>
       </>
+    )}
+  </g>
+);
+
+/* ─── Governance Glyphs ────────────────────────────────────────────────────── */
+
+const GovernanceProposalsGlyph: React.FC<{ primaryColor: string; mutedColor: string; isError: boolean }> = ({ primaryColor, mutedColor, isError }) => (
+  <g>
+    <rect x="-10" y="-14" width="20" height="28" rx="2" {...fillStyle(primaryColor, 0.08)} stroke={primaryColor} strokeOpacity="0.4" strokeWidth="2" />
+    <line x1="-5" y1="-8" x2="5" y2="-8" stroke={mutedColor} strokeOpacity="0.4" strokeWidth="1.5" strokeLinecap="round" />
+    <line x1="-5" y1="-2" x2="2" y2="-2" stroke={mutedColor} strokeOpacity="0.4" strokeWidth="1.5" strokeLinecap="round" />
+    <circle cx="5" cy="6" r="6" {...fillStyle(primaryColor, 0.15)} stroke={primaryColor} strokeOpacity="0.6" strokeWidth="2" />
+    <path d="M5 3 L5 9 M2 6 L8 6" stroke={primaryColor} strokeOpacity="0.8" strokeWidth="1.5" />
+    {isError && (
+      <g>
+        <circle cx="0" cy="0" r="16" fill="rgba(239,68,68,0.1)" />
+        <path d="M-6 -6 L6 6 M6 -6 L-6 6" {...strokeStyle(primaryColor, 2.5)} />
+      </g>
+    )}
+  </g>
+);
+
+const GovernanceVotesGlyph: React.FC<{ primaryColor: string; mutedColor: string; isError: boolean }> = ({ primaryColor, mutedColor, isError }) => (
+  <g>
+    <rect x="-14" y="-2" width="28" height="18" rx="2" {...fillStyle(primaryColor, 0.08)} stroke={primaryColor} strokeOpacity="0.4" strokeWidth="2" />
+    <line x1="-8" y1="-2" x2="8" y2="-2" stroke={primaryColor} strokeOpacity="0.6" strokeWidth="2" />
+    <path d="M-6 -14 L6 -14 L6 -2 L-6 -2 Z" {...fillStyle(mutedColor, 0.1)} stroke={mutedColor} strokeOpacity="0.5" strokeWidth="1.5" />
+    <path d="M-2 -10 L2 -10" stroke={mutedColor} strokeOpacity="0.5" strokeWidth="1" />
+    {isError && (
+      <g>
+        <circle cx="0" cy="0" r="16" fill="rgba(239,68,68,0.1)" />
+        <path d="M-6 -6 L6 6 M6 -6 L-6 6" {...strokeStyle(primaryColor, 2.5)} />
+      </g>
+    )}
+  </g>
+);
+
+const GovernanceDelegatesGlyph: React.FC<{ primaryColor: string; mutedColor: string; isError: boolean }> = ({ primaryColor, mutedColor, isError }) => (
+  <g>
+    <circle cx="0" cy="-6" r="6" {...fillStyle(primaryColor, 0.1)} stroke={primaryColor} strokeOpacity="0.4" strokeWidth="2" />
+    <path d="M-10 12 C-10 4 10 4 10 12" {...fillStyle(primaryColor, 0.1)} stroke={primaryColor} strokeOpacity="0.4" strokeWidth="2" />
+    <path d="M8 0 L10 4 L14 4 L11 7 L12 11 L8 8.5 L4 11 L5 7 L2 4 L6 4 Z" {...fillStyle(primaryColor, 0.2)} stroke={primaryColor} strokeOpacity="0.8" strokeWidth="1.5" />
+    {isError && (
+      <g>
+        <circle cx="0" cy="0" r="16" fill="rgba(239,68,68,0.1)" />
+        <path d="M-6 -6 L6 6 M6 -6 L-6 6" {...strokeStyle(primaryColor, 2.5)} />
+      </g>
     )}
   </g>
 );

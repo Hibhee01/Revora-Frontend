@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useRef, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { EmptyState } from '../components/designSystem/EmptyState';
+import { KycResubmissionTimeline } from '../components/KycResubmissionTimeline';
 import { GovernanceResults } from '../components/designSystem/GovernanceResults';
 
 export const DistributionDashboard: React.FC = () => {
@@ -256,7 +257,11 @@ export const DistributionDashboard: React.FC = () => {
           />
         </div>
       </div>
-
+      <KycResubmissionTimeline
+        status="under-review"
+        submittedAt="2026-07-24T10:30:00Z"
+        reviewStartedAt="2026-07-27T08:00:00Z"
+        holidays={['2026-07-27']}
       <GovernanceResults
         results={{ for: 2500000, against: 450000, abstain: 50000 }}
         participation={{ turnout: 68.4, uniqueVoters: 142, delegates: 12 }}

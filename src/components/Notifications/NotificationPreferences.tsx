@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { AlertTriangle, BellOff, Info, Shield } from 'lucide-react';
 
 type ChannelKey = 'inApp' | 'email' | 'sms';
 type CategoryKey = 'distribution' | 'report' | 'compliance' | 'governance';
@@ -11,13 +12,15 @@ export type NotificationPreferencesValue = {
     endTime: string; // HH:mm
     timeZone: string;
   };
+  /** Per-category quiet-hours override: when true, the category always delivers notifications */
+  quietHoursOverride: Record<CategoryKey, boolean>;
 };
 
 const CATEGORIES: Array<{ key: CategoryKey; label: string; description?: string }> = [
-  { key: 'distribution', label: 'Distribution' },
-  { key: 'report', label: 'Report' },
-  { key: 'compliance', label: 'Compliance' },
-  { key: 'governance', label: 'Governance' },
+  { key: 'distribution', label: 'Distribution', description: 'Payout and revenue notifications' },
+  { key: 'report', label: 'Report', description: 'Scheduled report notifications' },
+  { key: 'compliance', label: 'Compliance', description: 'Regulatory and compliance alerts' },
+  { key: 'governance', label: 'Governance', description: 'Voting and proposal notifications' },
 ];
 
 const CHANNELS: Array<{ key: ChannelKey; label: string }> = [
@@ -36,20 +39,24 @@ function buildDefaultValue(timeZone: string): NotificationPreferencesValue {
     return acc;
   }, {} as Record<CategoryKey, Record<ChannelKey, boolean>>);
 
+  const allOverrides = CATEGORIES.reduce((acc, c) => {
+    acc[c.key] = false;
+    return acc;
+  }, {} as Record<CategoryKey, boolean>);
+
   return {
     matrix: emptyMatrix,
     quietHours: {
       enabled: false,
-      // Reasonable defaults; app can override via controlled props.
       startTime: '22:00',
       endTime: '07:00',
       timeZone,
     },
+    quietHoursOverride: allOverrides,
   };
 }
 
 function normalizeTimeString(v: string): string {
-  // Ensure we only keep HH:mm.
   const m = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(v);
   return m ? `${m[1]}:${m[2]}` : v;
 }
@@ -96,7 +103,6 @@ function useIndeterminateCheckbox(isAll: boolean, isNone: boolean) {
 
   useEffect(() => {
     if (!ref.current) return;
-    // indeterminate is supported on HTMLInputElement.
     ref.current.indeterminate = !isAll && !isNone;
   }, [isAll, isNone]);
 
@@ -115,16 +121,18 @@ function AccordionItem(props: {
 
   return (
     <div className="rounded-xl border border-[rgba(148,163,184,0.15)] bg-[rgba(15,23,42,0.35)] overflow-hidden">
-      <button
-        type="button"
-        className="w-full px-4 py-3 flex items-center justify-between gap-3"
-        onClick={onToggle}
-        aria-expanded={isOpen ? 'true' : 'false'}
-        aria-controls={`${headerId}-region`}
-      >
-        <span className="text-sm font-semibold text-text-main">{title}</span>
-        {rightSlot ? <span className="flex items-center">{rightSlot}</span> : <span />}
-      </button>
+      <div className="flex items-center justify-between gap-3">
+        <button
+          type="button"
+          className="flex-1 px-4 py-3 flex items-center gap-3"
+          onClick={onToggle}
+          aria-expanded={isOpen ? 'true' : 'false'}
+          aria-controls={`${headerId}-region`}
+        >
+          <span className="text-sm font-semibold text-text-main">{title}</span>
+        </button>
+        {rightSlot && <span className="flex items-center pr-4">{rightSlot}</span>}
+      </div>
       {isOpen && (
         <div
           id={`${headerId}-region`}
@@ -138,6 +146,208 @@ function AccordionItem(props: {
     </div>
   );
 }
+
+/* ─── Quiet Hours Timeline Preview ───────────────────────────────────── */
+
+type TimelineSegment = {
+  label: string;
+  isQuiet: boolean;
+  startHour: number;
+  endHour: number;
+};
+
+function useQuietHoursTimeline(
+  startTime: string,
+  endTime: string,
+  enabled: boolean,
+): TimelineSegment[] {
+  return useMemo(() => {
+    const segments: TimelineSegment[] = [];
+    const now = new Date();
+    const currentHour = now.getHours();
+
+    const [startH, startM] = startTime.split(':').map(Number);
+    const [endH, endM] = endTime.split(':').map(Number);
+    const startMinutes = (startH ?? 0) * 60 + (startM ?? 0);
+    const endMinutes = (endH ?? 0) * 60 + (endM ?? 0);
+    const crossesMidnight = endMinutes <= startMinutes;
+
+    for (let offset = 0; offset < 24; offset += 1) {
+      const hour = (currentHour + offset) % 24;
+      const hourMinutes = hour * 60;
+      const isQuiet = enabled && (
+        crossesMidnight
+          ? hourMinutes >= startMinutes || hourMinutes < endMinutes
+          : hourMinutes >= startMinutes && hourMinutes < endMinutes
+      );
+      const label = `${hour.toString().padStart(2, '0')}:00`;
+      segments.push({
+        label,
+        isQuiet,
+        startHour: hour,
+        endHour: hour + 1,
+      });
+    }
+
+    return segments;
+  }, [startTime, endTime, enabled]);
+}
+
+function QuietHoursTimeline(props: {
+  startTime: string;
+  endTime: string;
+  enabled: boolean;
+  timeZone: string;
+  overriddenCategories: CategoryKey[];
+}) {
+  const { startTime, endTime, enabled, timeZone, overriddenCategories } = props;
+  const segments = useQuietHoursTimeline(startTime, endTime, enabled);
+
+  const [infoOpen, setInfoOpen] = useState(false);
+  const infoId = 'qh-preview-info';
+
+  if (!enabled) {
+    return (
+      <div className="mt-3 rounded-lg border border-dashed border-[rgba(148,163,184,0.15)] bg-[rgba(15,23,42,0.2)] p-3">
+        <div className="flex items-center gap-2 text-xs text-muted">
+          <BellOff size={14} aria-hidden="true" />
+          <span>Enable quiet hours to see a 24-hour delivery preview.</span>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-4" aria-label="Quiet hours delivery preview for the next 24 hours">
+      <div className="flex items-center justify-between mb-2">
+        <h4 className="text-xs font-semibold text-text-main uppercase tracking-wider">
+          Delivery Preview — Next 24 Hours
+        </h4>
+        <div className="relative">
+          <button
+            type="button"
+            className="p-1 rounded hover:bg-[rgba(148,163,184,0.1)] focus-visible:outline-2 focus-visible:outline-primary"
+            aria-label="About override categories"
+            aria-expanded={infoOpen}
+            aria-controls={infoId}
+            onClick={() => setInfoOpen(!infoOpen)}
+          >
+            <Info size={14} className="text-muted" aria-hidden="true" />
+          </button>
+          {infoOpen && (
+            <div
+              id={infoId}
+              role="tooltip"
+              className="absolute right-0 top-full mt-1 z-10 w-64 p-2 rounded-lg bg-[#0f172a] border border-[rgba(148,163,184,0.15)] text-xs text-text-main shadow-xl"
+            >
+              <p className="mb-1">
+                <strong>Quiet hours</strong> suppress non-critical notifications.
+              </p>
+              <p className="mb-1">
+                <Shield size={12} className="inline mr-1 text-primary" aria-hidden="true" />
+                <strong>Override categories</strong> are always delivered regardless of quiet hours.
+              </p>
+              <p>
+                Use overrides for time-sensitive alerts like compliance deadlines or critical governance votes.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div
+        className="relative h-8 rounded-lg overflow-hidden bg-[rgba(2,6,23,0.6)] border border-[rgba(148,163,184,0.1)]"
+        role="img"
+        aria-label={`24-hour timeline: ${segments.filter((s) => s.isQuiet).length} quiet hours from ${startTime} to ${endTime} in ${timeZone}. Override categories: ${overriddenCategories.length > 0 ? overriddenCategories.join(', ') : 'none'}.`}
+      >
+        <div className="flex h-full">
+          {segments.map((seg, i) => (
+            <div
+              key={i}
+              className={`flex-1 relative transition-colors duration-200 ${
+                seg.isQuiet
+                  ? 'bg-[rgba(59,130,246,0.12)] border-r border-[rgba(59,130,246,0.08)]'
+                  : 'bg-transparent border-r border-[rgba(148,163,184,0.04)]'
+              }`}
+              title={`${seg.label}${seg.isQuiet ? ' — Quiet hours' : ''}`}
+            >
+              {/* Hour tick */}
+              {i % 3 === 0 && (
+                <span className="absolute bottom-0.5 left-0.5 text-[8px] text-muted leading-none pointer-events-none">
+                  {seg.label}
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Quiet hours span indicator */}
+        <div
+          className="absolute top-0 h-full bg-[rgba(59,130,246,0.08)] border-l-2 border-r-2 border-primary/30 pointer-events-none"
+          style={{
+            left: `${(segments.findIndex((s) => s.isQuiet) / 24) * 100}%`,
+            width: `${(segments.filter((s) => s.isQuiet).length / 24) * 100}%`,
+          }}
+          aria-hidden="true"
+        />
+      </div>
+
+      <div className="mt-1.5 flex items-center justify-between text-[10px] text-muted">
+        <span>Now ({segments[0]?.label ?? '--:00'})</span>
+        <div className="flex items-center gap-3">
+          <span className="flex items-center gap-1">
+            <span className="inline-block w-2 h-2 rounded-sm bg-[rgba(59,130,246,0.2)] border border-primary/30" />
+            Quiet hours ({startTime}–{endTime})
+          </span>
+          {overriddenCategories.length > 0 && (
+            <span className="flex items-center gap-1 text-primary">
+              <Shield size={10} aria-hidden="true" />
+              {overriddenCategories.length} override{overriddenCategories.length !== 1 ? 's' : ''} active
+            </span>
+          )}
+        </div>
+        <span>+24h</span>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Override Info Popover ──────────────────────────────────────────── */
+
+function OverridePopover(props: { categoryLabel: string }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const popoverId = `override-info-${props.categoryLabel.toLowerCase().replace(/\s+/g, '-')}`;
+
+  return (
+    <div className="relative inline-flex">
+      <button
+        type="button"
+        className="p-0.5 rounded hover:bg-[rgba(148,163,184,0.1)] focus-visible:outline-2 focus-visible:outline-primary"
+        aria-label={`About override for ${props.categoryLabel}`}
+        aria-expanded={isOpen}
+        aria-controls={popoverId}
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <AlertTriangle size={12} className="text-muted" aria-hidden="true" />
+      </button>
+      {isOpen && (
+        <div
+          id={popoverId}
+          role="tooltip"
+          className="absolute left-0 top-full mt-1 z-10 w-56 p-2 rounded-lg bg-[#0f172a] border border-[rgba(148,163,184,0.15)] text-xs text-text-main shadow-xl"
+        >
+          <p>
+            Override quiet hours for <strong>{props.categoryLabel}</strong>.
+            Notifications in this category will always be delivered,
+            even during quiet hours. Recommended for time-sensitive alerts.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Main Component ─────────────────────────────────────────────────── */
 
 export type NotificationPreferencesProps = {
   value?: NotificationPreferencesValue;
@@ -224,6 +434,7 @@ export default function NotificationPreferences(props: NotificationPreferencesPr
   };
 
   const quietEnabled = mergedValue.quietHours.enabled;
+  const overrides = mergedValue.quietHoursOverride ?? {} as Record<CategoryKey, boolean>;
 
   const setQuiet = (patch: Partial<NotificationPreferencesValue['quietHours']>) => {
     setNextValue({
@@ -239,6 +450,15 @@ export default function NotificationPreferences(props: NotificationPreferencesPr
     });
   };
 
+  const setOverride = (category: CategoryKey, value: boolean) => {
+    setNextValue({
+      ...mergedValue,
+      quietHoursOverride: { ...overrides, [category]: value },
+    });
+  };
+
+  const overriddenCategories = CATEGORIES.filter((c) => overrides[c.key]).map((c) => c.key);
+
   return (
     <section className="w-full" aria-label="Notification Preferences">
       <div className="mb-4">
@@ -251,7 +471,7 @@ export default function NotificationPreferences(props: NotificationPreferencesPr
       {/* Matrix - Desktop */}
       <div className="hidden md:block" aria-label="Notification Preferences Matrix">
         <div className="rounded-xl border border-[rgba(148,163,184,0.15)] bg-[rgba(15,23,42,0.35)] p-4">
-          <div className="grid" style={{ gridTemplateColumns: 'minmax(10rem, 1.4fr) repeat(3, minmax(6rem, 1fr))' }}>
+          <div className="grid" style={{ gridTemplateColumns: 'minmax(10rem, 1.4fr) repeat(3, minmax(6rem, 1fr)) 5rem' }}>
             {/* Column headers */}
             <div className="text-sm font-semibold text-text-main" aria-hidden="true" />
             {CHANNELS.map((ch) => {
@@ -277,6 +497,13 @@ export default function NotificationPreferences(props: NotificationPreferencesPr
                 </div>
               );
             })}
+            {/* Override column header */}
+            <div className="flex items-center justify-center">
+              <span className="text-xs font-medium text-muted flex items-center gap-1">
+                <Shield size={12} aria-hidden="true" />
+                Override
+              </span>
+            </div>
 
             {/* Rows */}
             {CATEGORIES.map((cat) => {
@@ -284,6 +511,7 @@ export default function NotificationPreferences(props: NotificationPreferencesPr
               const rowAny = Object.values(rowCells ?? {}).some(Boolean);
               const rowAll = Object.values(rowCells ?? {}).every(Boolean);
               const rowIndRef = useIndeterminateCheckbox(rowAll, !rowAny);
+              const isOverridden = !!overrides[cat.key];
 
               const rowToggleLabel = `Toggle all channels for ${cat.label}`;
 
@@ -315,6 +543,22 @@ export default function NotificationPreferences(props: NotificationPreferencesPr
                       />
                     );
                   })}
+
+                  {/* Per-category override toggle */}
+                  <div className="flex items-center justify-center gap-1">
+                    <input
+                      id={`np-override-${cat.key}`}
+                      type="checkbox"
+                      checked={isOverridden}
+                      onChange={(e) => setOverride(cat.key, e.target.checked)}
+                      aria-label={`Override quiet hours for ${cat.label}`}
+                      className="h-3.5 w-3.5 rounded border-gray-300 text-primary focus:ring-primary"
+                    />
+                    <label htmlFor={`np-override-${cat.key}`} className="sr-only">
+                      Override quiet hours for {cat.label}
+                    </label>
+                    <OverridePopover categoryLabel={cat.label} />
+                  </div>
                 </React.Fragment>
               );
             })}
@@ -330,6 +574,7 @@ export default function NotificationPreferences(props: NotificationPreferencesPr
             const rowAny = Object.values(rowCells ?? {}).some(Boolean);
             const rowAll = Object.values(rowCells ?? {}).every(Boolean);
             const rowIndRef = useIndeterminateCheckbox(rowAll, !rowAny);
+            const isOverridden = !!overrides[cat.key];
 
             const rowToggleLabel = `Toggle all channels for ${cat.label}`;
 
@@ -371,6 +616,23 @@ export default function NotificationPreferences(props: NotificationPreferencesPr
                       </div>
                     );
                   })}
+
+                  {/* Per-category override toggle on mobile */}
+                  <div className="flex items-center justify-between gap-3 pt-1 border-t border-[rgba(148,163,184,0.1)]">
+                    <div className="flex items-center gap-1.5">
+                      <Shield size={13} className="text-muted" aria-hidden="true" />
+                      <span className="text-xs text-muted">Override quiet hours</span>
+                      <OverridePopover categoryLabel={cat.label} />
+                    </div>
+                    <input
+                      id={`np-m-override-${cat.key}`}
+                      type="checkbox"
+                      checked={isOverridden}
+                      onChange={(e) => setOverride(cat.key, e.target.checked)}
+                      aria-label={`Override quiet hours for ${cat.label}`}
+                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                    />
+                  </div>
                 </div>
               </AccordionItem>
             );
@@ -465,8 +727,16 @@ export default function NotificationPreferences(props: NotificationPreferencesPr
         <div className="mt-3 text-xs text-muted">
           Time zone: <span className="text-text-main font-medium">{tzLabel}</span>
         </div>
+
+        {/* Quiet Hours Preview Timeline */}
+        <QuietHoursTimeline
+          startTime={mergedValue.quietHours.startTime}
+          endTime={mergedValue.quietHours.endTime}
+          enabled={quietEnabled}
+          timeZone={tzLabel}
+          overriddenCategories={overriddenCategories}
+        />
       </div>
     </section>
   );
 }
-

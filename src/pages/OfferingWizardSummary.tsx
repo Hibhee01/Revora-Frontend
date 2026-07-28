@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '../components/Button';
+import { OfferingRegistrationSuccess } from '../components/OfferingRegistrationSuccess';
 import { CheckCircle } from 'lucide-react';
 
 export const OfferingWizardSummary: React.FC = () => {
   const [agreed, setAgreed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -13,9 +15,20 @@ export const OfferingWizardSummary: React.FC = () => {
     setIsSubmitting(true);
     setTimeout(() => {
       setIsSubmitting(false);
-      // Mock submit success
+      setSubmitted(true);
     }, 1500);
   };
+
+  if (submitted) {
+    return (
+      <OfferingRegistrationSuccess
+        issuerName="TechFlow AI"
+        offeringName="Revenue Share Agreement"
+        submissionDate={new Date().toISOString()}
+        estimatedReviewDays={5}
+      />
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-10 animate-fade-in">

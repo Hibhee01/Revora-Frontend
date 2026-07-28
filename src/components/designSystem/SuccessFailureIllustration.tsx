@@ -1,4 +1,4 @@
-import { OnchainRejectionIllustration } from './OnchainRejectionIllustration';
+import React from 'react';
 
 export type SuccessFailureIllustrationVariant =
   | 'transactionSuccess'

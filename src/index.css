@@ -1099,3 +1099,65 @@ input:focus-visible,
   width: 100%;
   height: 10rem;
 }
+
+/* Activity Feed Empty States */
+.empty-day-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) 0;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.empty-day-divider .divider-line {
+  flex: 1;
+  height: 1px;
+  background: var(--glass-border);
+}
+
+.empty-day-divider .divider-content {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: 0 var(--spacing-md);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  padding: var(--spacing-xs) var(--spacing-md);
+}
+
+.quiet-week-card {
+  margin: var(--spacing-xl) 0;
+  padding: var(--spacing-xl);
+  text-align: center;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+}
+
+.quiet-week-card .icon-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background: rgba(56, 189, 248, 0.1);
+  color: var(--text-accent);
+  margin-bottom: var(--spacing-md);
+}
+
+.quiet-week-card h3 {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--spacing-xs);
+  color: var(--text-main);
+}
+
+.quiet-week-card p {
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--spacing-md);
+}

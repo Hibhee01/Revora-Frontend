@@ -1,0 +1,367 @@
+/* ─── Audit Note Editor — Issue #209 ──────────────────────────────── */
+
+/* ─── Tokens ──────────────────────────────────────────────────────── */
+
+.ane-container {
+  --ane-bg: var(--glass-bg);
+  --ane-border: var(--glass-border);
+  --ane-border-focus: var(--primary);
+  --ane-radius: var(--radius-lg);
+  --ane-radius-sm: var(--radius-sm);
+  --ane-gap: var(--spacing-xs);
+  --ane-padding: var(--spacing-md);
+  --ane-font: var(--font-size-sm);
+  --ane-font-xs: var(--font-size-xs);
+  --ane-text: var(--text-main);
+  --ane-text-muted: var(--text-muted);
+  --ane-error: var(--error);
+  --ane-success: var(--success);
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ane-gap);
+  padding: var(--ane-padding);
+  background: var(--ane-bg);
+  border: 1px solid var(--ane-border);
+  border-radius: var(--ane-radius);
+  backdrop-filter: var(--glass-blur);
+  font-family: 'Inter', system-ui, sans-serif;
+  color: var(--ane-text);
+}
+
+/* ─── Header ──────────────────────────────────────────────────────── */
+
+.ane-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ane-label {
+  font-size: var(--ane-font);
+  font-weight: var(--font-weight-medium);
+  color: var(--ane-text);
+}
+
+/* ─── Template Dropdown ───────────────────────────────────────────── */
+
+.ane-template-wrapper {
+  position: relative;
+}
+
+.ane-template-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2xs);
+  padding: var(--spacing-2xs) var(--ane-gap);
+  font-size: var(--ane-font-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--ane-text-muted);
+  background: transparent;
+  border: 1px solid var(--ane-border);
+  border-radius: var(--ane-radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ane-template-btn:hover {
+  color: var(--ane-text);
+  border-color: var(--glass-border-bright);
+}
+
+.ane-template-btn:focus-visible {
+  outline: 2px solid var(--ane-border-focus);
+  outline-offset: 1px;
+}
+
+.ane-template-list {
+  position: absolute;
+  right: 0;
+  top: calc(100% + var(--spacing-2xs));
+  z-index: 10;
+  min-width: 12rem;
+  margin: 0;
+  padding: var(--spacing-2xs) 0;
+  list-style: none;
+  background: var(--glass-bg-accent);
+  border: 1px solid var(--ane-border);
+  border-radius: var(--ane-radius-sm);
+  backdrop-filter: var(--glass-blur);
+  box-shadow: var(--shadow-lg);
+}
+
+.ane-template-item {
+  display: block;
+  width: 100%;
+  padding: var(--spacing-2xs) var(--ane-padding);
+  font-size: var(--ane-font-xs);
+  color: var(--ane-text);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.1s ease;
+}
+
+.ane-template-item:hover {
+  background: var(--glass-bg);
+}
+
+.ane-template-item:focus-visible {
+  outline: 2px solid var(--ane-border-focus);
+  outline-offset: -2px;
+}
+
+/* ─── Toolbar ─────────────────────────────────────────────────────── */
+
+.ane-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ane-gap);
+  padding: var(--spacing-2xs) 0;
+  border-top: 1px solid var(--ane-border);
+  border-bottom: 1px solid var(--ane-border);
+}
+
+.ane-toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2xs);
+}
+
+.ane-toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  color: var(--ane-text-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--ane-radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ane-toolbar-btn:hover {
+  color: var(--ane-text);
+  background: var(--glass-bg);
+  border-color: var(--ane-border);
+}
+
+.ane-toolbar-btn:focus-visible {
+  outline: 2px solid var(--ane-border-focus);
+  outline-offset: 1px;
+}
+
+/* ─── Mode Toggle ─────────────────────────────────────────────────── */
+
+.ane-mode-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2xs);
+  padding: var(--spacing-2xs) var(--ane-gap);
+  font-size: var(--ane-font-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--ane-text-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--ane-radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ane-mode-btn:hover {
+  color: var(--ane-text);
+}
+
+.ane-mode-btn--active {
+  color: var(--ane-text);
+  background: var(--glass-bg);
+  border-color: var(--ane-border);
+}
+
+.ane-mode-btn:focus-visible {
+  outline: 2px solid var(--ane-border-focus);
+  outline-offset: 1px;
+}
+
+/* ─── Textarea ────────────────────────────────────────────────────── */
+
+.ane-textarea {
+  width: 100%;
+  min-height: 6rem;
+  padding: var(--ane-padding);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: var(--ane-font);
+  line-height: var(--line-height-normal);
+  color: var(--ane-text);
+  background: var(--glass-bg-accent);
+  border: 1px solid var(--ane-border);
+  border-radius: var(--ane-radius-sm);
+  resize: vertical;
+  transition: border-color 0.15s ease;
+}
+
+.ane-textarea::placeholder {
+  color: var(--ane-text-muted);
+  opacity: 0.6;
+}
+
+.ane-textarea:focus {
+  outline: none;
+  border-color: var(--ane-border-focus);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.ane-textarea--error {
+  border-color: var(--ane-error);
+}
+
+.ane-textarea--error:focus {
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+}
+
+/* ─── Preview ─────────────────────────────────────────────────────── */
+
+.ane-preview {
+  min-height: 6rem;
+  padding: var(--ane-padding);
+  background: var(--glass-bg-accent);
+  border: 1px solid var(--ane-border);
+  border-radius: var(--ane-radius-sm);
+}
+
+.ane-preview-content {
+  margin: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: var(--ane-font);
+  line-height: var(--line-height-normal);
+  color: var(--ane-text);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.ane-preview-empty {
+  margin: 0;
+  font-size: var(--ane-font);
+  color: var(--ane-text-muted);
+  opacity: 0.6;
+  font-style: italic;
+}
+
+/* ─── Footer ──────────────────────────────────────────────────────── */
+
+.ane-footer {
+  display: flex;
+  align-items: center;
+  gap: var(--ane-padding);
+}
+
+.ane-char-count {
+  font-size: var(--ane-font-xs);
+  color: var(--ane-text-muted);
+}
+
+.ane-char-count--error {
+  color: var(--ane-error);
+}
+
+.ane-validation {
+  font-size: var(--ane-font-xs);
+  color: var(--ane-error);
+  font-weight: var(--font-weight-medium);
+}
+
+/* ─── Responsive ──────────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .ane-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .ane-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--ane-gap);
+  }
+
+  .ane-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-2xs);
+  }
+}
+
+/* ─── High Contrast ───────────────────────────────────────────────── */
+
+@media (forced-colors: active) {
+  .ane-container {
+    border: 1px solid ButtonText;
+  }
+
+  .ane-toolbar-btn,
+  .ane-mode-btn,
+  .ane-template-btn {
+    border: 1px solid ButtonText;
+  }
+
+  .ane-textarea {
+    border: 1px solid ButtonText;
+  }
+
+  .ane-preview {
+    border: 1px solid ButtonText;
+  }
+}
+
+/* ─── Print ───────────────────────────────────────────────────────── */
+
+@media print {
+  .ane-container {
+    background: none;
+    border: 1px solid #ccc;
+    backdrop-filter: none;
+  }
+
+  .ane-toolbar,
+  .ane-template-wrapper {
+    display: none;
+  }
+
+  .ane-textarea {
+    border: none;
+    padding: 0;
+    background: none;
+    color: #000;
+    resize: none;
+    overflow: visible;
+  }
+
+  .ane-preview {
+    border: none;
+    padding: 0;
+    background: none;
+  }
+
+  .ane-preview-content {
+    color: #000;
+  }
+}
+
+/* ─── RTL ─────────────────────────────────────────────────────────── */
+
+[dir='rtl'] .ane-toolbar {
+  flex-direction: row-reverse;
+}
+
+[dir='rtl'] .ane-header {
+  flex-direction: row-reverse;
+}
+
+[dir='rtl'] .ane-template-list {
+  right: auto;
+  left: 0;
+}

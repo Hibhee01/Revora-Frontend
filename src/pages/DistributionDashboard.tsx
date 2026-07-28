@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Upload } from 'lucide-react';
 import { EmptyState } from '../components/designSystem/EmptyState';
-import { BlacklistCsvImport } from '../components/BlacklistCsvImport';
+import { AuditNoteEditor } from '../components/AuditNoteEditor';
 
 export const DistributionDashboard: React.FC = () => {
-  const [showImport, setShowImport] = useState(false);
+  const [showAuditNote, setShowAuditNote] = useState(false);
+  const [auditNote, setAuditNote] = useState('');
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-10 animate-fade-in">
@@ -19,23 +20,19 @@ export const DistributionDashboard: React.FC = () => {
         <button
           type="button"
           className="btn-secondary"
-          onClick={() => setShowImport((prev) => !prev)}
-          aria-expanded={showImport}
-          aria-controls="bci-import-panel"
+          onClick={() => setShowAuditNote((prev) => !prev)}
+          aria-expanded={showAuditNote}
+          aria-controls="ane-editor-panel"
         >
-          <Upload size={16} aria-hidden="true" />
-          {showImport ? 'Close Import' : 'Import Blacklist'}
+          {showAuditNote ? 'Close Audit Note' : 'Add Audit Note'}
         </button>
       </div>
 
-      {showImport && (
-        <div id="bci-import-panel">
-          <BlacklistCsvImport
-            onCancel={() => setShowImport(false)}
-            onImport={(rows) => {
-              // Import handled by parent in production
-              setShowImport(false);
-            }}
+      {showAuditNote && (
+        <div id="ane-editor-panel">
+          <AuditNoteEditor
+            value={auditNote}
+            onChange={setAuditNote}
           />
         </div>
       )}

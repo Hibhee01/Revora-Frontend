@@ -47,6 +47,7 @@ but previously had no shared pattern. Each implementation risked:
 | `timestamp` | `string` (ISO) | ❌ | Shown as tooltip on hover/focus |
 | `subSteps` | `SubStep[]` | ❌ | Collapsible sub-step list |
 | `blockedAction` | `BlockedAction` | ❌ | Action badge when status is `blocked` |
+| `onChain` | `OnChainMetadata` | ❌ | On-chain badge + metadata tooltip (see UX256) |
 
 ### `SubStep` type
 

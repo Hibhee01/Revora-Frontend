@@ -1,8 +1,5 @@
 export { StatusTimeline } from './StatusTimeline';
-export { OnchainRejectionCard } from './OnchainRejectionCard';
-export type { OnchainRejectionCardProps } from './OnchainRejectionCard';
-export { ONCHAIN_REJECTION_COPY, getOnchainRejectionCopy } from './onchainRejectionCopy';
-export type { OnchainRejectionReason, RejectionCopyTemplate } from './onchainRejectionCopy';
+export { OnChainStatusBadge } from './OnChainStatusBadge';
 export type {
   StatusTimelineProps,
   Milestone,
@@ -10,4 +7,13 @@ export type {
   SubStep,
   BlockedAction,
 } from './StatusTimeline';
-
+export type { OnChainMetadata, OnChainStatusBadgeProps } from './OnChainStatusBadge';
+export {
+  truncateHash,
+  formatBlockNumber,
+  formatConfirmations,
+  formatTimeSince,
+  buildStellarExplorerTxUrl,
+  resolveExplorerUrl,
+} from './onChainMetadataUtils';
+export type { StellarExplorerNetwork } from './onChainMetadataUtils';

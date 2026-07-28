@@ -24,6 +24,7 @@ import {
   Minus,
 } from 'lucide-react';
 import { LoadingSpinner } from '../LoadingSpinner';
+import { OnChainStatusBadge, type OnChainMetadata } from './OnChainStatusBadge';
 import './StatusTimeline.css';
 
 /* ─── Types ─────────────────────────────────────────────────── */
@@ -70,8 +71,8 @@ export interface Milestone {
   subSteps?: SubStep[];
   /** Optional blocked action badge (shown when status is 'blocked') */
   blockedAction?: BlockedAction;
-  /** Optional on-chain rejection card configuration for blocked blockchain milestones */
-  onchainRejection?: OnchainRejectionCardProps;
+  /** On-chain confirmation metadata (shows badge + tooltip when present) */
+  onChain?: OnChainMetadata;
 }
 
 export interface StatusTimelineProps {
@@ -82,6 +83,8 @@ export interface StatusTimelineProps {
   /** Accessible label for the timeline region */
   ariaLabel?: string;
 }
+
+export type { OnChainMetadata } from './OnChainStatusBadge';
 
 /* ─── Helpers ───────────────────────────────────────────────── */
 
@@ -301,16 +304,24 @@ export const StatusTimeline: React.FC<StatusTimelineProps> = ({
 
             {/* Content: label, description, sub-steps, blocked action */}
             <div className="st-content">
-              <span
-                className={`st-label ${
-                  milestone.status === 'pending'
-                    ? 'st-label--pending'
-                    : milestone.status === 'skipped'
-                      ? 'st-label--skipped'
-                      : ''
-                }`}
-              >
-                {milestone.label}
+              <span className="st-label-row">
+                <span
+                  className={`st-label ${
+                    milestone.status === 'pending'
+                      ? 'st-label--pending'
+                      : milestone.status === 'skipped'
+                        ? 'st-label--skipped'
+                        : ''
+                  }`}
+                >
+                  {milestone.label}
+                </span>
+                {milestone.onChain && (
+                  <OnChainStatusBadge
+                    metadata={milestone.onChain}
+                    ariaLabel={`On-chain details for ${milestone.label}`}
+                  />
+                )}
               </span>
 
               {milestone.description && (

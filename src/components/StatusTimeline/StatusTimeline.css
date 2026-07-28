@@ -202,6 +202,15 @@
   max-width: 16rem;
 }
 
+/* ─── Label row (title + on-chain badge) ────────────────────── */
+
+.st-label-row {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-2xs);
+}
+
 /* ─── Timestamp Tooltip ─────────────────────────────────────── */
 
 .st-timestamp-trigger {

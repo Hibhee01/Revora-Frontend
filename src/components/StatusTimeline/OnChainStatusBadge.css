@@ -1,0 +1,224 @@
+/* OnChainStatusBadge — Issue #256
+ * Tooltip (hover/focus) and touch popover for on-chain milestone metadata.
+ * Tokens: --ocb-* in index.css
+ */
+
+.ocb-root {
+  position: relative;
+  display: inline-flex;
+  vertical-align: middle;
+}
+
+.ocb-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ocb-badge-gap, 0.25rem);
+  padding: var(--ocb-badge-pad-y, 0.125rem) var(--ocb-badge-pad-x, 0.5rem);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--ocb-badge-border);
+  background: var(--ocb-badge-bg);
+  color: var(--ocb-badge-fg);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ocb-badge:hover,
+.ocb-badge:focus-visible {
+  background: var(--ocb-badge-bg-hover);
+  border-color: var(--ocb-badge-border-hover);
+  box-shadow: 0 0 0 3px var(--ocb-badge-focus-ring);
+  outline: none;
+}
+
+.ocb-panel {
+  position: absolute;
+  z-index: 20;
+  inset-inline-start: 50%;
+  bottom: calc(100% + 0.5rem);
+  transform: translateX(-50%);
+  width: min(var(--ocb-panel-width, 18rem), calc(100vw - 2rem));
+  padding: var(--spacing-sm);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border-bright);
+  backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  text-align: start;
+}
+
+[dir='rtl'] .ocb-panel {
+  transform: translateX(50%);
+}
+
+.ocb-panel::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--glass-border-bright);
+}
+
+.ocb-root:hover .ocb-panel,
+.ocb-root:focus-within .ocb-panel,
+.ocb-root.ocb-root--open .ocb-panel {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@media (hover: none) {
+  .ocb-root:hover .ocb-panel {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .ocb-root.ocb-root--open .ocb-panel {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+.ocb-panel__title {
+  margin: 0 0 var(--spacing-xs);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.ocb-panel__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-sm) var(--spacing-md);
+}
+
+.ocb-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.ocb-field__label {
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.ocb-field__row {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.ocb-field__value {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-main);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.ocb-copy-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.ocb-copy-btn:hover:not(:disabled),
+.ocb-copy-btn:focus-visible:not(:disabled) {
+  color: var(--text-main);
+  background: rgba(148, 163, 184, 0.12);
+  border-color: var(--glass-border);
+  outline: none;
+}
+
+.ocb-copy-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.ocb-copy-btn--copied {
+  color: var(--success, #10b981);
+}
+
+.ocb-explorer-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: var(--spacing-sm);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--primary, #3b82f6);
+  text-decoration: none;
+}
+
+.ocb-explorer-link:hover,
+.ocb-explorer-link:focus-visible {
+  text-decoration: underline;
+  outline: none;
+}
+
+.ocb-explorer-link--disabled {
+  color: var(--text-muted);
+  cursor: default;
+}
+
+.ocb-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 480px) {
+  .ocb-panel {
+    inset-inline-start: 0;
+    transform: none;
+    width: min(18rem, calc(100vw - 1rem));
+  }
+
+  [dir='rtl'] .ocb-panel {
+    inset-inline-start: auto;
+    inset-inline-end: 0;
+    transform: none;
+  }
+
+  .ocb-panel__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ocb-badge,
+  .ocb-panel,
+  .ocb-copy-btn {
+    transition: none;
+  }
+}

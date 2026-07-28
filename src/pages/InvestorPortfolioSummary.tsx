@@ -1,9 +1,10 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Printer } from "lucide-react";
 import { KpiHeader } from "../components/KpiHeader";
 import { AllocationWidget, AllocationSlice } from "../components/AllocationWidget";
 import { PerformanceTrendWidget, PerformanceDataPoint } from "../components/PerformanceTrendWidget";
+import { InvestorStatement, usePrintStatement } from "../components/InvestorStatement";
 
 // ─── Mock data (replace with real API call) ───────────────────────────────────
 
@@ -45,39 +46,76 @@ export const InvestorPortfolioSummary: React.FC<InvestorPortfolioSummaryProps> =
   const formatUSD = (n: number) =>
     n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 
+  const { showStatement, printStatement } = usePrintStatement();
+
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-8 animate-fade-in" data-testid="portfolio-summary">
-      {/* ── Back nav + page title ── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <Link
-            to="/investor/portal"
-            className="inline-flex items-center gap-1 text-sm text-muted hover:text-main transition-colors mb-2"
-            aria-label="Back to Investor Discovery"
+    <>
+      {/* ── PDF/UA Statement Overlay (shown when printing) ── */}
+      {showStatement && (
+        <div className="statement-print-overlay" data-testid="statement-print-overlay">
+          <InvestorStatement
+            investorName="John Doe"
+            statementPeriod="July 2024 – June 2025"
+            totalInvested={formatUSD(totalInvested)}
+            currentValue={formatUSD(currentValue)}
+            totalReturn={totalReturn}
+            activeHoldings={__allocations.length}
+            allocations={__allocations}
+            performance={__performance}
+            accountId="REV-ACC-001"
+          />
+        </div>
+      )}
+
+      {/* ── Normal page content (hidden during print) ── */}
+      <div
+        className="max-w-6xl mx-auto p-6 space-y-8 animate-fade-in"
+        data-testid="portfolio-summary"
+        hidden={showStatement}
+      >
+        {/* ── Back nav + page title + print button ── */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <Link
+              to="/investor/portal"
+              className="inline-flex items-center gap-1 text-sm text-muted hover:text-main transition-colors mb-2"
+              aria-label="Back to Investor Discovery"
+            >
+              <ArrowLeft size={14} aria-hidden="true" className="icon-rtl" />
+              Back to Discovery
+            </Link>
+            <h1 className="text-3xl font-bold tracking-tight">Portfolio Summary</h1>
+            <p className="text-muted text-sm mt-1">
+              Your holdings, allocation, and 12-month performance at a glance.
+            </p>
+          </div>
+
+          {/* ── Print Statement button ── */}
+          <button
+            className="btn btn--secondary btn--sm flex items-center gap-2 whitespace-nowrap"
+            onClick={printStatement}
+            aria-label="Print or save as PDF your investor statement"
+            data-testid="print-statement-btn"
           >
-            <ArrowLeft size={14} aria-hidden="true" className="icon-rtl" />
-            Back to Discovery
-          </Link>
-          <h1 className="text-3xl font-bold tracking-tight">Portfolio Summary</h1>
-          <p className="text-muted text-sm mt-1">
-            Your holdings, allocation, and 12-month performance at a glance.
-          </p>
+            <Printer size={16} aria-hidden="true" />
+            <span>Print Statement</span>
+          </button>
+        </div>
+
+        {/* ── KPI header strip ── */}
+        <KpiHeader
+          totalInvested={formatUSD(totalInvested)}
+          currentValue={formatUSD(currentValue)}
+          totalReturn={totalReturn}
+          activeHoldings={__allocations.length}
+        />
+
+        {/* ── Two-column widget area (stacks on mobile) ── */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <AllocationWidget slices={__allocations} />
+          <PerformanceTrendWidget data={__performance} />
         </div>
       </div>
-
-      {/* ── KPI header strip ── */}
-      <KpiHeader
-        totalInvested={formatUSD(totalInvested)}
-        currentValue={formatUSD(currentValue)}
-        totalReturn={totalReturn}
-        activeHoldings={__allocations.length}
-      />
-
-      {/* ── Two-column widget area (stacks on mobile) ── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <AllocationWidget slices={__allocations} />
-        <PerformanceTrendWidget data={__performance} />
-      </div>
-    </div>
+    </>
   );
 };

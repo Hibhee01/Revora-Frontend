@@ -1,7 +1,9 @@
-import React from "react";
-import { X } from "lucide-react";
+import React, { useState } from "react";
+import { X, FileText } from "lucide-react";
 import { ComplianceSeverityBadge, ComplianceSeverityLegend } from "./ComplianceSeverityBadge";
 import type { ComplianceSeverityTier } from "./ComplianceSeverityBadge";
+import { ComplianceAppealForm } from "./ComplianceAppealForm";
+import "./ComplianceAppealForm.css";
 
 export type ComplianceSeverity = ComplianceSeverityTier;
 
@@ -31,23 +33,11 @@ interface ComplianceHoldBannerProps {
 }
 
 /**
- * ComplianceHoldBanner component for displaying compliance holds with severity badges.
+ * ComplianceHoldBanner component for displaying compliance holds with severity badges
+ * and optional appeal submission.
  *
  * Follows WCAG 2.1 AA guidelines for contrast and screen reader accessibility.
  * Includes reduced-motion support and responsive design.
- *
- * @example
- * ```tsx
- * <ComplianceHoldBanner
- *   holds={[{
- *     id: "1",
- *     type: "kyc",
- *     severity: "blocking",
- *     title: "Identity verification required",
- *     message: "Complete identity verification to continue"
- *   }]}
- * />
- * ```
  */
 export const ComplianceHoldBanner: React.FC<ComplianceHoldBannerProps> = ({
   holds,
@@ -92,64 +82,90 @@ export const ComplianceHoldBanner: React.FC<ComplianceHoldBannerProps> = ({
   const hasMultiple = holds.length > 1;
 
   return (
-    <div
-      className={`flex flex-col gap-3 ${className}`}
-      id={id}
-      role="region"
-      aria-label="Compliance holds"
-    >
-      {/* Severity legend trigger — shown when multiple holds */}
-      {hasMultiple && (
-        <div className="flex items-center justify-end gap-2">
-          <span className="text-xs text-muted">
-            {holds.length} hold{holds.length !== 1 ? "s" : ""} active
-          </span>
-          <ComplianceSeverityLegend />
-        </div>
-      )}
-
-      {holds.map((hold) => {
-        const config = getSeverityConfig(hold.severity);
-
-        return (
-          <div
-            key={hold.id}
-            className={`relative flex items-start gap-3 p-4 rounded-lg border ${config.bgClass} ${config.borderClass} ${config.textClass} animate-fade-in`}
-            role={config.ariaRole}
-            aria-live={config.ariaLive}
-            aria-atomic="true"
-          >
-            <ComplianceSeverityBadge
-              severity={hold.severity}
-              variant="compact"
-              className="mt-0.5"
-            />
-
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold text-sm mb-1">{hold.title}</p>
-              <p className="text-sm opacity-90">{hold.message}</p>
-            </div>
-
-            {hold.canDismiss && onDismiss && (
-              <button
-                onClick={() => onDismiss(hold.id)}
-                className="flex-shrink-0 p-1 rounded hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-white/50"
-                aria-label={`Dismiss ${hold.title}`}
-                type="button"
-              >
-                <X size={16} aria-hidden="true" />
-              </button>
-            )}
+    <>
+      <div
+        className={`flex flex-col gap-3 ${className}`}
+        id={id}
+        role="region"
+        aria-label="Compliance holds"
+      >
+        {/* Severity legend trigger — shown when multiple holds */}
+        {hasMultiple && (
+          <div className="flex items-center justify-end gap-2">
+            <span className="text-xs text-muted">
+              {holds.length} hold{holds.length !== 1 ? "s" : ""} active
+            </span>
+            <ComplianceSeverityLegend />
           </div>
-        );
-      })}
+        )}
 
-      {/* Severity legend trigger — shown even with a single hold */}
-      {!hasMultiple && holds.length === 1 && (
-        <div className="flex items-center justify-end">
-          <ComplianceSeverityLegend />
-        </div>
+        {holds.map((hold) => {
+          const config = getSeverityConfig(hold.severity);
+
+          return (
+            <div
+              key={hold.id}
+              className={`relative flex items-start gap-3 p-4 rounded-lg border ${config.bgClass} ${config.borderClass} ${config.textClass} animate-fade-in`}
+              role={config.ariaRole}
+              aria-live={config.ariaLive}
+              aria-atomic="true"
+            >
+              <ComplianceSeverityBadge
+                severity={hold.severity}
+                variant="compact"
+                className="mt-0.5"
+              />
+
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-sm mb-1">{hold.title}</p>
+                <p className="text-sm opacity-90">{hold.message}</p>
+
+                {/* Appeal button */}
+                {hold.appealable && onAppeal && (
+                  <button
+                    onClick={() => setAppealingHold(hold)}
+                    className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 transition-colors focus:outline-none focus:ring-2 focus:ring-white/50"
+                    type="button"
+                    aria-label={`Appeal ${hold.title}`}
+                  >
+                    <FileText size={12} aria-hidden="true" />
+                    Appeal
+                  </button>
+                )}
+              </div>
+
+              {hold.canDismiss && onDismiss && (
+                <button
+                  onClick={() => onDismiss(hold.id)}
+                  className="flex-shrink-0 p-1 rounded hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-white/50"
+                  aria-label={`Dismiss ${hold.title}`}
+                  type="button"
+                >
+                  <X size={16} aria-hidden="true" />
+                </button>
+              )}
+            </div>
+          );
+        })}
+
+        {/* Severity legend trigger — shown even with a single hold */}
+        {!hasMultiple && holds.length === 1 && (
+          <div className="flex items-center justify-end">
+            <ComplianceSeverityLegend />
+          </div>
+        )}
+      </div>
+
+      {/* Appeal Form Dialog */}
+      {appealingHold && (
+        <ComplianceAppealForm
+          holdId={appealingHold.id}
+          holdTitle={appealingHold.title}
+          onSubmit={onAppeal}
+          onClose={() => setAppealingHold(null)}
+          isOpen={!!appealingHold}
+        />
       )}
-    </div>
+    </>
   );
 };

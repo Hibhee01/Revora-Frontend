@@ -1,0 +1,328 @@
+/**
+ * Payout status pill styles (Issue #221).
+ *
+ * Tokens per status live here so colour is never the only cue — icons and
+ * text labels remain in the DOM. Supports density modes, high-contrast /
+ * forced-colors, print, RTL, and reduced-motion tooltips.
+ */
+
+/* ─── Status tokens ──────────────────────────────────────────────────────── */
+
+.psp-pill {
+  --psp-fg: var(--text-main, #e2e8f0);
+  --psp-bg: rgba(148, 163, 184, 0.12);
+  --psp-border: rgba(148, 163, 184, 0.35);
+  --psp-icon: var(--text-muted, #94a3b8);
+
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  max-inline-size: 100%;
+  vertical-align: middle;
+  outline: none;
+}
+
+.psp-pill--scheduled {
+  --psp-fg: #cbd5e1;
+  --psp-bg: rgba(148, 163, 184, 0.12);
+  --psp-border: rgba(148, 163, 184, 0.4);
+  --psp-icon: #94a3b8;
+}
+
+.psp-pill--preparing {
+  --psp-fg: #93c5fd;
+  --psp-bg: rgba(59, 130, 246, 0.12);
+  --psp-border: rgba(59, 130, 246, 0.4);
+  --psp-icon: #60a5fa;
+}
+
+.psp-pill--sending {
+  --psp-fg: #67e8f9;
+  --psp-bg: rgba(6, 182, 212, 0.12);
+  --psp-border: rgba(6, 182, 212, 0.4);
+  --psp-icon: #22d3ee;
+}
+
+.psp-pill--confirmed {
+  --psp-fg: #6ee7b7;
+  --psp-bg: rgba(16, 185, 129, 0.12);
+  --psp-border: rgba(16, 185, 129, 0.4);
+  --psp-icon: var(--success, #10b981);
+}
+
+.psp-pill--retrying {
+  --psp-fg: #fcd34d;
+  --psp-bg: rgba(245, 158, 11, 0.12);
+  --psp-border: rgba(245, 158, 11, 0.4);
+  --psp-icon: #fbbf24;
+}
+
+.psp-pill--failed {
+  --psp-fg: #fca5a5;
+  --psp-bg: rgba(239, 68, 68, 0.12);
+  --psp-border: rgba(239, 68, 68, 0.45);
+  --psp-icon: var(--error, #ef4444);
+}
+
+.psp-pill--canceled {
+  --psp-fg: #94a3b8;
+  --psp-bg: rgba(100, 116, 139, 0.12);
+  --psp-border: rgba(100, 116, 139, 0.4);
+  --psp-icon: #64748b;
+}
+
+/* ─── Face (icon + label) ────────────────────────────────────────────────── */
+
+.psp-pill-face {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid var(--psp-border);
+  background: var(--psp-bg);
+  color: var(--psp-fg);
+  font-size: var(--density-font-size, 0.8125rem);
+  font-weight: 600;
+  line-height: var(--density-line-height, 1.25);
+  white-space: nowrap;
+  max-inline-size: 100%;
+}
+
+.psp-pill--full .psp-pill-face {
+  gap: 0.45rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-md, 0.5rem);
+  font-size: 0.875rem;
+}
+
+.psp-pill-icon {
+  flex: none;
+  color: var(--psp-icon);
+}
+
+.psp-pill-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.psp-pill-detail {
+  font-weight: 400;
+  color: var(--text-muted, #94a3b8);
+  margin-inline-start: 0.15rem;
+}
+
+.psp-pill-detail::before {
+  content: '·';
+  margin-inline-end: 0.35rem;
+  color: var(--text-muted, #94a3b8);
+}
+
+.psp-pill:focus-visible .psp-pill-face {
+  outline: 2px solid var(--primary, #6366f1);
+  outline-offset: 2px;
+}
+
+/* Dense rows: tighten padding under compact density */
+[data-density='compact'] .psp-pill--compact .psp-pill-face {
+  padding-block: 0.1rem;
+  padding-inline: 0.4rem;
+  font-size: 0.75rem;
+}
+
+[data-density='cozy'] .psp-pill--compact .psp-pill-face {
+  padding-block: 0.15rem;
+  padding-inline: 0.5rem;
+}
+
+/* ─── Tooltip ────────────────────────────────────────────────────────────── */
+
+.psp-tooltip {
+  position: absolute;
+  z-index: 20;
+  inset-block-end: calc(100% + 8px);
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+  inline-size: max-content;
+  max-inline-size: min(18rem, 70vw);
+  padding: 0.5rem 0.65rem;
+  border-radius: var(--radius-md, 0.5rem);
+  border: 1px solid var(--glass-border, rgba(148, 163, 184, 0.25));
+  background: var(--glass-bg, rgba(15, 23, 42, 0.95));
+  color: var(--text-main, #e2e8f0);
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.4;
+  white-space: normal;
+  box-shadow: var(--shadow-md, 0 8px 24px rgba(0, 0, 0, 0.35));
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.psp-tooltip--open {
+  opacity: 1;
+}
+
+.psp-tooltip::after {
+  content: '';
+  position: absolute;
+  inset-block-start: 100%;
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-block-start-color: var(--glass-border, rgba(148, 163, 184, 0.25));
+}
+
+[dir='rtl'] .psp-tooltip {
+  transform: translateX(50%);
+}
+
+[dir='rtl'] .psp-tooltip::after {
+  transform: translateX(50%);
+}
+
+/* Reduced motion: show/hide without fade */
+@media (prefers-reduced-motion: reduce) {
+  .psp-tooltip {
+    transition: none;
+  }
+}
+
+/* ─── High contrast / forced colors ──────────────────────────────────────── */
+
+@media (prefers-contrast: more) {
+  .psp-pill-face {
+    border-width: 2px;
+  }
+
+  .psp-tooltip {
+    border-width: 2px;
+  }
+}
+
+@media (forced-colors: active) {
+  .psp-pill-face {
+    border: 1px solid ButtonText;
+    background: Canvas;
+    color: ButtonText;
+    forced-color-adjust: none;
+  }
+
+  .psp-pill-icon {
+    color: ButtonText;
+  }
+
+  .psp-tooltip {
+    border: 1px solid ButtonText;
+    background: Canvas;
+    color: CanvasText;
+  }
+}
+
+/* ─── Payout schedule page chrome (Issue #221) ───────────────────────────── */
+
+.psp-legend {
+  padding: var(--spacing-5, 1.25rem);
+  border-radius: var(--radius-xl, 0.75rem);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3, 0.75rem);
+}
+
+.psp-legend-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.psp-legend-copy {
+  margin: 0;
+  max-inline-size: 42rem;
+}
+
+.psp-legend-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2, 0.5rem);
+}
+
+.psp-schedule {
+  border-radius: var(--radius-xl, 0.75rem);
+  overflow: auto;
+}
+
+.psp-table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-size: var(--density-font-size, 0.875rem);
+}
+
+.psp-table th {
+  text-align: start;
+  font-weight: 600;
+  color: var(--text-muted, #94a3b8);
+  padding: var(--density-pad-y, 0.625rem) var(--density-pad-x, 0.875rem);
+  border-block-end: 1px solid var(--glass-border, rgba(148, 163, 184, 0.15));
+}
+
+.psp-table td {
+  padding: var(--density-pad-y, 0.625rem) var(--density-pad-x, 0.875rem);
+  border-block-end: 1px solid rgba(148, 163, 184, 0.08);
+  height: var(--density-row-height, auto);
+  overflow-wrap: anywhere;
+}
+
+.psp-table-row:hover td {
+  background: rgba(148, 163, 184, 0.04);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media print {
+  .psp-pill-face {
+    background: #fff !important;
+    color: #000 !important;
+    border: 1px solid #000 !important;
+    box-shadow: none !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .psp-pill-icon {
+    color: #000 !important;
+  }
+
+  /* Tooltips are interactive chrome — hide when printing */
+  .psp-tooltip {
+    display: none !important;
+  }
+
+  .psp-pill-detail {
+    color: #333 !important;
+  }
+
+  .psp-legend {
+    break-inside: avoid;
+  }
+
+  .psp-table th,
+  .psp-table td {
+    border-color: #ccc !important;
+    color: #000 !important;
+  }
+}
+

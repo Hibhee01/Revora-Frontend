@@ -35,10 +35,10 @@ export default defineConfig({
         'src/components/DensityProvider/DensityProvider.tsx',
         'src/components/DensityToggle/DensityToggle.tsx',
         'src/hooks/useDensity.ts',
-        // Issue #229 – KYC rejection reasons panel
-        'src/components/KycRejectionPanel/kycRejectionTaxonomy.ts',
-        'src/components/KycRejectionPanel/KycRejectionPanel.tsx',
-        'src/pages/DistributionDashboard.tsx',
+        // Issue #221 – Payout status pills
+        'src/components/PayoutStatusPill/payoutStatuses.ts',
+        'src/components/PayoutStatusPill/PayoutStatusPill.tsx',
+        'src/pages/PayoutSchedule.tsx',
       ],
       thresholds: {
         'src/components/NetworkSwitcher/ChainMismatchModal.tsx': {
@@ -140,14 +140,14 @@ export default defineConfig({
           lines: 95,
           statements: 95,
         },
-        // Issue #229 – KYC rejection reasons panel
-        'src/components/KycRejectionPanel/kycRejectionTaxonomy.ts': {
+        // Issue #221 – Payout status pills
+        'src/components/PayoutStatusPill/payoutStatuses.ts': {
           branches: 95, functions: 95, lines: 95, statements: 95,
         },
-        'src/components/KycRejectionPanel/KycRejectionPanel.tsx': {
+        'src/components/PayoutStatusPill/PayoutStatusPill.tsx': {
           branches: 95, functions: 95, lines: 95, statements: 95,
         },
-        'src/pages/DistributionDashboard.tsx': {
+        'src/pages/PayoutSchedule.tsx': {
           branches: 95, functions: 95, lines: 95, statements: 95,
         },
       }

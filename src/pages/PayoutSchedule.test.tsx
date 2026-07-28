@@ -1,71 +1,78 @@
+/**
+ * Integration tests for PayoutSchedule + status pills (Issue #221).
+ */
+
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect } from 'vitest';
+import { render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { axe, toHaveNoViolations } from 'jest-axe';
-import { buildDemoPayoutEvents, PayoutSchedule } from './PayoutSchedule';
+
+import { PayoutSchedule, DEMO_PAYOUTS } from './PayoutSchedule';
+import { PAYOUT_STATUS_ORDER } from '../components/PayoutStatusPill';
 
 expect.extend(toHaveNoViolations);
 
-beforeEach(() => {
-  Element.prototype.scrollIntoView = vi.fn();
-  window.matchMedia = vi.fn().mockImplementation((query: string) => ({
-    matches: query.includes('prefers-reduced-motion'),
-    media: query,
-    onchange: null,
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    addListener: vi.fn(),
-    removeListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-  })) as unknown as typeof window.matchMedia;
-});
-
-afterEach(() => {
-  vi.restoreAllMocks();
-});
-
-function renderPage(ui: React.ReactElement) {
-  return render(<MemoryRouter>{ui}</MemoryRouter>);
+function renderPage(props: React.ComponentProps<typeof PayoutSchedule> = {}) {
+  return render(
+    <MemoryRouter>
+      <PayoutSchedule {...props} />
+    </MemoryRouter>
+  );
 }
 
-describe('buildDemoPayoutEvents', () => {
-  it('returns chronological demo payouts around today', () => {
-    const events = buildDemoPayoutEvents('2026-07-27');
-    expect(events.length).toBeGreaterThanOrEqual(5);
-    for (let i = 1; i < events.length; i += 1) {
-      expect(events[i].date >= events[i - 1].date).toBe(true);
-    }
-  });
-});
-
-describe('PayoutSchedule page', () => {
-  it('renders the timeline with demo events by default', () => {
-    renderPage(<PayoutSchedule today="2026-07-27" />);
-    expect(screen.getByRole('heading', { name: /payout schedule/i })).toBeInTheDocument();
-    expect(screen.getByTestId('payout-timeline')).toBeInTheDocument();
-  });
-
-  it('shows empty state when empty', () => {
-    renderPage(<PayoutSchedule empty />);
-    expect(screen.getByText(/no payouts scheduled/i)).toBeInTheDocument();
-    expect(screen.queryByTestId('payout-timeline')).not.toBeInTheDocument();
-  });
-
-  it('accepts injected events', () => {
-    renderPage(
-      <PayoutSchedule
-        today="2026-01-15"
-        events={[
-          { id: '1', date: '2026-01-01', label: 'Custom', status: 'paid', amount: '$9' },
-        ]}
-      />,
+describe('PayoutSchedule', () => {
+  it('renders the schedule table with a compact pill per payout', () => {
+    renderPage();
+    expect(screen.getByRole('heading', { name: /payout schedule/i, level: 1 })).toBeInTheDocument();
+    expect(screen.getByTestId('payout-schedule-table')).toBeInTheDocument();
+    expect(screen.getAllByTestId('payout-status-pill')).toHaveLength(
+      DEMO_PAYOUTS.length + PAYOUT_STATUS_ORDER.length
     );
-    expect(screen.getByRole('button', { name: /Custom, Jan 1, 2026, Paid, \$9/i })).toBeInTheDocument();
   });
 
-  it('has no axe violations with timeline', async () => {
-    const { container } = renderPage(<PayoutSchedule today="2026-07-27" />);
+  it('documents the canonical status set in the legend (full variant)', () => {
+    renderPage();
+    const legend = screen.getByTestId('payout-status-legend');
+    const pills = within(legend).getAllByTestId('payout-status-pill');
+    expect(pills.map((p) => p.getAttribute('data-status'))).toEqual(PAYOUT_STATUS_ORDER);
+    expect(pills.every((p) => p.getAttribute('data-variant') === 'full')).toBe(true);
+  });
+
+  it('shows the empty state when requested', () => {
+    renderPage({ empty: true });
+    expect(screen.getByText(/no payouts scheduled/i)).toBeInTheDocument();
+    expect(screen.queryByTestId('payout-schedule-table')).not.toBeInTheDocument();
+  });
+
+  it('lets keyboard users focus a row pill and read its tooltip', async () => {
+    const user = userEvent.setup();
+    renderPage({
+      payouts: [
+        {
+          id: 'only',
+          recipient: 'a@b.co',
+          amount: 'USDC 1',
+          scheduledFor: '2026-08-01',
+          status: 'failed',
+        },
+      ],
+    });
+
+    const row = screen.getByTestId('payout-row-only');
+    const rowPill = within(row).getByTestId('payout-status-pill');
+
+    await user.click(rowPill);
+    expect(rowPill).toHaveFocus();
+    expect(within(rowPill).getByTestId('payout-status-tooltip')).toHaveClass('psp-tooltip--open');
+
+    await user.keyboard('{Escape}');
+    expect(within(rowPill).getByTestId('payout-status-tooltip')).not.toHaveClass('psp-tooltip--open');
+  });
+
+  it('has no axe-detectable accessibility violations', async () => {
+    const { container } = renderPage();
     expect(await axe(container)).toHaveNoViolations();
   });
 });

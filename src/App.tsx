@@ -12,6 +12,7 @@ import { OfferingRegistrationDemo } from "./pages/OfferingRegistrationDemo";
 import NotificationBell from "./components/Notifications/NotificationBell";
 import { notificationsMock } from "./components/Notifications/notificationsData";
 import { OfferingWizardSummary } from "./pages/OfferingWizardSummary";
+import { ScheduledExportsPage } from "./pages/ScheduledExportsPage";
 
 export function App() {
   return (
@@ -46,6 +47,7 @@ export function App() {
 
           {/* Admin routes */}
           <Route path="/admin/alerts" element={<AdminAlertsInbox />} />
+          <Route path="/admin/scheduled-exports" element={<ScheduledExportsPage />} />
         </Route>
       </Routes>
     </Router>

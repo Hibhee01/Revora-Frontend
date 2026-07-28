@@ -2,6 +2,11 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import AppShell from './AppShell';
+import { DensityProvider } from '../DensityProvider';
+
+const renderAppShell = (ui: React.ReactNode) => {
+  return render(<DensityProvider>{ui}</DensityProvider>);
+};
 
 describe('AppShell', () => {
   beforeEach(() => {
@@ -10,7 +15,7 @@ describe('AppShell', () => {
   });
 
   test('renders children content', () => {
-    render(
+    renderAppShell(
       <AppShell>
         <div>Test Content</div>
       </AppShell>
@@ -19,7 +24,7 @@ describe('AppShell', () => {
   });
 
   test('displays logo and navigation items', () => {
-    render(<AppShell><div>Content</div></AppShell>);
+    renderAppShell(<AppShell><div>Content</div></AppShell>);
     
     expect(screen.getByText('Revora')).toBeInTheDocument();
     expect(screen.getByText('Discovery')).toBeInTheDocument();
@@ -28,7 +33,7 @@ describe('AppShell', () => {
   });
 
   test('renders help button with aria-label', () => {
-    render(<AppShell><div>Content</div></AppShell>);
+    renderAppShell(<AppShell><div>Content</div></AppShell>);
     
     const helpBtn = screen.getByRole('button', { name: 'Keyboard shortcuts' });
     expect(helpBtn).toBeInTheDocument();
@@ -36,7 +41,7 @@ describe('AppShell', () => {
   });
 
   test('opens keyboard shortcuts overlay when help button is clicked', () => {
-    render(<AppShell><div>Content</div></AppShell>);
+    renderAppShell(<AppShell><div>Content</div></AppShell>);
     
     const helpBtn = screen.getByRole('button', { name: 'Keyboard shortcuts' });
     fireEvent.click(helpBtn);
@@ -47,7 +52,7 @@ describe('AppShell', () => {
   });
 
   test('help button click is idempotent (multiple clicks keep overlay open)', () => {
-    render(<AppShell><div>Content</div></AppShell>);
+    renderAppShell(<AppShell><div>Content</div></AppShell>);
     
     const helpBtn = screen.getByRole('button', { name: 'Keyboard shortcuts' });
     fireEvent.click(helpBtn);
@@ -60,7 +65,7 @@ describe('AppShell', () => {
   });
 
   test('overlay closes via Escape after help button launch', () => {
-    render(<AppShell><div>Content</div></AppShell>);
+    renderAppShell(<AppShell><div>Content</div></AppShell>);
     
     const helpBtn = screen.getByRole('button', { name: 'Keyboard shortcuts' });
     fireEvent.click(helpBtn);
@@ -78,7 +83,7 @@ describe('AppShell', () => {
     global.innerWidth = 375;
     global.dispatchEvent(new Event('resize'));
     
-    render(<AppShell><div>Content</div></AppShell>);
+    renderAppShell(<AppShell><div>Content</div></AppShell>);
     
     const menuButton = screen.getByLabelText('Menu');
     fireEvent.click(menuButton);

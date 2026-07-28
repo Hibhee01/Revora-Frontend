@@ -228,6 +228,18 @@ Supports `kycBlocked` option which shows a blocked state with an action badge.
 
 Supports `livenessSkipped` and `addressBlocked` options.
 
+### 4. On-Chain Transaction & Rejection Flow
+
+**File:** `src/components/StatusTimeline/presets.ts` → `getOnchainRejectionMilestones(reason, options?)`
+
+| Milestone | Description |
+|---|---|
+| Payout Prepared | Transaction parameters & recipient balances compiled |
+| On-Chain Execution | Transaction submitted to blockchain network (renders `OnchainRejectionCard` when blocked) |
+| Settlement Confirmed | Block confirmation and token transfer finalized |
+
+Supports `insufficient-gas`, `nonce-mismatch`, `slippage-exceeded`, `user-rejected`, `execution-reverted`, and `unknown` rejection reason codes with calm illustration, plain-language error copy, and primary CTA `"Retry with adjusted gas"`.
+
 ---
 
 ## ARIA & Accessibility

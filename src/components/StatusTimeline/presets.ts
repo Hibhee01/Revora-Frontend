@@ -261,3 +261,46 @@ export function getKycVerificationMilestones(
     };
   });
 }
+
+/* ─── 4. On-Chain Transaction Timeline Preset ────────────────────────── */
+
+/**
+ * Milestone preset for smart contract payout/distribution timeline with an on-chain rejection step:
+ * Payout Prepared → On-Chain Execution (Blocked with OnchainRejectionCard) → Settlement Confirmed
+ */
+export function getOnchainRejectionMilestones(
+  reason: string = 'insufficient-gas',
+  options?: {
+    onRetry?: () => void | Promise<void>;
+    onAdjustGas?: () => void;
+    onCancel?: () => void;
+  },
+): Milestone[] {
+  return [
+    {
+      id: 'tx-prep',
+      label: 'Payout Prepared',
+      description: 'Transaction parameters & recipient balances compiled',
+      status: 'completed',
+      timestamp: new Date(Date.now() - 3600000).toISOString(),
+    },
+    {
+      id: 'tx-execution',
+      label: 'On-Chain Execution',
+      description: 'Transaction submitted to blockchain network',
+      status: 'blocked',
+      onchainRejection: {
+        reason,
+        onRetry: options?.onRetry,
+        onAdjustGas: options?.onAdjustGas,
+        onCancel: options?.onCancel,
+      },
+    },
+    {
+      id: 'tx-settlement',
+      label: 'Settlement Confirmed',
+      description: 'Block confirmation and token transfer finalized',
+      status: 'pending',
+    },
+  ];
+}

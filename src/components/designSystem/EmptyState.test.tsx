@@ -91,20 +91,16 @@ describe('EmptyState', () => {
     expect(svg).toHaveAttribute('role', 'presentation');
   });
 
-  it('renders all 6 variants without crashing', () => {
-    const variants = [
-      'distribution-dashboard',
-      'payout-schedule',
-      'ledger',
-      'audit-trail',
-      'notifications',
-      'revenue-reports',
-    ] as const;
-
-    variants.forEach((variant) => {
-      render(<EmptyState {...baseProps} variant={variant} />);
-      expect(screen.getByRole('status')).toBeInTheDocument();
-    });
+  it.each([
+    'distribution-dashboard',
+    'payout-schedule',
+    'ledger',
+    'audit-trail',
+    'notifications',
+    'revenue-reports',
+  ] as const)('renders variant %s without crashing', (variant) => {
+    const { getByRole } = render(<EmptyState {...baseProps} variant={variant} />);
+    expect(getByRole('status')).toBeInTheDocument();
   });
 
   it('renders primary action as link when href is provided', () => {

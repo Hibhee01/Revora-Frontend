@@ -51,6 +51,8 @@ export interface BlockedAction {
   onClick: () => void;
 }
 
+import { OnchainRejectionCard, OnchainRejectionCardProps } from './OnchainRejectionCard';
+
 export interface Milestone {
   /** Unique identifier for the milestone */
   id: string;
@@ -68,6 +70,8 @@ export interface Milestone {
   subSteps?: SubStep[];
   /** Optional blocked action badge (shown when status is 'blocked') */
   blockedAction?: BlockedAction;
+  /** Optional on-chain rejection card configuration for blocked blockchain milestones */
+  onchainRejection?: OnchainRejectionCardProps;
 }
 
 export interface StatusTimelineProps {
@@ -334,6 +338,11 @@ export const StatusTimeline: React.FC<StatusTimelineProps> = ({
                   <AlertTriangle size={12} aria-hidden="true" />
                   {milestone.blockedAction.label}
                 </button>
+              )}
+
+              {/* On-chain Rejection Card for blocked blockchain milestone */}
+              {milestone.status === 'blocked' && milestone.onchainRejection && (
+                <OnchainRejectionCard {...milestone.onchainRejection} />
               )}
             </div>
           </div>

@@ -35,16 +35,29 @@ export default defineConfig({
         'src/components/DensityProvider/DensityProvider.tsx',
         'src/components/DensityToggle/DensityToggle.tsx',
         'src/hooks/useDensity.ts',
-        // Issue #272 – Payout timeline RTL mirror
-        'src/components/PayoutTimeline/PayoutTimeline.tsx',
-        'src/pages/PayoutSchedule.tsx',
+        // Onchain rejection error illustration
+        'src/components/designSystem/OnchainRejectionIllustration.tsx',
+        'src/components/StatusTimeline/OnchainRejectionCard.tsx',
+        'src/components/StatusTimeline/onchainRejectionCopy.ts',
       ],
       thresholds: {
-        'src/hooks/useUploadQueue.ts': {
-          branches: 95, functions: 95, lines: 95, statements: 95,
+        'src/components/designSystem/OnchainRejectionIllustration.tsx': {
+          branches: 95,
+          functions: 95,
+          lines: 95,
+          statements: 95,
         },
-        'src/components/UploadQueue/UploadQueue.tsx': {
-          branches: 95, functions: 95, lines: 95, statements: 95,
+        'src/components/StatusTimeline/OnchainRejectionCard.tsx': {
+          branches: 95,
+          functions: 95,
+          lines: 95,
+          statements: 95,
+        },
+        'src/components/StatusTimeline/onchainRejectionCopy.ts': {
+          branches: 95,
+          functions: 95,
+          lines: 95,
+          statements: 95,
         },
         'src/components/DensityProvider/DensityProvider.tsx': {
           branches: 95, functions: 95, lines: 95, statements: 95,

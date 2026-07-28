@@ -1,5 +1,5 @@
 import React, { act } from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { axe, toHaveNoViolations } from 'jest-axe';
 import { DistributionDashboard } from './DistributionDashboard';
@@ -38,8 +38,9 @@ describe('DistributionDashboard', () => {
 
     expect(screen.getByTestId('payout-table')).toBeInTheDocument();
     expect(screen.getByText('PO-2026-004')).toBeInTheDocument();
-    expect(screen.getByText('Nexus Cloud Series A')).toBeInTheDocument();
-    expect(screen.getByText('North America')).toBeInTheDocument();
+    const table = screen.getByTestId('payout-table');
+    expect(within(table).getAllByText('Nexus Cloud Series A').length).toBeGreaterThan(0);
+    expect(within(table).getAllByText('North America').length).toBeGreaterThan(0);
     expect(screen.getByText('PO-2026-003')).toBeInTheDocument();
     expect(screen.getByText('Europe')).toBeInTheDocument();
   });

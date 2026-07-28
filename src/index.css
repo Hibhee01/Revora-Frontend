@@ -1087,4 +1087,66 @@ input:focus-visible,
 .skeleton-rect {
   width: 100%;
   height: 10rem;
+}
+
+/* ─── Multi-Issuer Comparison View (Issue #231) ─────────────────────────────
+ *  Accessible, responsive side-by-side issuer comparison.
+ *  Tokens: --glass-*, --primary, --text-*, --success, --error
+ * ─────────────────────────────────────────────────────────────────────────── */
+
+/* Column sync: dim non-hovered columns */
+.mic-column {
+  background: var(--glass-bg-accent);
+  transition: border-color 0.2s ease, background-color 0.2s ease, opacity 0.2s ease;
+}
+
+.mic-column--hover {
+  z-index: 2;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.mic-column--dim {
+  opacity: 0.55;
+}
+
+/* Responsive: stack columns on narrow viewports */
+@media (max-width: 767px) {
+  .mic-column {
+    opacity: 1 !important;
+  }
+}
+
+/* Compliance status pills */
+.mic-compliance--compliant {
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--success);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.mic-compliance--review {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--error);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.mic-compliance--hold {
+  background: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+/* Chart snippet */
+.mic-chart-snippet {
+  background: rgba(15, 23, 42, 0.35);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-sm);
+}
+
+/* Button overrides */
+.btn--sm {
+  padding: 0.375rem 0.875rem;
+  font-size: 0.8125rem;
+  border-radius: var(--radius-md);
+  width: auto;
 }

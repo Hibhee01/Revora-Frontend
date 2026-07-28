@@ -109,6 +109,9 @@
   --auth-card-padding-x: clamp(1.25rem, 5vw, 2.5rem);  /* 20px → 40px */
   --auth-card-padding-y: clamp(1.5rem, 4vw, 2.5rem);   /* 24px → 40px */
 
+  /* Motion / Animation Tokens */
+  --duration-kpi: 1.5s;
+
   /* Header section spacing */
   --auth-header-gap: 0.5rem;    /* gap between title, subtitle, helperText */
   --auth-header-mb: 2rem;       /* margin below header, above form */

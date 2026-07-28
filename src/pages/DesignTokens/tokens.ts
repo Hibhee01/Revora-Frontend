@@ -112,6 +112,7 @@ export const TOKEN_GROUPS: TokenGroup[] = [
     tokens: [
       { name: "Transition Fast", variable: "--transition-fast", value: "0.2s ease", description: "Micro-interactions" },
       { name: "Transition Base", variable: "--transition-base", value: "0.4s ease-out", description: "Fade in / page entry" },
+      { name: "Duration KPI", variable: "--duration-kpi", value: "1.5s", description: "KPI numeric ticker duration" },
       { name: "Easing Bounce", variable: "--easing-bounce", value: "cubic-bezier(.36,.07,.19,.97)", description: "Shake animation" },
     ],
   },

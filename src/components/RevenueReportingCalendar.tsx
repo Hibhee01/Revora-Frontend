@@ -29,6 +29,7 @@ import {
   Clock,
   CheckCircle2,
   AlertTriangle,
+  AlertOctagon,
   Send,
   X,
   Menu,
@@ -48,8 +49,13 @@ import {
   ReportStatus,
   REPORT_STATUS_LABELS,
   REPORT_STATUS_COLORS,
-} from "./RevenueReportingCalendar.types";
-import "./RevenueReportingCalendar.css";
+  OverdueSeverity,
+  OVERDUE_SEVERITY_LABELS,
+  OVERDUE_SEVERITY_COLORS,
+  getOverdueDays,
+  getOverdueSeverity,
+} from './RevenueReportingCalendar.types';
+import './RevenueReportingCalendar.css';
 
 /* ─── Helpers ──────────────────────────────────────────────────────── */
 
@@ -204,302 +210,28 @@ function StatusDot({ status }: { status: ReportStatus }) {
   );
 }
 
-/* ─── Status Pill ──────────────────────────────────────────────────── */
+/* ─── Overdue Badge ────────────────────────────────────────────────── */
 
-interface StatusPillProps {
-  status: ReportStatus;
-}
+function OverdueBadge({ dueDate }: { dueDate: string }) {
+  const days = getOverdueDays(dueDate);
+  const severity = getOverdueSeverity(days);
+  const color = OVERDUE_SEVERITY_COLORS[severity];
 
-const StatusPill: React.FC<StatusPillProps> = ({ status }) => {
-  if (status === "none") return null;
-  const color = REPORT_STATUS_COLORS[status];
-  const label = REPORT_STATUS_LABELS[status];
-  const pillClass = `rc-status-pill rc-status-pill--${status}`;
   return (
     <span
-      className={pillClass}
-      style={
-        {
-          "--rc-status-pill-color": color,
-        } as React.CSSProperties
-      }
-      role="status"
-      aria-label={label}
+      className={`rc-overdue-badge rc-overdue-badge--${severity}`}
+      style={{ backgroundColor: color }}
+      aria-hidden="true"
     >
-      {label}
+      {severity === 'critical' ? (
+        <AlertOctagon size={10} aria-hidden="true" />
+      ) : (
+        <AlertTriangle size={10} aria-hidden="true" />
+      )}
+      <span className="rc-overdue-badge-days">{days}</span>
     </span>
   );
-};
-
-/* ─── Agenda View (Mobile) ─────────────────────────────────────────── */
-
-interface AgendaViewProps {
-  reports: RevenueReport[];
-  selectedDate: string | undefined;
-  locale: string;
-  onSelect: (date: string) => void;
-  onSubmitReport?: (date: string) => void;
-  viewMonth: string;
 }
-
-const AgendaView: React.FC<AgendaViewProps> = ({
-  reports,
-  selectedDate,
-  locale,
-  onSelect,
-  onSubmitReport,
-  viewMonth,
-}) => {
-  const [viewYear, viewMonthNum] = useMemo(() => {
-    const [y, m] = viewMonth.split("-").map(Number);
-    return [y, m - 1];
-  }, [viewMonth]);
-
-  const todayISO = toISODate(
-    new Date().getFullYear(),
-    new Date().getMonth(),
-    new Date().getDate(),
-  );
-
-  const agendaGroups = useMemo(() => {
-    const monthReports = reports
-      .filter((r) => {
-        const d = parseISODate(r.date);
-        return d.year === viewYear && d.month === viewMonthNum;
-      })
-      .slice();
-
-    const allWithStatus = monthReports.map((r) => {
-      const overdue = isOverdue(r);
-      return {
-        report: r,
-        effectiveStatus: overdue ? "overdue" : r.status,
-      };
-    });
-
-    const overdue: typeof allWithStatus = [];
-    const dueSoon: typeof allWithStatus = [];
-    const submitted: typeof allWithStatus = [];
-    const accepted: typeof allWithStatus = [];
-
-    for (const item of allWithStatus) {
-      switch (item.effectiveStatus) {
-        case "overdue":
-          overdue.push(item);
-          break;
-        case "due":
-          dueSoon.push(item);
-          break;
-        case "submitted":
-          submitted.push(item);
-          break;
-        case "accepted":
-          accepted.push(item);
-          break;
-      }
-    }
-
-    const sortByDateAsc = (
-      a: { report: RevenueReport },
-      b: { report: RevenueReport },
-    ) => a.report.date.localeCompare(b.report.date);
-    const sortByDateDesc = (
-      a: { report: RevenueReport },
-      b: { report: RevenueReport },
-    ) => b.report.date.localeCompare(a.report.date);
-
-    overdue.sort(sortByDateAsc);
-    dueSoon.sort(sortByDateAsc);
-    submitted.sort(sortByDateDesc);
-    accepted.sort(sortByDateDesc);
-
-    const groups: {
-      key: string;
-      title: string;
-      items: { report: RevenueReport; effectiveStatus: ReportStatus }[];
-    }[] = [];
-
-    if (overdue.length > 0) {
-      groups.push({ key: "overdue", title: "Overdue", items: overdue });
-    }
-    if (dueSoon.length > 0) {
-      groups.push({ key: "due", title: "Upcoming", items: dueSoon });
-    }
-    if (submitted.length > 0) {
-      groups.push({ key: "submitted", title: "Submitted", items: submitted });
-    }
-    if (accepted.length > 0) {
-      groups.push({ key: "accepted", title: "Accepted", items: accepted });
-    }
-
-    return groups;
-  }, [reports, viewYear, viewMonthNum]);
-
-  const totalReports = agendaGroups.reduce((acc, g) => acc + g.items.length, 0);
-
-  const formatLong = (iso: string) =>
-    formatDate(iso, locale as SupportedLocale, {
-      weekday: "short",
-      month: "short",
-      day: "numeric",
-    });
-
-  const formatDue = (iso: string) =>
-    formatDate(iso, locale as SupportedLocale, {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-
-  return (
-    <div
-      className="rc-agenda-view"
-      role="list"
-      aria-label="Revenue report agenda"
-    >
-      {totalReports === 0 ? (
-        <div className="rc-agenda-empty">
-          <Calendar size={32} aria-hidden="true" />
-          <p className="rc-agenda-empty-text">
-            No reports scheduled for this month.
-          </p>
-          {onSubmitReport && (
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => onSubmitReport(todayISO)}
-            >
-              <Send size={14} aria-hidden="true" />
-              Submit Report Today
-            </Button>
-          )}
-        </div>
-      ) : (
-        agendaGroups.map((group) => (
-          <section
-            key={group.key}
-            className={`rc-agenda-group rc-agenda-group--${group.key}`}
-            aria-labelledby={`rc-agenda-group-${group.key}`}
-          >
-            <h3
-              id={`rc-agenda-group-${group.key}`}
-              className="rc-agenda-group-title"
-            >
-              {group.title}
-              <span className="rc-agenda-group-count">
-                {group.items.length}
-              </span>
-            </h3>
-            <ul className="rc-agenda-list" role="list">
-              {group.items.map(({ report, effectiveStatus }) => {
-                const isSelected = selectedDate === report.date;
-                const rowLabel = `${formatLong(report.date)} — ${REPORT_STATUS_LABELS[effectiveStatus]}${report.grossRevenue !== undefined ? `, ${formatCurrency(report.grossRevenue, report.currency || "USD", locale as SupportedLocale)}` : ""}${isSelected ? ", selected" : ""}`;
-                return (
-                  <li
-                    key={report.id}
-                    role="listitem"
-                    className="rc-agenda-listitem"
-                  >
-                    <button
-                      type="button"
-                      className={`rc-agenda-row ${isSelected ? "rc-agenda-row--selected" : ""} rc-agenda-row--${effectiveStatus}`}
-                      onClick={() => onSelect(report.date)}
-                      onKeyDown={(e: KeyboardEvent<HTMLButtonElement>) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          onSelect(report.date);
-                        }
-                      }}
-                      aria-label={rowLabel}
-                      aria-pressed={isSelected}
-                    >
-                      <div className="rc-agenda-row-date" aria-hidden="true">
-                        <span className="rc-agenda-row-weekday">
-                          {formatDate(report.date, locale as SupportedLocale, {
-                            weekday: "short",
-                          })}
-                        </span>
-                        <span className="rc-agenda-row-day">
-                          {parseISODate(report.date).day}
-                        </span>
-                      </div>
-                      <div className="rc-agenda-row-body">
-                        <div className="rc-agenda-row-header">
-                          <StatusPill status={effectiveStatus} />
-                          {report.dueDate && (
-                            <span className="rc-agenda-row-duedate">
-                              <Clock size={12} aria-hidden="true" />
-                              Due {formatDue(report.dueDate)}
-                            </span>
-                          )}
-                        </div>
-                        <div className="rc-agenda-row-meta">
-                          {report.grossRevenue !== undefined && (
-                            <span className="rc-agenda-row-revenue">
-                              {formatCurrency(
-                                report.grossRevenue,
-                                report.currency || "USD",
-                                locale as SupportedLocale,
-                              )}
-                            </span>
-                          )}
-                          {report.submittedAt && (
-                            <span className="rc-agenda-row-submitted">
-                              <CheckCircle2 size={12} aria-hidden="true" />
-                              Submitted {formatLong(report.submittedAt)}
-                            </span>
-                          )}
-                          {report.acceptedAt && (
-                            <span className="rc-agenda-row-accepted">
-                              <CheckCircle2 size={12} aria-hidden="true" />
-                              Accepted {formatLong(report.acceptedAt)}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <ChevronRight
-                        className="rc-agenda-row-chevron"
-                        size={18}
-                        aria-hidden="true"
-                      />
-                    </button>
-                    {(effectiveStatus === "due" ||
-                      effectiveStatus === "overdue") &&
-                      onSubmitReport && (
-                        <div className="rc-agenda-row-cta">
-                          <Button
-                            variant="primary"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onSubmitReport(report.date);
-                            }}
-                            aria-label={`Submit ${effectiveStatus} report for ${formatLong(report.date)}`}
-                          >
-                            {effectiveStatus === "overdue" ? (
-                              <>
-                                <AlertTriangle size={14} aria-hidden="true" />
-                                Submit Now
-                              </>
-                            ) : (
-                              <>
-                                <Send size={14} aria-hidden="true" />
-                                Submit Report
-                              </>
-                            )}
-                          </Button>
-                        </div>
-                      )}
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
-        ))
-      )}
-    </div>
-  );
-};
 
 /* ─── Calendar Day Cell ────────────────────────────────────────────── */
 
@@ -531,7 +263,23 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
     day: "numeric",
   });
 
-  const ariaLabel = `${dateFormatted}, ${statusLabel}${cell.reports.length > 1 ? `, ${cell.reports.length} reports` : ""}${cell.isSelected ? ", selected" : ""}`;
+  const overdueReport = cell.primaryStatus === 'overdue'
+    ? cell.reports.find((r) => r.status === 'overdue')
+    : undefined;
+  const overdueDays = overdueReport ? getOverdueDays(overdueReport.dueDate) : 0;
+  const overdueSeverity = overdueReport ? getOverdueSeverity(overdueDays) : null;
+  const severityLabel = overdueSeverity ? OVERDUE_SEVERITY_LABELS[overdueSeverity] : '';
+
+  const ariaLabel = [
+    `${dateFormatted}.`,
+    cell.primaryStatus === 'overdue'
+      ? `Report overdue. ${severityLabel}. ${overdueDays} day${overdueDays !== 1 ? 's' : ''} overdue.`
+      : `${statusLabel}.`,
+    cell.reports.length > 1 ? `${cell.reports.length} reports.` : '',
+    cell.isSelected ? 'Selected.' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   const cellClass = [
     "rc-day-cell",
@@ -561,6 +309,9 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
     >
       <span className="rc-day-number">{cell.day}</span>
       <StatusDot status={cell.primaryStatus} />
+      {cell.primaryStatus === 'overdue' && overdueReport && (
+        <OverdueBadge dueDate={overdueReport.dueDate} />
+      )}
       {cell.reports.length > 1 && (
         <span className="rc-day-count" aria-hidden="true">
           {cell.reports.length}
@@ -1293,12 +1044,16 @@ export const RevenueReportingCalendar: React.FC<
               Accepted
             </span>
             <span className="rc-legend-item">
-              <span
-                className="rc-legend-dot"
-                style={{ backgroundColor: "var(--rc-status-overdue)" }}
-                aria-hidden="true"
-              />
-              Overdue
+              <span className="rc-legend-dot" style={{ backgroundColor: 'var(--rc-overdue-mild)' }} aria-hidden="true" />
+              Overdue (1–3 days)
+            </span>
+            <span className="rc-legend-item">
+              <span className="rc-legend-dot" style={{ backgroundColor: 'var(--rc-overdue-moderate)' }} aria-hidden="true" />
+              Overdue (4–29 days)
+            </span>
+            <span className="rc-legend-item">
+              <span className="rc-legend-dot" style={{ backgroundColor: 'var(--rc-overdue-critical)' }} aria-hidden="true" />
+              Overdue (30+ days)
             </span>
           </div>
 

@@ -21,6 +21,11 @@
   --rc-status-accepted: #10b981;
   --rc-status-overdue: #ef4444;
 
+  /* Overdue severity colours */
+  --rc-overdue-mild: #f59e0b;
+  --rc-overdue-moderate: #f97316;
+  --rc-overdue-critical: #ef4444;
+
   /* Calendar sizing */
   --rc-cell-size: 2.75rem;
   --rc-cell-gap: 0.25rem;
@@ -440,6 +445,28 @@
   z-index: 1;
 }
 
+/* Overdue badge */
+.rc-overdue-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 1px 4px;
+  border-radius: var(--radius-full);
+  font-size: 0.5625rem;
+  font-weight: var(--font-weight-bold);
+  color: #fff;
+  line-height: 1;
+  z-index: 1;
+}
+
+.rc-overdue-badge-days {
+  min-width: 0.5rem;
+  text-align: center;
+}
+
 /* Count badge for multiple reports */
 .rc-day-count {
   position: absolute;
@@ -757,7 +784,12 @@
   left: 3px;
 }
 
-[dir="rtl"] .rc-report-date {
+[dir='rtl'] .rc-overdue-badge {
+  right: auto;
+  left: 2px;
+}
+
+[dir='rtl'] .rc-report-date {
   margin-inline-start: 0;
   margin-inline-end: auto;
 }
@@ -797,6 +829,10 @@
     forced-color-adjust: none;
   }
 
+  .rc-overdue-badge {
+    forced-color-adjust: none;
+  }
+
   .rc-nav-btn {
     border: 1px solid ButtonText;
   }
@@ -814,6 +850,10 @@
     box-shadow: none;
     border: 1px solid #ccc;
     break-inside: avoid;
+  }
+
+  .rc-overdue-badge {
+    border: 1px solid #333;
   }
 
   .rc-mobile-toggle,

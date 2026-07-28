@@ -1,0 +1,303 @@
+/**
+ * ComplianceSeverityBadge styles (Issue #285).
+ *
+ * Three-tier severity: advisory (blue/info), warning (amber), blocking (red).
+ * Colour is never the only cue — each tier has a distinct icon and shape.
+ *
+ * Supports density modes, high-contrast/forced-colors, print, RTL, and
+ * reduced-motion.
+ */
+
+/* ─── Severity Tokens ──────────────────────────────────────────────── */
+
+.csb-badge {
+  --csb-fg: var(--text-main, #e2e8f0);
+  --csb-bg: rgba(148, 163, 184, 0.12);
+  --csb-border: rgba(148, 163, 184, 0.35);
+  --csb-icon: var(--text-muted, #94a3b8);
+
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  outline: none;
+}
+
+/* Advisory — blue / info */
+.csb-badge--advisory {
+  --csb-fg: #60a5fa;
+  --csb-bg: rgba(59, 130, 246, 0.12);
+  --csb-border: rgba(59, 130, 246, 0.35);
+  --csb-icon: #60a5fa;
+}
+
+/* Warning — amber */
+.csb-badge--warning {
+  --csb-fg: #fbbf24;
+  --csb-bg: rgba(245, 158, 11, 0.12);
+  --csb-border: rgba(245, 158, 11, 0.35);
+  --csb-icon: #fbbf24;
+}
+
+/* Blocking — red */
+.csb-badge--blocking {
+  --csb-fg: #f87171;
+  --csb-bg: rgba(239, 68, 68, 0.12);
+  --csb-border: rgba(239, 68, 68, 0.4);
+  --csb-icon: #f87171;
+}
+
+/* ─── Badge Face ───────────────────────────────────────────────────── */
+
+.csb-badge-face {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.45rem;
+  border-radius: 999px;
+  border: 1px solid var(--csb-border);
+  background: var(--csb-bg);
+  color: var(--csb-fg);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.csb-badge--detailed .csb-badge-face {
+  gap: 0.4rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: var(--radius-md, 0.5rem);
+  font-size: 0.8125rem;
+}
+
+.csb-badge-icon {
+  flex: none;
+  color: var(--csb-icon);
+}
+
+.csb-badge-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.csb-badge:focus-visible .csb-badge-face {
+  outline: 2px solid var(--primary, #6366f1);
+  outline-offset: 2px;
+}
+
+/* ─── Text variant (for legends) ───────────────────────────────────── */
+
+.csb-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.csb-text--advisory { color: #60a5fa; }
+.csb-text--warning  { color: #fbbf24; }
+.csb-text--blocking { color: #f87171; }
+
+.csb-text-icon {
+  flex: none;
+}
+
+/* ─── Density mode overrides ────────────────────────────────────────── */
+
+[data-density='compact'] .csb-badge--compact .csb-badge-face {
+  padding-block: 0.1rem;
+  padding-inline: 0.35rem;
+  font-size: 0.6875rem;
+}
+
+[data-density='cozy'] .csb-badge--compact .csb-badge-face {
+  padding-block: 0.15rem;
+  padding-inline: 0.4rem;
+}
+
+/* ─── High Contrast / Forced Colors ────────────────────────────────── */
+
+@media (prefers-contrast: more) {
+  .csb-badge-face {
+    border-width: 2px;
+  }
+}
+
+@media (forced-colors: active) {
+  .csb-badge-face {
+    border: 1px solid ButtonText;
+    background: Canvas;
+    color: ButtonText;
+    forced-color-adjust: none;
+  }
+
+  .csb-badge-icon {
+    color: ButtonText;
+  }
+
+  .csb-text {
+    forced-color-adjust: none;
+  }
+}
+
+/* ─── Print ──────────────────────────────────────────────────────────── */
+
+@media print {
+  .csb-badge-face {
+    border: 1px solid #000 !important;
+    background: #fff !important;
+    color: #000 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .csb-badge-icon {
+    color: #000 !important;
+  }
+
+  .csb-text {
+    color: #000 !important;
+  }
+}
+
+/* ─── RTL ────────────────────────────────────────────────────────────── */
+
+[dir='rtl'] .csb-badge-face {
+  flex-direction: row-reverse;
+}
+
+/* ─── Severity Legend Popover (Issue #285) ─────────────────────────── */
+
+.csb-legend-wrap {
+  display: inline-flex;
+  position: relative;
+}
+
+.csb-legend-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: rgba(148, 163, 184, 0.1);
+  color: var(--text-muted);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.csb-legend-trigger:hover {
+  background: rgba(148, 163, 184, 0.2);
+  color: var(--text-main);
+}
+
+.csb-legend-trigger:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.csb-legend-popover {
+  position: absolute;
+  z-index: 50;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 18rem;
+  max-width: 80vw;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  backdrop-filter: var(--glass-blur);
+  padding: var(--spacing-md);
+  animation: csbFadeIn 0.15s ease-out;
+}
+
+[dir='rtl'] .csb-legend-popover {
+  left: auto;
+  right: 50%;
+  transform: translateX(50%);
+}
+
+.csb-legend-header {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-main);
+  margin-bottom: var(--spacing-sm);
+  padding-bottom: var(--spacing-xs);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.csb-legend-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.csb-legend-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3xs);
+}
+
+.csb-legend-desc {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  line-height: var(--line-height-normal);
+  margin: 0;
+  padding-left: calc(1rem + 0.3rem); /* align with badge label start */
+}
+
+[dir='rtl'] .csb-legend-desc {
+  padding-left: 0;
+  padding-right: calc(1rem + 0.3rem);
+}
+
+@keyframes csbFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+[dir='rtl'] .csb-legend-popover {
+  animation-name: csbFadeInRtl;
+}
+
+@keyframes csbFadeInRtl {
+  from {
+    opacity: 0;
+    transform: translateX(50%) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(50%) translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .csb-legend-popover {
+    animation: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .csb-legend-popover {
+    left: 0;
+    right: auto;
+    transform: none;
+  }
+
+  [dir='rtl'] .csb-legend-popover {
+    left: auto;
+    right: 0;
+    transform: none;
+  }
+}

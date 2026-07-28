@@ -1,7 +1,9 @@
 import React from "react";
-import { Info, AlertTriangle, ShieldAlert, X } from "lucide-react";
+import { X } from "lucide-react";
+import { ComplianceSeverityBadge, ComplianceSeverityLegend } from "./ComplianceSeverityBadge";
+import type { ComplianceSeverityTier } from "./ComplianceSeverityBadge";
 
-export type ComplianceSeverity = "info" | "warning" | "blocking";
+export type ComplianceSeverity = ComplianceSeverityTier;
 
 export interface ComplianceHold {
   id: string;
@@ -20,11 +22,11 @@ interface ComplianceHoldBannerProps {
 }
 
 /**
- * ComplianceHoldBanner component for displaying compliance holds with severity variants.
- * 
+ * ComplianceHoldBanner component for displaying compliance holds with severity badges.
+ *
  * Follows WCAG 2.1 AA guidelines for contrast and screen reader accessibility.
  * Includes reduced-motion support and responsive design.
- * 
+ *
  * @example
  * ```tsx
  * <ComplianceHoldBanner
@@ -48,38 +50,34 @@ export const ComplianceHoldBanner: React.FC<ComplianceHoldBannerProps> = ({
 
   const getSeverityConfig = (severity: ComplianceSeverity) => {
     switch (severity) {
-      case "info":
+      case "advisory":
         return {
-          icon: Info,
           bgClass: "bg-[rgba(59,130,246,0.1)]",
           borderClass: "border-[rgba(59,130,246,0.2)]",
           textClass: "text-[#60a5fa]",
-          iconClass: "text-[#60a5fa]",
-          ariaRole: "status",
-          ariaLive: "polite",
+          ariaRole: "status" as const,
+          ariaLive: "polite" as const,
         };
       case "warning":
         return {
-          icon: AlertTriangle,
           bgClass: "bg-[rgba(245,158,11,0.1)]",
           borderClass: "border-[rgba(245,158,11,0.2)]",
           textClass: "text-[#fbbf24]",
-          iconClass: "text-[#fbbf24]",
-          ariaRole: "alert",
-          ariaLive: "assertive",
+          ariaRole: "alert" as const,
+          ariaLive: "assertive" as const,
         };
       case "blocking":
         return {
-          icon: ShieldAlert,
           bgClass: "bg-[rgba(239,68,68,0.1)]",
           borderClass: "border-[rgba(239,68,68,0.2)]",
           textClass: "text-[#f87171]",
-          iconClass: "text-[#f87171]",
-          ariaRole: "alert",
-          ariaLive: "assertive",
+          ariaRole: "alert" as const,
+          ariaLive: "assertive" as const,
         };
     }
   };
+
+  const hasMultiple = holds.length > 1;
 
   return (
     <div
@@ -88,9 +86,18 @@ export const ComplianceHoldBanner: React.FC<ComplianceHoldBannerProps> = ({
       role="region"
       aria-label="Compliance holds"
     >
+      {/* Severity legend trigger — shown when multiple holds */}
+      {hasMultiple && (
+        <div className="flex items-center justify-end gap-2">
+          <span className="text-xs text-muted">
+            {holds.length} hold{holds.length !== 1 ? "s" : ""} active
+          </span>
+          <ComplianceSeverityLegend />
+        </div>
+      )}
+
       {holds.map((hold) => {
         const config = getSeverityConfig(hold.severity);
-        const Icon = config.icon;
 
         return (
           <div
@@ -100,15 +107,17 @@ export const ComplianceHoldBanner: React.FC<ComplianceHoldBannerProps> = ({
             aria-live={config.ariaLive}
             aria-atomic="true"
           >
-            <Icon
-              size={20}
-              className={config.iconClass}
-              aria-hidden="true"
+            <ComplianceSeverityBadge
+              severity={hold.severity}
+              variant="compact"
+              className="mt-0.5"
             />
+
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-sm mb-1">{hold.title}</p>
               <p className="text-sm opacity-90">{hold.message}</p>
             </div>
+
             {hold.canDismiss && onDismiss && (
               <button
                 onClick={() => onDismiss(hold.id)}
@@ -122,6 +131,13 @@ export const ComplianceHoldBanner: React.FC<ComplianceHoldBannerProps> = ({
           </div>
         );
       })}
+
+      {/* Severity legend trigger — shown even with a single hold */}
+      {!hasMultiple && holds.length === 1 && (
+        <div className="flex items-center justify-end">
+          <ComplianceSeverityLegend />
+        </div>
+      )}
     </div>
   );
 };

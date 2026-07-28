@@ -1,0 +1,201 @@
+.onchain-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ob-gap, 0.375rem);
+  padding: var(--ob-pad-y, 0.25rem) var(--ob-pad-x, 0.625rem);
+  border-radius: var(--radius-full);
+  font-size: var(--ob-font-size, 0.75rem);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1;
+  white-space: nowrap;
+  user-select: none;
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ob-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ob-label {
+  flex-shrink: 0;
+}
+
+.ob-separator {
+  margin: 0 0.125rem;
+  opacity: 0.6;
+}
+
+.ob-counter {
+  font-variant-numeric: tabular-nums;
+  min-width: 1.5ch;
+  text-align: end;
+}
+
+.ob-target {
+  opacity: 0.6;
+}
+
+/* ─── Sizes ──────────────────────────────────────────── */
+
+.onchain-badge--sm {
+  --ob-pad-y: 0.125rem;
+  --ob-pad-x: 0.375rem;
+  --ob-gap: 0.25rem;
+  --ob-font-size: 0.625rem;
+}
+
+.onchain-badge--md {
+  --ob-pad-y: 0.25rem;
+  --ob-pad-x: 0.625rem;
+  --ob-gap: 0.375rem;
+  --ob-font-size: 0.75rem;
+}
+
+.onchain-badge--lg {
+  --ob-pad-y: 0.375rem;
+  --ob-pad-x: 0.75rem;
+  --ob-gap: 0.5rem;
+  --ob-font-size: 0.875rem;
+}
+
+/* ─── Variant: Pending ───────────────────────────────── */
+
+.onchain-badge--pending {
+  background: var(--ob-pending-bg, rgba(245, 158, 11, 0.12));
+  border: 1px solid var(--ob-pending-border, rgba(245, 158, 11, 0.35));
+  color: var(--ob-pending-fg, #f59e0b);
+}
+
+.onchain-badge--pending .ob-icon {
+  animation: ob-pulse 2s ease-in-out infinite;
+}
+
+@keyframes ob-pulse {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ─── Variant: Retrying ──────────────────────────────── */
+
+.onchain-badge--retrying {
+  background: var(--ob-retrying-bg, rgba(249, 115, 22, 0.12));
+  border: 1px solid var(--ob-retrying-border, rgba(249, 115, 22, 0.35));
+  color: var(--ob-retrying-fg, #f97316);
+}
+
+.onchain-badge--retrying .ob-icon {
+  animation: ob-rotate 1s linear infinite;
+}
+
+@keyframes ob-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ─── Variant: Confirming ────────────────────────────── */
+
+.onchain-badge--confirming {
+  background: var(--ob-confirming-bg, rgba(20, 184, 166, 0.12));
+  border: 1px solid var(--ob-confirming-border, rgba(20, 184, 166, 0.35));
+  color: var(--ob-confirming-fg, #14b8a6);
+}
+
+.onchain-badge--confirming .ob-icon {
+  animation: ob-bob 1.5s ease-in-out infinite;
+}
+
+.onchain-badge--confirming .ob-counter {
+  animation: ob-rise 0.4s ease-out;
+}
+
+@keyframes ob-bob {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes ob-rise {
+  from {
+    transform: scale(1.1);
+    opacity: 0.7;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ─── Variant: Confirmed ─────────────────────────────── */
+
+.onchain-badge--confirmed {
+  background: var(--ob-confirmed-bg, rgba(16, 185, 129, 0.12));
+  border: 1px solid var(--ob-confirmed-border, rgba(16, 185, 129, 0.35));
+  color: var(--ob-confirmed-fg, #10b981);
+}
+
+/* ─── Reduced Motion ─────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .onchain-badge {
+    transition: none;
+  }
+
+  .onchain-badge--pending .ob-icon {
+    animation: none;
+    opacity: 0.6;
+  }
+
+  .onchain-badge--retrying .ob-icon {
+    animation: none;
+  }
+
+  .onchain-badge--retrying .ob-icon svg {
+    transform: rotate(45deg);
+  }
+
+  .onchain-badge--confirming .ob-icon {
+    animation: none;
+  }
+
+  .onchain-badge--confirming .ob-counter {
+    animation: none;
+  }
+}
+
+/* ─── High Contrast ──────────────────────────────────── */
+
+@media (prefers-contrast: high) {
+  .onchain-badge {
+    border-width: 2px;
+  }
+
+  .onchain-badge--pending {
+    border-color: #f59e0b;
+  }
+
+  .onchain-badge--retrying {
+    border-color: #f97316;
+  }
+
+  .onchain-badge--confirming {
+    border-color: #14b8a6;
+  }
+
+  .onchain-badge--confirmed {
+    border-color: #10b981;
+  }
+}

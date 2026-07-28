@@ -1,5 +1,9 @@
 export { StatusTimeline } from './StatusTimeline';
 export { OnChainStatusBadge } from './OnChainStatusBadge';
+export { TransactionReceiptShare } from './TransactionReceiptShare';
+export type {
+  TransactionReceiptShareProps
+} from './TransactionReceiptShare';
 export type {
   StatusTimelineProps,
   Milestone,

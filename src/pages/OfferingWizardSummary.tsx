@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '../components/Button';
 import { OfferingRegistrationSuccess } from '../components/OfferingRegistrationSuccess';
 import { CheckCircle } from 'lucide-react';
+import { SaveAsDraft } from '../components/designSystem/SaveAsDraft';
 
 export const OfferingWizardSummary: React.FC = () => {
   const [agreed, setAgreed] = useState(false);
@@ -155,18 +156,21 @@ export const OfferingWizardSummary: React.FC = () => {
           </div>
         </label>
 
-        <div className="flex justify-end gap-3 pt-4">
-          <Link to="/startup/wizard/legal" tabIndex={-1}>
-            <Button variant="secondary" type="button">Back</Button>
-          </Link>
-          <Button 
-            variant="primary" 
-            type="submit" 
-            disabled={!agreed || isSubmitting}
-            aria-busy={isSubmitting}
-          >
-            {isSubmitting ? 'Submitting...' : 'Submit Offering'}
-          </Button>
+        <div className="flex justify-between items-center pt-4">
+          <SaveAsDraft onSave={() => new Promise((resolve) => setTimeout(resolve, 800))} />
+          <div className="flex gap-3">
+            <Link to="/startup/wizard/legal" tabIndex={-1}>
+              <Button variant="secondary" type="button">Back</Button>
+            </Link>
+            <Button 
+              variant="primary" 
+              type="submit" 
+              disabled={!agreed || isSubmitting}
+              aria-busy={isSubmitting}
+            >
+              {isSubmitting ? 'Submitting...' : 'Submit Offering'}
+            </Button>
+          </div>
         </div>
       </form>
     </div>

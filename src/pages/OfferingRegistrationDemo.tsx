@@ -4,6 +4,7 @@ import { StatusTimeline } from '../components/StatusTimeline';
 import { getOfferingRegistrationMilestones } from '../components/StatusTimeline/presets';
 import { DocumentUploader } from '../components/DocumentUploader';
 import type { UploadableFile } from '../components/DocumentUploader';
+import { SaveAsDraft } from '../components/designSystem/SaveAsDraft';
 
 const MAX_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
 const ACCEPT = '.pdf,.png,.jpg,.jpeg';
@@ -120,9 +121,12 @@ export const OfferingRegistrationDemo: React.FC = () => {
         />
       </section>
 
-      <Link to="/" className="btn btn--secondary btn--md">
-        Back to Home
-      </Link>
+      <div className="flex justify-between items-center mt-8 pt-4 border-t border-slate-700">
+        <SaveAsDraft onSave={() => new Promise((resolve) => setTimeout(resolve, 800))} />
+        <Link to="/" className="btn btn--secondary btn--md">
+          Back to Home
+        </Link>
+      </div>
     </div>
   );
 };

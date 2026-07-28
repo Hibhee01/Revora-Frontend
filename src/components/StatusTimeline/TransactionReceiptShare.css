@@ -1,0 +1,205 @@
+.tx-receipt-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 400px;
+  margin: 0 auto;
+  font-family: var(--font-family-base, system-ui, sans-serif);
+}
+
+.tx-receipt-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tx-action-group {
+  display: flex;
+  gap: 8px;
+}
+
+.tx-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color, #e2e8f0);
+  background: var(--bg-surface, #ffffff);
+  color: var(--text-primary, #1e293b);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tx-action-btn:hover:not(:disabled) {
+  background: var(--bg-hover, #f1f5f9);
+}
+
+.tx-action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.tx-action-btn.primary {
+  background: var(--color-primary, #2563eb);
+  color: #ffffff;
+  border-color: var(--color-primary, #2563eb);
+}
+
+.tx-action-btn.primary:hover:not(:disabled) {
+  background: var(--color-primary-dark, #1d4ed8);
+}
+
+.tx-receipt-card {
+  background: var(--bg-surface, #ffffff);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  color: var(--text-primary, #1e293b);
+  position: relative;
+  overflow: hidden;
+}
+
+.tx-receipt-card.is-capturing {
+  /* Temporary styles for better image capture */
+  border-radius: 0;
+  box-shadow: none;
+  border: none;
+}
+
+.tx-receipt-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px dashed var(--border-color, #e2e8f0);
+}
+
+.tx-receipt-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tx-brand-logo {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+}
+
+.tx-brand-name {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.tx-verified-icon {
+  color: var(--color-success, #16a34a);
+}
+
+.tx-receipt-amount-section {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.tx-receipt-label {
+  font-size: 14px;
+  color: var(--text-secondary, #64748b);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.tx-receipt-amount {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text-primary, #1e293b);
+}
+
+.tx-amount-hidden {
+  letter-spacing: 4px;
+}
+
+.tx-receipt-details {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.tx-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  border-bottom: 1px solid var(--border-color-light, #f1f5f9);
+  padding-bottom: 8px;
+}
+
+.tx-detail-row:last-child {
+  border-bottom: none;
+}
+
+.tx-detail-label {
+  color: var(--text-secondary, #64748b);
+}
+
+.tx-detail-value {
+  font-weight: 500;
+  color: var(--text-primary, #1e293b);
+  text-align: right;
+  word-break: break-all;
+  max-width: 60%;
+}
+
+.tx-detail-value.status-completed {
+  color: var(--color-success, #16a34a);
+}
+
+.tx-detail-value.status-pending {
+  color: var(--color-warning, #eab308);
+}
+
+.tx-detail-value.status-failed {
+  color: var(--color-danger, #ef4444);
+}
+
+/* User-select none for sensitive fields to prevent copying */
+.unselectable {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.tx-receipt-footer {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-secondary, #64748b);
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color, #e2e8f0);
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .tx-receipt-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .tx-action-group {
+    display: flex;
+    justify-content: stretch;
+  }
+  
+  .tx-action-group .tx-action-btn {
+    flex: 1;
+    justify-content: center;
+  }
+}

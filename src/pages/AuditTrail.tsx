@@ -19,6 +19,7 @@ import { Link2, Save } from 'lucide-react';
 import { EmptyState } from '../components/designSystem/EmptyState';
 import { SaveFilterDialog } from '../components/AuditTrailFilters/SaveFilterDialog';
 import { PinnedSearchSidebar } from '../components/AuditTrailFilters/PinnedSearchSidebar';
+import { ExportHistoryTable } from '../components/ExportHistory/ExportHistoryTable';
 import {
   type AuditFilterState,
   type SavedFilter,
@@ -88,6 +89,7 @@ export const AuditTrail: React.FC<AuditTrailProps> = ({ entries = MOCK_AUDIT_ENT
   const [dialogOpen, setDialogOpen] = useState(false);
   const [activeFilterId, setActiveFilterId] = useState<string | null>(null);
   const [shareStatus, setShareStatus] = useState('');
+  const [activeTab, setActiveTab] = useState<'audit' | 'export'>('audit');
 
   // Persist per-user whenever the saved list changes.
   useEffect(() => {
@@ -142,8 +144,24 @@ export const AuditTrail: React.FC<AuditTrailProps> = ({ entries = MOCK_AUDIT_ENT
         </p>
       </div>
 
-      <div className="atf-layout">
-        <PinnedSearchSidebar
+      <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem' }}>
+        <button 
+          className={`btn ${activeTab === 'audit' ? 'btn--primary' : 'btn--secondary'} btn--sm`}
+          onClick={() => setActiveTab('audit')}
+        >
+          Audit Log
+        </button>
+        <button 
+          className={`btn ${activeTab === 'export' ? 'btn--primary' : 'btn--secondary'} btn--sm`}
+          onClick={() => setActiveTab('export')}
+        >
+          Export History
+        </button>
+      </div>
+
+      {activeTab === 'audit' ? (
+        <div className="atf-layout">
+          <PinnedSearchSidebar
           savedFilters={savedFilters}
           activeFilterId={activeFilterId}
           onApply={handleApply}
@@ -307,6 +325,9 @@ export const AuditTrail: React.FC<AuditTrailProps> = ({ entries = MOCK_AUDIT_ENT
           )}
         </div>
       </div>
+      ) : (
+        <ExportHistoryTable />
+      )}
 
       <SaveFilterDialog
         open={dialogOpen}

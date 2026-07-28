@@ -32,6 +32,10 @@ export const TOKEN_GROUPS: TokenGroup[] = [
       { name: "Glass Border Bright", variable: "--glass-border-bright", value: "rgba(148,163,184,0.35)", description: "Hover/active border" },
       { name: "DS Empty Icon BG", variable: "--ds-empty-icon-bg", value: "rgba(59,130,246,0.08)", description: "Empty state icon well" },
       { name: "DS Error Icon BG", variable: "--ds-error-icon-bg", value: "rgba(239,68,68,0.08)", description: "Error state icon well" },
+      { name: "Chart Tooltip BG", variable: "--chart-tooltip-bg", value: "#0f172a", description: "Dark surface for chart tooltips" },
+      { name: "Chart Tooltip FG", variable: "--chart-tooltip-fg", value: "#f8fafc", description: "High contrast tooltip text" },
+      { name: "Chart Tooltip Border", variable: "--chart-tooltip-border", value: "#334155", description: "Visible border on dark surface" },
+      { name: "Chart Axis Label", variable: "--chart-axis-label-color", value: "#94a3b8", description: "WCAG AA contrast for axis text" },
     ],
   },
   {
@@ -79,6 +83,7 @@ export const TOKEN_GROUPS: TokenGroup[] = [
       { name: "Size 3XL", variable: "--font-size-3xl", value: "1.875rem", description: "30px" },
       { name: "Size 4XL", variable: "--font-size-4xl", value: "2.25rem", description: "36px" },
       { name: "Size 5XL", variable: "--font-size-5xl", value: "3rem", description: "48px" },
+      { name: "Chart Axis Size", variable: "--chart-axis-label-size", value: "0.75rem", description: "12px for axis text" },
       { name: "Weight Normal", variable: "--font-weight-normal", value: "400", description: "Regular" },
       { name: "Weight Medium", variable: "--font-weight-medium", value: "500", description: "Medium" },
       { name: "Weight Semibold", variable: "--font-weight-semibold", value: "600", description: "Semibold" },

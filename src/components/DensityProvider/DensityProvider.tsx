@@ -32,7 +32,6 @@ export interface DensityContextValue {
   cycle: () => void;
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const DensityContext = createContext<DensityContextValue | null>(null);
 
 export function DensityProvider({ children }: { children: React.ReactNode }) {

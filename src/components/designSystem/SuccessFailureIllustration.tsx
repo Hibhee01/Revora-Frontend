@@ -1,7 +1,5 @@
 import React from 'react';
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export type SuccessFailureIllustrationVariant =
   | 'transactionSuccess'
   | 'transactionFailure'

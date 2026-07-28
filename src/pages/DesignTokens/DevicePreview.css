@@ -1,0 +1,275 @@
+/* ─── Device Preview Section ────────────────────────────────────────────────── */
+
+.dt-device-preview {
+  margin: var(--spacing-2xl) 0;
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-2xl);
+  background: var(--glass-bg-accent);
+  border: 1px solid var(--glass-border);
+}
+
+.dt-preview-header {
+  margin-bottom: var(--spacing-xl);
+}
+
+.dt-devices-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xl);
+  justify-content: center;
+  align-items: flex-end;
+}
+
+/* ─── Shared Device Styles ───────────────────────────────────────────────── */
+.dt-device-frame {
+  background: var(--surface-bg); /* Use a generic surface background for device shell */
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-xl);
+  border: 8px solid #1a1a1a; /* Dark chrome frame */
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* For dark mode consistency, chrome can always be dark or match surface */
+[data-theme="light"] .dt-device-frame {
+  border-color: #e5e5e5;
+}
+
+.dt-device-viewport {
+  background: var(--bg-main);
+  flex: 1;
+  overflow-y: auto;
+  /* Hide scrollbar for cleaner look */
+  scrollbar-width: none; 
+}
+.dt-device-viewport::-webkit-scrollbar {
+  display: none;
+}
+
+/* ─── Mobile ─────────────────────────────────────────────────────────────── */
+.dt-mobile {
+  width: 320px;
+  height: 600px;
+  border-radius: 36px;
+  border-width: 12px;
+}
+
+.dt-mobile .dt-device-chrome {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 24px;
+  background: #1a1a1a;
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  z-index: 10;
+}
+
+[data-theme="light"] .dt-mobile .dt-device-chrome {
+  background: #e5e5e5;
+}
+
+.dt-mobile .dt-camera {
+  width: 10px;
+  height: 10px;
+  background: #000;
+  border-radius: 50%;
+}
+.dt-mobile .dt-speaker {
+  width: 40px;
+  height: 4px;
+  background: #333;
+  border-radius: 2px;
+}
+
+/* ─── Tablet ─────────────────────────────────────────────────────────────── */
+.dt-tablet {
+  width: 500px;
+  height: 640px;
+  border-radius: 24px;
+}
+.dt-tablet .dt-device-chrome {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -8px; /* Left bezel */
+  width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* Move camera to side/top depending on orientation. Let's do top bezel */
+.dt-tablet .dt-camera {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 8px;
+  height: 8px;
+  background: #000;
+  border-radius: 50%;
+  z-index: 10;
+}
+
+/* ─── Desktop ────────────────────────────────────────────────────────────── */
+.dt-desktop {
+  width: 800px;
+  height: 500px;
+  border-radius: 12px;
+  border-width: 4px;
+}
+.dt-desktop-chrome {
+  height: 36px;
+  background: #1a1a1a;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  gap: 16px;
+}
+[data-theme="light"] .dt-desktop-chrome {
+  background: #e5e5e5;
+}
+
+.dt-window-controls {
+  display: flex;
+  gap: 6px;
+}
+.dt-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+.dt-dot.close { background: #ff5f56; }
+.dt-dot.minimize { background: #ffbd2e; }
+.dt-dot.maximize { background: #27c93f; }
+
+.dt-address-bar {
+  flex: 1;
+  max-width: 400px;
+  height: 24px;
+  background: #333;
+  border-radius: 4px;
+  color: #999;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  margin: 0 auto;
+}
+[data-theme="light"] .dt-address-bar {
+  background: #fff;
+  color: #666;
+}
+
+/* ─── Sample Page Content ────────────────────────────────────────────────── */
+.dp-sample-page {
+  padding: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+  color: var(--text-main);
+  min-height: 200%; /* Ensure it scrolls */
+}
+
+.dp-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+.dp-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  margin: 0;
+}
+
+.dp-nav {
+  display: flex;
+  gap: var(--spacing-md);
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+}
+
+.dp-hero {
+  text-align: center;
+  padding: var(--spacing-2xl) var(--spacing-md);
+}
+
+.dp-primary-btn {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-sm) var(--spacing-xl);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+}
+
+.dp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--spacing-lg);
+}
+
+.dp-card {
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  transition: transform 0.2s ease;
+}
+.dp-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.dp-card-icon {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, var(--primary), var(--text-accent));
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-xs);
+}
+
+.dp-card-title {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  margin: 0;
+}
+
+.dp-card-desc {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* Tablet adjustments */
+.dt-tablet .dp-sample-page {
+  padding: var(--spacing-lg);
+}
+
+/* Desktop adjustments */
+.dt-desktop .dp-sample-page {
+  padding: var(--spacing-2xl);
+  max-width: 800px;
+  margin: 0 auto;
+}
+.dt-desktop .dp-grid {
+  grid-template-columns: repeat(3, 1fr);
+}

@@ -35,7 +35,11 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ notifications }) =>
       >
         <Bell className="h-6 w-6 text-gray-600" aria-hidden="true" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded-full bg-red-600 text-white ring-2 ring-white">
+          <span 
+            className="absolute -top-1 -right-1 inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded-full ring-2 ring-white text-white bg-red-600 animate-pulse motion-reduce:animate-none motion-reduce:bg-red-700 motion-reduce:ring-red-100"
+            role="status"
+            aria-label={`${unreadCount} unread notifications`}
+          >
             {unreadCount}
           </span>
         )}

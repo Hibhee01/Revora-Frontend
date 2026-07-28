@@ -354,13 +354,14 @@ const CalendarGridComponent: React.FC<CalendarGridComponentProps> = ({
         e.preventDefault();
         newIndex = Math.max(currentIndex - cols, 0);
         break;
-      case 'Home':
+      case 'Home': {
         e.preventDefault();
         // Move to first day of current week row
         const rowStart = Math.floor(currentIndex / cols) * cols;
         newIndex = rowStart;
         break;
-      case 'End':
+      }
+      case 'End': {
         e.preventDefault();
         // Move to last day of current week row
         const rowEnd = Math.min(
@@ -369,6 +370,7 @@ const CalendarGridComponent: React.FC<CalendarGridComponentProps> = ({
         );
         newIndex = rowEnd;
         break;
+      }
       case 'PageUp': {
         e.preventDefault();
         // Move to same day in previous month

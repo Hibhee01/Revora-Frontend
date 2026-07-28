@@ -193,6 +193,26 @@
     rgba(148, 163, 184, 0.18) 50%,
     rgba(148, 163, 184, 0.06) 75%
   );
+
+  /* ─── Notification Bell Tokens (Issue #270) ──────────────────────── */
+  /* Default pulse variant (motion OK) */
+  --bell-badge-bg-default: #dc2626;                 /* bg-red-600 */
+  
+  /* Static badge variant (reduced motion) */
+  --bell-badge-bg-static: #b91c1c;                  /* bg-red-700 for subtle contrast change */
+  --bell-badge-ring-static: #fee2e2;                /* ring-red-100 for subtle border */
+  
+  /* Usage Guidance: Use motion-reduce utility classes (e.g., motion-reduce:animate-none, 
+     motion-reduce:bg-red-700) to fall back to a static state. The static badge uses 
+     a darker background (--bell-badge-bg-static) and a distinct ring (--bell-badge-ring-static) 
+     to maintain at least a 3:1 contrast ratio against the header. */
+
+  /* ─── Chart Tooltip & Axis Tokens (Issue #268) ──────────────────────── */
+  --chart-tooltip-bg: #0f172a;                      /* Dark surface for tooltip */
+  --chart-tooltip-fg: #f8fafc;                      /* High contrast foreground */
+  --chart-tooltip-border: #334155;                  /* Visible border on dark surface */
+  --chart-axis-label-color: #94a3b8;                /* WCAG AA contrast for dark surfaces */
+  --chart-axis-label-size: 0.75rem;                 /* 12px for axis text */
 }
 
 /* ─── Density mode overrides ─────────────────────────────────────

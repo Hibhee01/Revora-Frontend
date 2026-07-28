@@ -11,7 +11,7 @@ import { LedgerDemoPage } from "./pages/LedgerDemoPage";
 import { PayoutSchedule } from "./pages/PayoutSchedule";
 import NotificationBell from "./components/Notifications/NotificationBell";
 import { notificationsMock } from "./components/Notifications/notificationsData";
-import { AdminAlertsInbox } from "./pages/AdminAlertsInbox";
+import { OfferingWizardSummary } from "./pages/OfferingWizardSummary";
 
 export function App() {
   return (
@@ -32,8 +32,10 @@ export function App() {
             path="/startup/report-revenue"
             element={<RevenueReportForm />}
           />
-          {/* Issue #229 – KYC rejection reasons panel */}
-          <Route path="/startup/distributions" element={<DistributionDashboard />} />
+          <Route
+            path="/startup/wizard/summary"
+            element={<OfferingWizardSummary />}
+          />
 
           {/* Investor routes */}
           <Route path="/investor/portal" element={<InvestorDiscovery />} />

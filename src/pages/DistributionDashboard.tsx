@@ -1,57 +1,53 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { EmptyState } from '../components/designSystem/EmptyState';
-import { CohortHeatmap, CohortData } from '../components/CohortHeatmap';
+import { ExitConfirmationModal } from '../components/designSystem/ExitConfirmationModal';
+import { useUnsavedChanges } from '../hooks/useUnsavedChanges';
+import { Button } from '../components/Button';
 
-const mockCohortData: CohortData[] = [
-  {
-    cohortName: '2025 Q1',
-    cohortSize: 120,
-    payouts: [
-      { monthIndex: 0, payoutAmount: 15000, payoutPercentage: 15 },
-      { monthIndex: 1, payoutAmount: 22000, payoutPercentage: 22 },
-      { monthIndex: 2, payoutAmount: 18000, payoutPercentage: 18 },
-      { monthIndex: 3, payoutAmount: 25000, payoutPercentage: 25 },
-      { monthIndex: 4, payoutAmount: 30000, payoutPercentage: 30 },
-      { monthIndex: 5, payoutAmount: 28000, payoutPercentage: 28 },
-    ],
-  },
-  {
-    cohortName: '2025 Q2',
-    cohortSize: 85,
-    payouts: [
-      { monthIndex: 0, payoutAmount: 10000, payoutPercentage: 10 },
-      { monthIndex: 1, payoutAmount: 14000, payoutPercentage: 14 },
-      { monthIndex: 2, payoutAmount: 19000, payoutPercentage: 19 },
-      { monthIndex: 3, payoutAmount: 21000, payoutPercentage: 21 },
-    ],
-  },
-  {
-    cohortName: '2025 Q3',
-    cohortSize: 45,
-    payouts: [
-      { monthIndex: 0, payoutAmount: 8000, payoutPercentage: 8 },
-      { monthIndex: 1, payoutAmount: 12000, payoutPercentage: 12 },
-    ],
-  },
-  {
-    cohortName: '2025 Q4',
-    cohortSize: 15,
-    payouts: [],
-  },
-];
+export const DistributionDashboard: React.FC = () => {
+  const [isDirty, setIsDirty] = useState(false);
+  const blocker = useUnsavedChanges(isDirty);
+  const navigate = useNavigate();
+
+  const handleStay = () => {
+    if (blocker.state === 'blocked') {
+      blocker.reset();
+    }
+  };
+
+  const handleDiscard = () => {
+    setIsDirty(false);
+    if (blocker.state === 'blocked' && blocker.location) {
+      blocker.proceed();
+    }
+  };
+
+  const handleSaveAndExit = () => {
+    // Simulate save
+    setIsDirty(false);
+    if (blocker.state === 'blocked' && blocker.location) {
+      blocker.proceed();
+    }
+  };
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-10 animate-fade-in">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Distribution Dashboard</h1>
-        <p className="text-muted text-sm mt-1 mb-8">
-          Track RevenueShare distributions across your portfolio.
-        </p>
-        <RedemptionBanner totalCapacity={10000} currentSubscription={12500} />
-      </div>
-
-      <div className="glass-card p-6">
-        <CohortHeatmap data={mockCohortData} maxMonths={12} />
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Distribution Dashboard</h1>
+          <p className="text-muted text-sm mt-1">
+            Track RevenueShare distributions across your portfolio.
+          </p>
+        </div>
+        <div>
+          <Button 
+            variant={isDirty ? 'primary' : 'secondary'}
+            onClick={() => setIsDirty(!isDirty)}
+          >
+            {isDirty ? 'Form has unsaved changes' : 'Simulate unsaved changes'}
+          </Button>
+        </div>
       </div>
 
       <EmptyState
@@ -66,6 +62,13 @@ const mockCohortData: CohortData[] = [
           label: 'Back to Discovery',
           href: '/investor/portal',
         }}
+      />
+
+      <ExitConfirmationModal
+        isOpen={blocker.state === 'blocked'}
+        onStay={handleStay}
+        onDiscard={handleDiscard}
+        onSaveAndExit={handleSaveAndExit}
       />
     </div>
   );

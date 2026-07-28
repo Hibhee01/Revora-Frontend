@@ -74,4 +74,11 @@ describe('App Components Accessibility', () => {
     render(<App />);
     expect(screen.getByRole('heading', { level: 1, name: /startup dashboard/i })).toBeInTheDocument();
   });
+
+  it('renders the offering registration route with its document uploader', () => {
+    window.history.pushState({}, '', '/startup/offering-registration');
+    render(<App />);
+    expect(screen.getByRole('heading', { level: 1, name: /offering registration/i })).toBeInTheDocument();
+    expect(screen.getByText('Upload KYC documents')).toBeInTheDocument();
+  });
 });

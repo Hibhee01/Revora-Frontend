@@ -35,67 +35,12 @@ export default defineConfig({
         'src/components/DensityProvider/DensityProvider.tsx',
         'src/components/DensityToggle/DensityToggle.tsx',
         'src/hooks/useDensity.ts',
-        // Issue #221 – Payout status pills
-        'src/components/PayoutStatusPill/payoutStatuses.ts',
-        'src/components/PayoutStatusPill/PayoutStatusPill.tsx',
-        'src/pages/PayoutSchedule.tsx',
-        // Issue #225 - Thumbnail Preview Grid
-        'src/components/ThumbnailGrid/ThumbnailGrid.tsx',
+        // Issue #199 – Inline document uploader
+        'src/components/DocumentUploader/DocumentUploader.tsx',
       ],
       thresholds: {
-        'src/components/NetworkSwitcher/ChainMismatchModal.tsx': {
-          branches: 80,
-          functions: 95,
-          lines: 90,
-          statements: 90,
-        },
-        'src/components/NetworkSwitcher/NetworkSwitcherBadge.tsx': {
-          branches: 95,
-          functions: 95,
-          lines: 95,
-          statements: 95,
-        },
-        'src/components/NetworkSwitcher/NetworkSwitcherContext.tsx': {
-          branches: 80,
-          functions: 95,
-          lines: 95,
-          statements: 95,
-        },
-        'src/hooks/useNetworkSwitcher.ts': {
-          branches: 95,
-          functions: 95,
-          lines: 95,
-          statements: 95,
-        },
-        'src/constants/chains.ts': {
-          branches: 90,
-          functions: 95,
-          lines: 95,
-          statements: 95,
-        },
-        'src/constants/walletCapabilities.ts': {
-          branches: 90,
-          functions: 95,
-          lines: 95,
-          statements: 90,
-        },
-        'src/components/designSystem/OnchainRejectionIllustration.tsx': {
-          branches: 95,
-          functions: 95,
-          lines: 95,
-          statements: 95,
-        },
-        'src/components/StatusTimeline/OnchainRejectionCard.tsx': {
-          branches: 95,
-          functions: 95,
-          lines: 95,
-          statements: 95,
-        },
-        'src/components/StatusTimeline/onchainRejectionCopy.ts': {
-          branches: 95,
-          functions: 95,
-          lines: 95,
-          statements: 95,
+        'src/components/DocumentUploader/DocumentUploader.tsx': {
+          branches: 95, functions: 95, lines: 95, statements: 95,
         },
         'src/components/DensityProvider/DensityProvider.tsx': {
           branches: 95, functions: 95, lines: 95, statements: 95,

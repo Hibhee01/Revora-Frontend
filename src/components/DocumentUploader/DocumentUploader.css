@@ -1,0 +1,219 @@
+/**
+ * DocumentUploader — styles (Issue #199)
+ *
+ * Tokens consumed: --glass-bg, --glass-bg-accent, --glass-border,
+ * --glass-border-bright, --primary, --error, --success, --text-main,
+ * --text-muted, --spacing-*, --radius-*, --font-size-*, --font-weight-*.
+ */
+
+.doc-uploader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  width: 100%;
+}
+
+/* ─── Dropzone ──────────────────────────────────────────────── */
+
+.doc-uploader-dropzone {
+  position: relative;
+  border: 2px dashed var(--glass-border);
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+  transition: border-color 150ms ease, background-color 150ms ease;
+}
+
+.doc-uploader-dropzone--dragging {
+  border-color: var(--primary);
+  background: var(--glass-bg-accent);
+}
+
+.doc-uploader-dropzone--disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.doc-uploader-dropzone-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--spacing-2xs);
+  padding: var(--spacing-xl);
+  cursor: pointer;
+  min-height: 44px;
+}
+
+.doc-uploader-dropzone:hover {
+  border-color: var(--glass-border-bright);
+}
+
+.doc-uploader-dropzone-icon {
+  color: var(--text-muted);
+  margin-bottom: var(--spacing-2xs);
+}
+
+.doc-uploader-dropzone-title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-main);
+}
+
+.doc-uploader-dropzone-helper {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  max-width: 32rem;
+}
+
+/* Visually-hidden but real file input: sized to the whole tile so click
+   and native keyboard focus/activation both work without custom key
+   handling. Focus is surfaced on the dropzone itself via :focus-within. */
+.doc-uploader-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  margin: 0;
+}
+
+.doc-uploader-dropzone:focus-within {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-color: var(--primary);
+}
+
+/* ─── Live region ───────────────────────────────────────────── */
+
+.doc-uploader-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ─── File list ─────────────────────────────────────────────── */
+
+.doc-uploader-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.doc-uploader-tile {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  background: var(--glass-bg);
+}
+
+.doc-uploader-tile--error {
+  border-color: var(--error);
+}
+
+.doc-uploader-tile--completed {
+  border-color: var(--success);
+}
+
+.doc-uploader-tile-icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-top: var(--spacing-3xs);
+  color: var(--text-muted);
+}
+
+.doc-uploader-tile--completed .doc-uploader-tile-icon {
+  color: var(--success);
+}
+
+.doc-uploader-tile--error .doc-uploader-tile-icon {
+  color: var(--error);
+}
+
+.doc-uploader-tile-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3xs);
+}
+
+.doc-uploader-tile-name {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-main);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.doc-uploader-tile-meta {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+.doc-uploader-tile-progress {
+  margin-top: var(--spacing-2xs);
+}
+
+.doc-uploader-tile-error {
+  margin: var(--spacing-2xs) 0 0;
+  font-size: var(--font-size-xs);
+  color: var(--error);
+}
+
+.doc-uploader-tile-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3xs);
+  flex-shrink: 0;
+}
+
+.doc-uploader-icon-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.doc-uploader-icon-button:hover {
+  background: var(--glass-bg-accent);
+  color: var(--text-main);
+}
+
+@media (max-width: 480px) {
+  .doc-uploader-tile {
+    flex-wrap: wrap;
+  }
+
+  .doc-uploader-tile-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+@media (prefers-contrast: high) {
+  .doc-uploader-dropzone {
+    border-style: solid;
+  }
+}

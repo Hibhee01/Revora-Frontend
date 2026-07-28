@@ -9,6 +9,7 @@ import {
   Target,
   CheckCircle,
 } from "lucide-react";
+import { PayoutSettingsTab } from "./PayoutSettingsTab";
 
 interface OfferingData {
   id: string;
@@ -52,6 +53,7 @@ export const OfferingDetail: React.FC = () => {
   const { id = "1" } = useParams<{ id: string }>();
   const offering = mockOfferings[id] || mockOfferings["1"];
   const [isInvesting, setIsInvesting] = useState(false);
+  const [activeTab, setActiveTab] = useState<'overview' | 'payouts'>('overview');
 
   const fundingPercentage = (offering.fundedAmount / offering.targetAmount) * 100;
   const fundingRemaining = offering.targetAmount - offering.fundedAmount;
@@ -79,12 +81,33 @@ export const OfferingDetail: React.FC = () => {
         </button>
         <div>
           <p className="text-xs text-muted uppercase tracking-wide">
-            Prospectus
+            Offering Settings
           </p>
           <h1 className="text-3xl font-bold tracking-tight">{offering.name}</h1>
         </div>
       </div>
 
+      {/* Tabs */}
+      <div className="flex gap-6 border-b border-slate-800 mb-6">
+        <button 
+          onClick={() => setActiveTab('overview')}
+          className={`pb-3 text-sm font-medium transition-colors relative ${activeTab === 'overview' ? 'text-primary' : 'text-muted hover:text-main'}`}
+        >
+          Overview
+          {activeTab === 'overview' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full" />}
+        </button>
+        <button 
+          onClick={() => setActiveTab('payouts')}
+          className={`pb-3 text-sm font-medium transition-colors relative ${activeTab === 'payouts' ? 'text-primary' : 'text-muted hover:text-main'}`}
+        >
+          Payouts
+          {activeTab === 'payouts' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full" />}
+        </button>
+      </div>
+
+      {activeTab === 'payouts' ? (
+        <PayoutSettingsTab />
+      ) : (
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Offering Overview */}
@@ -292,6 +315,7 @@ export const OfferingDetail: React.FC = () => {
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 };

@@ -1,0 +1,506 @@
+/**
+ * GovernanceProposalDetail styles (Issue #245).
+ *
+ * WCAG 2.1 AA, responsive, reduced-motion, high-contrast, RTL, print.
+ */
+
+/* ─── Container ────────────────────────────────────────────────────── */
+
+.gpd-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
+/* ─── Hero Band ──────────────────────────────────────────────────────── */
+
+.gpd-hero {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.gpd-hero-top {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+/* ─── State Pill ─────────────────────────────────────────────────────── */
+
+.gpd-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+  line-height: 1.25;
+}
+
+.gpd-pill--active {
+  color: #60a5fa;
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.gpd-pill--passed {
+  color: #34d399;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.gpd-pill--rejected {
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.gpd-pill--quorum {
+  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+/* ─── Time Remaining ────────────────────────────────────────────────── */
+
+.gpd-time-remaining {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+/* ─── Title & Description ───────────────────────────────────────────── */
+
+.gpd-title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-main);
+  margin: 0;
+  line-height: var(--line-height-tight);
+}
+
+.gpd-description {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  line-height: var(--line-height-relaxed);
+  margin: 0;
+  max-width: 48rem;
+}
+
+.gpd-proposer {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+.gpd-proposer strong {
+  color: var(--text-main);
+}
+
+/* ─── Progress Bars ─────────────────────────────────────────────────── */
+
+.gpd-bars {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.gpd-progress-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2xs);
+}
+
+.gpd-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--font-size-sm);
+}
+
+.gpd-progress-label {
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-main);
+}
+
+.gpd-progress-values {
+  font-size: var(--font-size-xs);
+}
+
+.gpd-progress-current {
+  color: var(--text-main);
+  font-weight: var(--font-weight-semibold);
+}
+
+.gpd-progress-max {
+  color: var(--text-muted);
+}
+
+.gpd-progress-track {
+  position: relative;
+  height: 0.75rem;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.1);
+  overflow: visible;
+}
+
+.gpd-progress-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.4s ease;
+  min-width: 2px;
+}
+
+.gpd-progress-threshold {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 2px;
+  background: var(--text-muted);
+  opacity: 0.6;
+  transform: translateX(-50%);
+}
+
+.gpd-progress-threshold::before,
+.gpd-progress-threshold::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 6px;
+  height: 4px;
+  background: var(--text-muted);
+  opacity: 0.6;
+}
+
+.gpd-progress-threshold::before { top: 0; border-radius: 0 0 3px 3px; }
+.gpd-progress-threshold::after { bottom: 0; border-radius: 3px 3px 0 0; }
+
+/* ─── Vote CTA ──────────────────────────────────────────────────────── */
+
+.gpd-vote-cta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg-accent);
+}
+
+.gpd-vote-cta--open {
+  border-color: var(--primary);
+  background: rgba(99, 102, 241, 0.06);
+}
+
+.gpd-vote-cta--voted {
+  border-color: rgba(16, 185, 129, 0.3);
+  background: rgba(16, 185, 129, 0.04);
+  flex-direction: row;
+  align-items: center;
+  color: var(--success);
+  font-size: var(--font-size-sm);
+}
+
+.gpd-vote-cta--closed {
+  flex-direction: row;
+  align-items: center;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.gpd-vote-heading {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-main);
+}
+
+.gpd-vote-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.gpd-vote-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  background: rgba(2, 6, 23, 0.4);
+  color: var(--text-main);
+}
+
+.gpd-vote-btn:hover {
+  transform: translateY(-1px);
+}
+
+.gpd-vote-btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.gpd-vote-btn--for:hover {
+  border-color: var(--success);
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--success);
+}
+
+.gpd-vote-btn--against:hover {
+  border-color: var(--error);
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--error);
+}
+
+.gpd-vote-btn--abstain:hover {
+  border-color: var(--text-muted);
+  background: rgba(148, 163, 184, 0.1);
+  color: var(--text-muted);
+}
+
+/* ─── Vote Breakdown ────────────────────────────────────────────────── */
+
+.gpd-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+}
+
+.gpd-breakdown-title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-main);
+}
+
+.gpd-breakdown-bar {
+  display: flex;
+  height: 1.5rem;
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  background: rgba(148, 163, 184, 0.08);
+}
+
+.gpd-bar-segment {
+  transition: width 0.4s ease;
+}
+
+.gpd-bar--for {
+  background-color: var(--success);
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 6px,
+    rgba(255, 255, 255, 0.15) 6px,
+    rgba(255, 255, 255, 0.15) 12px
+  );
+}
+
+.gpd-bar--against {
+  background-color: var(--error);
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 6px,
+    rgba(255, 255, 255, 0.15) 6px,
+    rgba(255, 255, 255, 0.15) 12px
+  );
+}
+
+.gpd-bar--abstain {
+  background-color: var(--text-muted);
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.2) 2px, transparent 2.5px);
+  background-size: 8px 8px;
+}
+
+.gpd-bar-empty {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+.gpd-breakdown-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm) var(--spacing-lg);
+}
+
+.gpd-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: var(--font-size-sm);
+}
+
+.gpd-legend-swatch {
+  display: inline-block;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: var(--radius-xs);
+  flex-shrink: 0;
+}
+
+.gpd-legend-label {
+  font-weight: var(--font-weight-medium);
+  color: var(--text-main);
+}
+
+.gpd-legend-pct {
+  color: var(--text-main);
+  font-weight: var(--font-weight-semibold);
+}
+
+.gpd-legend-value {
+  color: var(--text-muted);
+}
+
+/* ─── Participation KPIs ────────────────────────────────────────────── */
+
+.gpd-participation {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.gpd-participation-header {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-main);
+}
+
+.gpd-participation-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-sm);
+}
+
+.gpd-kpi-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2xs);
+  padding: var(--spacing-md);
+  background: rgba(148, 163, 184, 0.06);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+}
+
+.gpd-kpi-label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.gpd-kpi-value {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-main);
+}
+
+/* ─── Responsive ────────────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .gpd-title {
+    font-size: var(--font-size-xl);
+  }
+
+  .gpd-vote-actions {
+    flex-direction: column;
+  }
+
+  .gpd-vote-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .gpd-participation-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .gpd-breakdown-legend {
+    flex-direction: column;
+    gap: var(--spacing-2xs);
+  }
+}
+
+/* ─── Reduced Motion ────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .gpd-progress-fill,
+  .gpd-bar-segment {
+    transition: none;
+  }
+
+  .gpd-vote-btn:hover {
+    transform: none;
+  }
+}
+
+/* ─── High Contrast ─────────────────────────────────────────────────── */
+
+@media (prefers-contrast: high) {
+  .gpd-pill {
+    border-width: 2px;
+  }
+
+  .gpd-progress-track {
+    border: 1px solid var(--text-muted);
+  }
+
+  .gpd-vote-cta--open {
+    border: 2px solid var(--primary);
+  }
+
+  .gpd-breakdown-bar {
+    border: 1px solid var(--text-muted);
+  }
+}
+
+/* ─── Print ──────────────────────────────────────────────────────────── */
+
+@media print {
+  .gpd-vote-cta--open {
+    display: none;
+  }
+
+  .gpd-progress-fill,
+  .gpd-bar-segment {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    transition: none;
+  }
+}
+
+/* ─── RTL ────────────────────────────────────────────────────────────── */
+
+[dir='rtl'] .gpd-progress-threshold {
+  transform: translateX(50%);
+}
+
+[dir='rtl'] .gpd-progress-threshold::before,
+[dir='rtl'] .gpd-progress-threshold::after {
+  transform: translateX(-50%);
+}

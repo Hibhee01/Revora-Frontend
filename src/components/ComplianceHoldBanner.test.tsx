@@ -79,50 +79,15 @@ describe("ComplianceHoldBanner", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders an Appeal button when hold is appealable and onAppeal is provided", () => {
-    const appealableHold = {
+  it("applies correct severity styles for info severity", () => {
+    const infoHold = {
       ...mockHold,
-      appealable: true,
+      severity: "advisory" as ComplianceSeverity,
     };
+    render(<ComplianceHoldBanner holds={[infoHold]} />);
 
-    render(<ComplianceHoldBanner holds={[appealableHold]} onAppeal={vi.fn()} />);
-
-    const appealButton = screen.getByRole("button", { name: /appeal identity verification/i });
-    expect(appealButton).toBeInTheDocument();
-  });
-
-  it("does not render Appeal button when hold is not appealable", () => {
-    render(<ComplianceHoldBanner holds={[mockHold]} onAppeal={vi.fn()} />);
-
-    const appealButton = screen.queryByRole("button", { name: /appeal/i });
-    expect(appealButton).not.toBeInTheDocument();
-  });
-
-  it("does not render Appeal button when onAppeal is not provided", () => {
-    const appealableHold = {
-      ...mockHold,
-      appealable: true,
-    };
-
-    render(<ComplianceHoldBanner holds={[appealableHold]} />);
-
-    const appealButton = screen.queryByRole("button", { name: /appeal/i });
-    expect(appealButton).not.toBeInTheDocument();
-  });
-
-  it("opens appeal form dialog when Appeal button is clicked", () => {
-    const appealableHold = {
-      ...mockHold,
-      appealable: true,
-    };
-
-    render(<ComplianceHoldBanner holds={[appealableHold]} onAppeal={vi.fn()} />);
-
-    const appealButton = screen.getByRole("button", { name: /appeal identity verification/i });
-    fireEvent.click(appealButton);
-
-    expect(screen.getByText("Submit an Appeal")).toBeInTheDocument();
-    expect(screen.getByText(/Appealing:/i)).toBeInTheDocument();
+    const banner = screen.getByRole("region", { name: /compliance holds/i });
+    expect(banner).toBeInTheDocument();
   });
 
   it("renders dismiss button when canDismiss is true and onDismiss is provided", () => {
@@ -289,7 +254,6 @@ describe("ComplianceHoldBanner", () => {
         title: "Blocking issue",
         message: "This blocks access",
         canDismiss: true,
-        appealable: true,
       },
       {
         id: "2",
@@ -297,7 +261,6 @@ describe("ComplianceHoldBanner", () => {
         severity: "warning" as ComplianceSeverity,
         title: "Warning issue",
         message: "This is a warning",
-        appealable: true,
       },
       {
         id: "3",
@@ -309,7 +272,7 @@ describe("ComplianceHoldBanner", () => {
     ];
 
     const { container } = render(
-      <ComplianceHoldBanner holds={holds} onDismiss={vi.fn()} onAppeal={vi.fn()} />,
+      <ComplianceHoldBanner holds={holds} onDismiss={vi.fn()} />,
     );
 
     expect(await axe(container)).toHaveNoViolations();

@@ -1,0 +1,190 @@
+.cohort-heatmap-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  width: 100%;
+}
+
+.cohort-heatmap-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+.cohort-heatmap-title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-main);
+}
+
+.cohort-heatmap-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+}
+
+.cohort-heatmap-scroll {
+  overflow-x: auto;
+  padding-bottom: var(--spacing-sm);
+  /* smooth scrolling on mobile */
+  -webkit-overflow-scrolling: touch;
+}
+
+.cohort-heatmap-grid {
+  display: grid;
+  /* e.g. Cohort Name | M1 | M2 | M3 ... */
+  gap: 2px;
+  min-width: max-content;
+}
+
+.heatmap-cell {
+  position: relative;
+  width: 3rem;
+  height: 3rem;
+  border-radius: var(--radius-xs);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: var(--font-weight-medium);
+  transition: transform 0.2s, box-shadow 0.2s, z-index 0.2s;
+  cursor: default;
+  color: #1e293b;
+}
+
+.heatmap-cell:hover, .heatmap-cell:focus-visible {
+  transform: scale(1.1);
+  box-shadow: var(--shadow-md);
+  z-index: 10;
+  outline: 2px solid white;
+}
+
+.heatmap-cell-empty {
+  background-color: rgba(148, 163, 184, 0.1);
+  color: transparent;
+}
+
+.heatmap-row-label {
+  display: flex;
+  align-items: center;
+  padding-right: var(--spacing-md);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-main);
+  font-size: var(--font-size-sm);
+  white-space: nowrap;
+}
+
+.heatmap-col-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  height: 2rem;
+}
+
+/* Sequential Palette - Blue */
+.heatmap-val-0 { background-color: #eff6ff; }
+.heatmap-val-1 { background-color: #dbeafe; }
+.heatmap-val-2 { background-color: #bfdbfe; }
+.heatmap-val-3 { background-color: #93c5fd; }
+.heatmap-val-4 { background-color: #60a5fa; }
+.heatmap-val-5 { background-color: #3b82f6; color: white; }
+.heatmap-val-6 { background-color: #2563eb; color: white; }
+.heatmap-val-7 { background-color: #1d4ed8; color: white; }
+.heatmap-val-8 { background-color: #1e40af; color: white; }
+.heatmap-val-9 { background-color: #1e3a8a; color: white; }
+
+/* Color-blind safe palette (e.g. Okabe-Ito inspired or accessible purple/orange) + Patterns */
+.heatmap-cb-safe .heatmap-val-0 { background-color: #f7f7f7; }
+.heatmap-cb-safe .heatmap-val-1 { background-color: #d1e5f0; }
+.heatmap-cb-safe .heatmap-val-2 { background-color: #92c5de; }
+.heatmap-cb-safe .heatmap-val-3 { background-color: #4393c3; color: white; }
+.heatmap-cb-safe .heatmap-val-4 { background-color: #2166ac; color: white; }
+.heatmap-cb-safe .heatmap-val-5 { background-color: #fddbc7; color: #1e293b; }
+.heatmap-cb-safe .heatmap-val-6 { background-color: #f4a582; color: #1e293b; }
+.heatmap-cb-safe .heatmap-val-7 { background-color: #d6604d; color: white; }
+.heatmap-cb-safe .heatmap-val-8 { background-color: #b2182b; color: white; }
+.heatmap-cb-safe .heatmap-val-9 { background-color: #67001f; color: white; }
+
+/* Pattern Fallback overlays via repeating linear gradients */
+.heatmap-cb-safe .heatmap-val-0::before,
+.heatmap-cb-safe .heatmap-val-1::before,
+.heatmap-cb-safe .heatmap-val-2::before,
+.heatmap-cb-safe .heatmap-val-3::before,
+.heatmap-cb-safe .heatmap-val-4::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(0,0,0,0.05),
+    rgba(0,0,0,0.05) 2px,
+    transparent 2px,
+    transparent 6px
+  );
+  pointer-events: none;
+}
+
+.heatmap-cb-safe .heatmap-val-5::before,
+.heatmap-cb-safe .heatmap-val-6::before,
+.heatmap-cb-safe .heatmap-val-7::before,
+.heatmap-cb-safe .heatmap-val-8::before,
+.heatmap-cb-safe .heatmap-val-9::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: repeating-radial-gradient(
+    circle,
+    rgba(255,255,255,0.15) 0,
+    rgba(255,255,255,0.15) 2px,
+    transparent 2px,
+    transparent 6px
+  );
+  pointer-events: none;
+}
+
+/* Tooltip */
+.heatmap-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-8px);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border-bright);
+  padding: var(--spacing-sm);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  color: var(--text-main);
+  font-size: 0.75rem;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s;
+  z-index: 20;
+}
+
+.heatmap-cell:hover .heatmap-tooltip,
+.heatmap-cell:focus-visible .heatmap-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+.heatmap-legend {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-top: var(--spacing-sm);
+}
+
+.legend-box {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 2px;
+}

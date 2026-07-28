@@ -40,8 +40,9 @@ export function App() {
           <Route path="/investor/portfolio" element={<InvestorPortfolioSummary />} />
           {/* Issue #139 – Virtualized Ledger Table */}
           <Route path="/investor/ledger" element={<LedgerDemoPage />} />
-          {/* Issue #221 – Payout status pills */}
-          <Route path="/investor/payouts" element={<PayoutSchedule />} />
+
+          {/* Admin routes */}
+          <Route path="/admin/alerts" element={<AdminAlertsInbox />} />
         </Route>
       </Routes>
     </Router>

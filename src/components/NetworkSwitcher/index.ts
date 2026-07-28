@@ -1,3 +1,6 @@
+export { NetworkSwitcher } from './NetworkSwitcher';
+export { NetworkSwitcherPanel } from './NetworkSwitcherPanel';
+export type { Network } from './NetworkSwitcher';
 export { ChainMismatchModal } from './ChainMismatchModal';
 export type { ChainMismatchModalProps } from './ChainMismatchModal';
 export { NetworkSwitcherBadge } from './NetworkSwitcherBadge';

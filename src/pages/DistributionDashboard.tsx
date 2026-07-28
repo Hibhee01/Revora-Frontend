@@ -1,29 +1,6 @@
 import React, { useCallback } from 'react';
 import { EmptyState } from '../components/designSystem/EmptyState';
-import { UploadQueue } from '../components/UploadQueue';
-import { useUploadQueue, type Uploader } from '../hooks/useUploadQueue';
-
-/**
- * Simulated uploader — replace with a real API call (e.g. fetch / axios).
- * Resolves after ~2 s with incremental progress ticks.
- */
-const mockUploader: Uploader = (file, onProgress) =>
-  new Promise<void>((resolve, reject) => {
-    // Simulate occasional failures for demo purposes
-    if (file.name.startsWith('fail_')) {
-      setTimeout(() => reject(new Error('Server rejected the file')), 800);
-      return;
-    }
-    let pct = 0;
-    const interval = setInterval(() => {
-      pct = Math.min(100, pct + Math.floor(Math.random() * 20) + 10);
-      onProgress(pct);
-      if (pct >= 100) {
-        clearInterval(interval);
-        resolve();
-      }
-    }, 200);
-  });
+import { RedemptionBanner } from '../components/RedemptionBanner';
 
 export const DistributionDashboard: React.FC = () => {
   const {
@@ -54,12 +31,11 @@ export const DistributionDashboard: React.FC = () => {
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-10 animate-fade-in">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">
-          Distribution Dashboard
-        </h1>
-        <p className="text-muted text-sm mt-1">
+        <h1 className="text-3xl font-bold tracking-tight">Distribution Dashboard</h1>
+        <p className="text-muted text-sm mt-1 mb-8">
           Track RevenueShare distributions across your portfolio.
         </p>
+        <RedemptionBanner totalCapacity={10000} currentSubscription={12500} />
       </div>
 
       {/* Document upload queue */}

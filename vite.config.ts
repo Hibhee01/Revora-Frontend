@@ -15,6 +15,9 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'html'],
       include: [
+        'src/hooks/useUploadQueue.ts',
+        'src/components/UploadQueue/UploadQueue.tsx',
+        'src/pages/DistributionDashboard.tsx',
         'src/pages/Login.tsx',
         'src/pages/Signup.tsx',
         'src/pages/ForgotPassword.tsx',
@@ -37,6 +40,12 @@ export default defineConfig({
         'src/pages/PayoutSchedule.tsx',
       ],
       thresholds: {
+        'src/hooks/useUploadQueue.ts': {
+          branches: 95, functions: 95, lines: 95, statements: 95,
+        },
+        'src/components/UploadQueue/UploadQueue.tsx': {
+          branches: 95, functions: 95, lines: 95, statements: 95,
+        },
         'src/components/DensityProvider/DensityProvider.tsx': {
           branches: 95, functions: 95, lines: 95, statements: 95,
         },

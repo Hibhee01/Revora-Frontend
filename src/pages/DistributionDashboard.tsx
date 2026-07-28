@@ -1,90 +1,54 @@
-import React, { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useCallback } from 'react';
 import { EmptyState } from '../components/designSystem/EmptyState';
-import {
-  DocumentReplacementFlow,
-  DocumentVersion,
-} from '../components/DocumentReplacementFlow';
+import { UploadQueue } from '../components/UploadQueue';
+import { useUploadQueue, type Uploader } from '../hooks/useUploadQueue';
 
-const DEMO_OLD_VERSION: DocumentVersion = {
-  id: 'ver-dist-q1-2025-v1',
-  versionLabel: 'v1 (Q1 2025)',
-  fileName: 'Q1-2025-Distribution-Report.pdf',
-  fileType: 'PDF',
-  fileSizeBytes: 1_284_500,
-  uploadedBy: {
-    id: 'usr-42',
-    name: 'Ava Chen',
-    email: 'ava@revora.example',
-  },
-  uploadedAt: '2025-04-05T09:14:00Z',
-  pageCount: 18,
-  sha256:
-    'a7b3c9d2e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1',
-  notes: 'Original distribution filed before the revised LP allocations.',
-};
-
-const DEMO_NEW_VERSION: DocumentVersion = {
-  id: 'ver-dist-q1-2025-v2',
-  versionLabel: 'v2 (Revised)',
-  fileName: 'Q1-2025-Distribution-Report-Revised.pdf',
-  fileType: 'PDF',
-  fileSizeBytes: 1_361_200,
-  uploadedBy: {
-    id: 'usr-42',
-    name: 'Ava Chen',
-    email: 'ava@revora.example',
-  },
-  uploadedAt: new Date().toISOString(),
-  pageCount: 20,
-  sha256:
-    'b1b3c9d2e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f91234',
-  notes: 'Updated LP allocations for ACME Holdings and added footnote 12.',
-};
+/**
+ * Simulated uploader — replace with a real API call (e.g. fetch / axios).
+ * Resolves after ~2 s with incremental progress ticks.
+ */
+const mockUploader: Uploader = (file, onProgress) =>
+  new Promise<void>((resolve, reject) => {
+    // Simulate occasional failures for demo purposes
+    if (file.name.startsWith('fail_')) {
+      setTimeout(() => reject(new Error('Server rejected the file')), 800);
+      return;
+    }
+    let pct = 0;
+    const interval = setInterval(() => {
+      pct = Math.min(100, pct + Math.floor(Math.random() * 20) + 10);
+      onProgress(pct);
+      if (pct >= 100) {
+        clearInterval(interval);
+        resolve();
+      }
+    }, 200);
+  });
 
 export const DistributionDashboard: React.FC = () => {
-  const [showReplacementFlow, setShowReplacementFlow] = useState(false);
+  const {
+    queue,
+    addFiles,
+    removeFile,
+    retryFile,
+    uploadFiles,
+    clearComplete,
+    totalCount,
+    successCount,
+    errorCount,
+    uploadingCount,
+    overallProgress,
+  } = useUploadQueue();
 
-  const demoDiff = useMemo(
-    () => ({
-      bytesAdded: Math.max(
-        DEMO_NEW_VERSION.fileSizeBytes - DEMO_OLD_VERSION.fileSizeBytes,
-        0,
-      ),
-      bytesRemoved: Math.max(
-        DEMO_OLD_VERSION.fileSizeBytes - DEMO_NEW_VERSION.fileSizeBytes,
-        0,
-      ),
-      pagesAdded: Math.max(
-        (DEMO_NEW_VERSION.pageCount ?? 0) - (DEMO_OLD_VERSION.pageCount ?? 0),
-        0,
-      ),
-      pagesRemoved: Math.max(
-        (DEMO_OLD_VERSION.pageCount ?? 0) - (DEMO_NEW_VERSION.pageCount ?? 0),
-        0,
-      ),
-      highConfidenceMatch: true,
-      summaryText:
-        '2 pages added, 75 KB added · LP allocations updated, new footnote added.',
-      fieldsChanged: [
-        {
-          name: 'Pages',
-          oldValue: String(DEMO_OLD_VERSION.pageCount),
-          newValue: String(DEMO_NEW_VERSION.pageCount),
-        },
-        {
-          name: 'Size',
-          oldValue: `${(DEMO_OLD_VERSION.fileSizeBytes / 1024).toFixed(1)} KB`,
-          newValue: `${(DEMO_NEW_VERSION.fileSizeBytes / 1024).toFixed(1)} KB`,
-        },
-        {
-          name: 'File name',
-          oldValue: DEMO_OLD_VERSION.fileName,
-          newValue: DEMO_NEW_VERSION.fileName,
-        },
-      ],
-    }),
-    [],
+  const handleUploadAll = useCallback(() => {
+    uploadFiles(mockUploader);
+  }, [uploadFiles]);
+
+  const handleRetry = useCallback(
+    (id: string, uploader: Uploader) => {
+      retryFile(id, uploader);
+    },
+    [retryFile],
   );
 
   return (
@@ -98,11 +62,31 @@ export const DistributionDashboard: React.FC = () => {
         </p>
       </div>
 
-      <GovernanceResults
-        results={{ for: 2500000, against: 450000, abstain: 50000 }}
-        participation={{ turnout: 68.4, uniqueVoters: 142, delegates: 12 }}
-        status="passed"
-      />
+      {/* Document upload queue */}
+      <section aria-labelledby="upload-section-heading">
+        <h2
+          id="upload-section-heading"
+          className="text-xl font-semibold mb-4"
+          style={{ fontSize: 'var(--font-size-xl)', fontWeight: 'var(--font-weight-semibold)', marginBottom: 'var(--spacing-md)' }}
+        >
+          Upload Documents
+        </h2>
+        <UploadQueue
+          queue={queue}
+          onAddFiles={addFiles}
+          onRemove={removeFile}
+          onRetry={handleRetry}
+          onUploadAll={handleUploadAll}
+          onClearComplete={clearComplete}
+          totalCount={totalCount}
+          successCount={successCount}
+          errorCount={errorCount}
+          uploadingCount={uploadingCount}
+          overallProgress={overallProgress}
+          uploader={mockUploader}
+          accept=".pdf,.doc,.docx,.xls,.xlsx,.csv"
+        />
+      </section>
 
       <EmptyState
         variant="distribution-dashboard"

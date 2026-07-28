@@ -34,6 +34,7 @@ import {
   X,
   Menu,
   List,
+  Upload,
 } from "lucide-react";
 import {
   formatDate,
@@ -55,6 +56,7 @@ import {
   getOverdueDays,
   getOverdueSeverity,
 } from './RevenueReportingCalendar.types';
+import RevenueCalendarCsvImport from './RevenueCalendarCsvImport';
 import './RevenueReportingCalendar.css';
 
 /* ─── Helpers ──────────────────────────────────────────────────────── */
@@ -824,6 +826,7 @@ export const RevenueReportingCalendar: React.FC<
   const [focusedDate, setFocusedDate] = useState<string | undefined>(undefined);
   const [panelOpen, setPanelOpen] = useState(true);
   const [mobileView, setMobileView] = useState<"calendar" | "agenda">("agenda");
+  const [showImportWizard, setShowImportWizard] = useState(false);
 
   const viewMonth = controlledViewMonth ?? internalViewMonth;
   const selectedDate = controlledSelectedDate ?? internalSelectedDate;
@@ -983,6 +986,13 @@ export const RevenueReportingCalendar: React.FC<
               <ChevronRight size={20} aria-hidden="true" />
             </button>
           </div>
+          
+          <div className="rc-actions" style={{ display: 'flex', justifyContent: 'flex-end', padding: '0 var(--spacing-6) var(--spacing-4)' }}>
+            <Button variant="secondary" onClick={() => setShowImportWizard(true)} aria-label="Import historical revenue from CSV">
+              <Upload size={16} aria-hidden="true" />
+              Import CSV
+            </Button>
+          </div>
 
           {/* Mobile view toggle (calendar/agenda */}
           <div
@@ -1103,6 +1113,25 @@ export const RevenueReportingCalendar: React.FC<
           />
         </div>
       </div>
+      
+      {/* Import Wizard Modal */}
+      {showImportWizard && (
+        <div className="rc-modal-overlay" style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'var(--color-overlay, rgba(0, 0, 0, 0.5))',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
+          padding: 'var(--spacing-4)'
+        }}>
+          <RevenueCalendarCsvImport 
+            onCancel={() => setShowImportWizard(false)}
+            onImport={(rows) => {
+              console.log('Imported rows:', rows);
+              setShowImportWizard(false);
+              // Handle import logic here
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 };

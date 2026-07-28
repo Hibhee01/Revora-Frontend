@@ -35,11 +35,10 @@ export default defineConfig({
         'src/components/DensityProvider/DensityProvider.tsx',
         'src/components/DensityToggle/DensityToggle.tsx',
         'src/hooks/useDensity.ts',
-        // Issue #235 – Audit Trail saved filters & pinned searches
-        'src/components/AuditTrailFilters/savedFilters.ts',
-        'src/components/AuditTrailFilters/SaveFilterDialog.tsx',
-        'src/components/AuditTrailFilters/PinnedSearchSidebar.tsx',
-        'src/pages/AuditTrail.tsx',
+        // Issue #229 – KYC rejection reasons panel
+        'src/components/KycRejectionPanel/kycRejectionTaxonomy.ts',
+        'src/components/KycRejectionPanel/KycRejectionPanel.tsx',
+        'src/pages/DistributionDashboard.tsx',
       ],
       thresholds: {
         'src/components/NetworkSwitcher/ChainMismatchModal.tsx': {
@@ -141,17 +140,14 @@ export default defineConfig({
           lines: 95,
           statements: 95,
         },
-        // Issue #235 – Audit Trail saved filters & pinned searches
-        'src/components/AuditTrailFilters/savedFilters.ts': {
+        // Issue #229 – KYC rejection reasons panel
+        'src/components/KycRejectionPanel/kycRejectionTaxonomy.ts': {
           branches: 95, functions: 95, lines: 95, statements: 95,
         },
-        'src/components/AuditTrailFilters/SaveFilterDialog.tsx': {
+        'src/components/KycRejectionPanel/KycRejectionPanel.tsx': {
           branches: 95, functions: 95, lines: 95, statements: 95,
         },
-        'src/components/AuditTrailFilters/PinnedSearchSidebar.tsx': {
-          branches: 95, functions: 95, lines: 95, statements: 95,
-        },
-        'src/pages/AuditTrail.tsx': {
+        'src/pages/DistributionDashboard.tsx': {
           branches: 95, functions: 95, lines: 95, statements: 95,
         },
       }

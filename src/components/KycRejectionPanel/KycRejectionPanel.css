@@ -1,0 +1,240 @@
+/**
+ * KYC rejection reasons panel styles (Issue #229).
+ *
+ * - Consumes design tokens from index.css (:root)
+ * - RTL-safe: logical properties throughout
+ * - Responsive: item CTA stacks under copy below 720px
+ * - WCAG 2.1 AA: severity is colour + icon + text; visible focus rings
+ */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.kyc-rej-panel {
+  padding: var(--spacing-5, 1.25rem);
+  border-radius: var(--radius-xl, 0.75rem);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4, 1rem);
+}
+
+.kyc-rej-header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3, 0.75rem);
+}
+
+.kyc-rej-header-icon {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  border-radius: 999px;
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--error, #f87171);
+}
+
+.kyc-rej-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-main, #e2e8f0);
+  margin: 0 0 0.25rem;
+}
+
+.kyc-rej-summary {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-muted, #94a3b8);
+  line-height: 1.5;
+}
+
+.kyc-rej-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3, 0.75rem);
+}
+
+.kyc-rej-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-4, 1rem);
+  padding: var(--spacing-4, 1rem);
+  border-radius: var(--radius-lg, 0.625rem);
+  border: 1px solid transparent;
+  background: rgba(148, 163, 184, 0.05);
+}
+
+.kyc-rej-item--blocking {
+  border-color: rgba(239, 68, 68, 0.28);
+  background: rgba(239, 68, 68, 0.07);
+}
+
+.kyc-rej-item--warning {
+  border-color: rgba(245, 158, 11, 0.28);
+  background: rgba(245, 158, 11, 0.07);
+}
+
+.kyc-rej-item--info {
+  border-color: rgba(59, 130, 246, 0.28);
+  background: rgba(59, 130, 246, 0.07);
+}
+
+.kyc-rej-item-main {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2, 0.5rem);
+}
+
+.kyc-rej-item-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-2, 0.5rem);
+}
+
+.kyc-rej-severity {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.kyc-rej-item--blocking .kyc-rej-severity {
+  color: var(--error, #f87171);
+}
+
+.kyc-rej-item--warning .kyc-rej-severity {
+  color: #fbbf24;
+}
+
+.kyc-rej-item--info .kyc-rej-severity {
+  color: #60a5fa;
+}
+
+.kyc-rej-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  color: var(--text-main, #e2e8f0);
+}
+
+.kyc-rej-step-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted, #94a3b8);
+}
+
+.kyc-rej-explanation {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--text-main, #e2e8f0);
+  overflow-wrap: anywhere;
+}
+
+.kyc-rej-item-action {
+  flex: none;
+  display: flex;
+  align-items: center;
+}
+
+.kyc-rej-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+}
+
+.kyc-rej-cta:focus-visible {
+  outline: 2px solid var(--primary, #6366f1);
+  outline-offset: 2px;
+}
+
+.kyc-rej-cta-arrow {
+  /* Flips under RTL when paired with [dir="rtl"] .kyc-rej-cta-arrow */
+}
+
+[dir='rtl'] .kyc-rej-cta-arrow {
+  transform: scaleX(-1);
+}
+
+.kyc-rej-footer {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-2, 0.5rem);
+  padding-block-start: var(--spacing-3, 0.75rem);
+  border-block-start: 1px solid rgba(148, 163, 184, 0.15);
+}
+
+.kyc-rej-footer-icon {
+  flex: none;
+  margin-block-start: 0.15rem;
+  color: var(--text-muted, #94a3b8);
+}
+
+.kyc-rej-footer-copy {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--text-muted, #94a3b8);
+}
+
+.kyc-rej-footer-link {
+  color: var(--primary, #818cf8);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.kyc-rej-footer-link:focus-visible {
+  outline: 2px solid var(--primary, #6366f1);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Mobile stacked layout: CTA drops below the explanation */
+@media (max-width: 720px) {
+  .kyc-rej-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .kyc-rej-item-action {
+    inline-size: 100%;
+  }
+
+  .kyc-rej-cta {
+    inline-size: 100%;
+    justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kyc-rej-cta,
+  .kyc-rej-footer-link {
+    transition: none;
+  }
+}

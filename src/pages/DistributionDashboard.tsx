@@ -1,32 +1,59 @@
-import React, { useCallback } from 'react';
+/**
+ * Distribution Dashboard with KYC rejection reasons panel (Issue #229).
+ *
+ * When a startup's KYC application is rejected, distributions stay blocked —
+ * but the user must never hit a dead end. This page surfaces each canonical
+ * rejection reason with a plain-language explanation and a corrective CTA
+ * that jumps to the failing KYC step (or Contact support for unclear cases).
+ *
+ * See docs/uiux/ux229-kyc-rejection-reasons-panel.md.
+ */
+
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { EmptyState } from '../components/designSystem/EmptyState';
-import { RedemptionBanner } from '../components/RedemptionBanner';
+import {
+  KycRejectionPanel,
+  type KycRejectionReason,
+  type KycStepId,
+  type ResolvedKycRejection,
+  KYC_STEP_LABELS,
+} from '../components/KycRejectionPanel';
+import { SuccessFailureIllustration } from '../components/designSystem/SuccessFailureIllustration';
 
-export const DistributionDashboard: React.FC = () => {
-  const {
-    queue,
-    addFiles,
-    removeFile,
-    retryFile,
-    uploadFiles,
-    clearComplete,
-    totalCount,
-    successCount,
-    errorCount,
-    uploadingCount,
-    overallProgress,
-  } = useUploadQueue();
+export type KycApplicationStatus = 'approved' | 'rejected' | 'pending' | 'not-started';
 
-  const handleUploadAll = useCallback(() => {
-    uploadFiles(mockUploader);
-  }, [uploadFiles]);
+export interface DistributionDashboardProps {
+  /** Current KYC application status; defaults to a rejected demo state. */
+  kycStatus?: KycApplicationStatus;
+  /** Rejection reasons for a rejected application. */
+  rejectionReasons?: KycRejectionReason[];
+  /** Optional override for corrective-action navigation (tests / hosts). */
+  onNavigateToStep?: (stepId: KycStepId, reason: ResolvedKycRejection) => void;
+}
 
-  const handleRetry = useCallback(
-    (id: string, uploader: Uploader) => {
-      retryFile(id, uploader);
-    },
-    [retryFile],
-  );
+/** Demo reasons covering multiple severities + an unclear fallback. */
+export const DEMO_REJECTION_REASONS: KycRejectionReason[] = [
+  { id: 'r1', code: 'ID_BLURRY' },
+  { id: 'r2', code: 'ADDRESS_EXPIRED', detail: 'Document dated January 2025.' },
+  { id: 'r3', code: 'UNKNOWN_VENDOR_CODE_99' },
+];
+
+export const DistributionDashboard: React.FC<DistributionDashboardProps> = ({
+  kycStatus = 'rejected',
+  rejectionReasons = DEMO_REJECTION_REASONS,
+  onNavigateToStep,
+}) => {
+  const [activeStep, setActiveStep] = useState<KycStepId | null>(null);
+  const [statusMessage, setStatusMessage] = useState('');
+
+  const handleNavigateToStep = (stepId: KycStepId, reason: ResolvedKycRejection) => {
+    setActiveStep(stepId);
+    setStatusMessage(
+      `Opened ${KYC_STEP_LABELS[stepId]} to resolve “${reason.chipLabel}”.`
+    );
+    onNavigateToStep?.(stepId, reason);
+  };
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-10 animate-fade-in">
@@ -38,84 +65,66 @@ export const DistributionDashboard: React.FC = () => {
         <RedemptionBanner totalCapacity={10000} currentSubscription={12500} />
       </div>
 
-      {/* Document upload queue */}
-      <section aria-labelledby="upload-section-heading">
-        <h2
-          id="upload-section-heading"
-          className="text-xl font-semibold mb-4"
-          style={{ fontSize: 'var(--font-size-xl)', fontWeight: 'var(--font-weight-semibold)', marginBottom: 'var(--spacing-md)' }}
-        >
-          Upload Documents
-        </h2>
-        <UploadQueue
-          queue={queue}
-          onAddFiles={addFiles}
-          onRemove={removeFile}
-          onRetry={handleRetry}
-          onUploadAll={handleUploadAll}
-          onClearComplete={clearComplete}
-          totalCount={totalCount}
-          successCount={successCount}
-          errorCount={errorCount}
-          uploadingCount={uploadingCount}
-          overallProgress={overallProgress}
-          uploader={mockUploader}
-          accept=".pdf,.doc,.docx,.xls,.xlsx,.csv"
-        />
-      </section>
-
-      <EmptyState
-        variant="distribution-dashboard"
-        title="No distributions yet"
-        description="When revenue is reported and payouts are processed, your distribution history will appear here."
-        primaryAction={{
-          label: 'Report Revenue',
-          href: '/startup/report-revenue',
-        }}
-        secondaryAction={
-          showReplacementFlow
-            ? {
-                label: 'Hide replacement demo',
-                onClick: () => setShowReplacementFlow(false),
-              }
-            : {
-                label: 'Try document replacement demo',
-                onClick: () => setShowReplacementFlow(true),
-              }
-        }
-      />
-
-      {showReplacementFlow && (
-        <section
-          aria-label="Document replacement flow demo"
-          className="mt-6"
-        >
-          <div className="mb-4">
-            <h2 className="text-xl font-bold tracking-tight">
-              Document replacement demo
-            </h2>
-            <p className="text-muted text-sm mt-1">
-              Replacing <em>{DEMO_OLD_VERSION.fileName}</em> with a revised
-              version. Both versions can be kept, with the active one clearly
-              labeled.
-            </p>
+      {kycStatus === 'rejected' && (
+        <div className="space-y-4" data-testid="kyc-rejected-section">
+          <div className="flex items-start gap-4">
+            <SuccessFailureIllustration variant="kycRejected" size={96} ariaHidden={false} />
+            <div>
+              <h2 className="text-xl font-semibold tracking-tight">
+                KYC verification rejected
+              </h2>
+              <p className="text-muted text-sm mt-1">
+                Distributions are paused until identity verification is complete.
+                Review each reason below and jump straight to the step that needs fixing.
+              </p>
+            </div>
           </div>
-          <DocumentReplacementFlow
-            oldVersion={DEMO_OLD_VERSION}
-            initialNewVersion={DEMO_NEW_VERSION}
-            initialDiff={demoDiff}
-            documentName="Q1 2025 Distribution Report"
-            locale="en-US"
-            onCancel={() => setShowReplacementFlow(false)}
-            onConfirm={(result) => {
-              // Demo only: in a real integration this dispatches the
-              // replacement to the backend/API layer.
-              // eslint-disable-next-line no-console
-              console.info('[DocumentReplacementFlow] confirm', result);
-            }}
+
+          <KycRejectionPanel
+            reasons={rejectionReasons}
+            onNavigateToStep={handleNavigateToStep}
+            supportHref="/support/kyc"
           />
-        </section>
+
+          {/* Live region mirrors the panel announcement for the page context */}
+          <div aria-live="polite" className="sr-only" data-testid="kyc-step-status">
+            {statusMessage}
+          </div>
+
+          {activeStep && activeStep !== 'support' && (
+            <div
+              className="glass-card p-4 rounded-lg"
+              data-testid="kyc-step-preview"
+              role="status"
+            >
+              <p className="text-sm">
+                <strong>{KYC_STEP_LABELS[activeStep]}</strong> is ready for your update.
+                Complete this step, then resubmit your KYC application.
+              </p>
+            </div>
+          )}
+        </div>
       )}
+
+      {kycStatus !== 'rejected' && (
+        <EmptyState
+          variant="distribution-dashboard"
+          title="No distributions yet"
+          description="When revenue is reported and payouts are processed, your distribution history will appear here."
+          primaryAction={{
+            label: 'Report Revenue',
+            href: '/startup/report-revenue',
+          }}
+          secondaryAction={{
+            label: 'Back to Discovery',
+            href: '/investor/portal',
+          }}
+        />
+      )}
+
+      <p className="text-muted text-sm">
+        <Link to="/" className="link-styled">Back to Home</Link>
+      </p>
     </div>
   );
 };

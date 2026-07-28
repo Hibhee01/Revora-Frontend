@@ -11,6 +11,7 @@ import { LedgerDemoPage } from "./pages/LedgerDemoPage";
 import { DistributionDashboard } from "./pages/DistributionDashboard";
 import NotificationBell from "./components/Notifications/NotificationBell";
 import { notificationsMock } from "./components/Notifications/notificationsData";
+import { AdminAlertsInbox } from "./pages/AdminAlertsInbox";
 
 export function App() {
   return (
@@ -39,8 +40,9 @@ export function App() {
           <Route path="/investor/portfolio" element={<InvestorPortfolioSummary />} />
           {/* Issue #139 – Virtualized Ledger Table */}
           <Route path="/investor/ledger" element={<LedgerDemoPage />} />
-          {/* Issue #235 – Audit Trail saved filters & pinned searches */}
-          <Route path="/investor/audit-trail" element={<AuditTrail />} />
+
+          {/* Admin routes */}
+          <Route path="/admin/alerts" element={<AdminAlertsInbox />} />
         </Route>
       </Routes>
     </Router>

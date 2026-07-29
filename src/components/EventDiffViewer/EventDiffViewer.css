@@ -1,0 +1,383 @@
+/**
+ * EventDiffViewer — before/after field diff for Audit Trail rows.
+ *
+ * Anatomy:
+ *  .edv-root              wrapper (expand toggle + panel)
+ *  .edv-toggle            "Show diff / Hide diff" button inside table row
+ *  .edv-panel             expanded panel (full width, spans all columns)
+ *  .edv-toolbar           copy / download controls
+ *  .edv-field-list        list of changed fields
+ *  .edv-field             single field row: label | before | after
+ *  .edv-value             value cell (before or after)
+ *  .edv-token-*           inline word-level diff tokens
+ *
+ * Design tokens reused from index.css :root.
+ * RTL: logical properties throughout.
+ * Responsive: stacked (label above, before/after below) on < 600 px.
+ */
+
+/* ─── Toggle button (inline in table row) ──────────────────────────── */
+
+.edv-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: var(--font-weight-medium, 500);
+  color: var(--primary, #3b82f6);
+  background: transparent;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: var(--radius-full, 9999px);
+  padding: 2px 0.5rem;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  white-space: nowrap;
+}
+
+.edv-toggle:hover {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: var(--primary, #3b82f6);
+}
+
+.edv-toggle:focus-visible {
+  outline: 2px solid var(--primary, #3b82f6);
+  outline-offset: 2px;
+}
+
+/* ─── Expanded panel ────────────────────────────────────────────────── */
+
+.edv-panel {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--glass-border, rgba(148, 163, 184, 0.15));
+  border-radius: var(--radius-lg, 0.75rem);
+  overflow: hidden;
+  /* Animate open */
+  animation: edv-expand 0.18s ease forwards;
+}
+
+@keyframes edv-expand {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .edv-panel { animation: none; }
+}
+
+/* ─── Toolbar ───────────────────────────────────────────────────────── */
+
+.edv-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 0.875rem;
+  border-block-end: 1px solid var(--glass-border, rgba(148, 163, 184, 0.12));
+  flex-wrap: wrap;
+}
+
+.edv-toolbar-label {
+  font-size: 0.6875rem;
+  font-weight: var(--font-weight-semibold, 600);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted, #94a3b8);
+}
+
+.edv-toolbar-actions {
+  display: flex;
+  gap: 0.375rem;
+}
+
+.edv-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.6875rem;
+  font-weight: var(--font-weight-medium, 500);
+  color: var(--text-muted, #94a3b8);
+  background: transparent;
+  border: 1px solid var(--glass-border, rgba(148, 163, 184, 0.18));
+  border-radius: var(--radius-md, 0.5rem);
+  padding: 2px 0.5rem;
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+  white-space: nowrap;
+}
+
+.edv-action-btn:hover {
+  color: var(--text-main, #f1f5f9);
+  background: rgba(148, 163, 184, 0.08);
+}
+
+.edv-action-btn:focus-visible {
+  outline: 2px solid var(--primary, #3b82f6);
+  outline-offset: 2px;
+}
+
+/* Copy success state */
+.edv-action-btn--copied {
+  color: var(--rc-status-accepted, #10b981);
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+/* ─── Column headers ────────────────────────────────────────────────── */
+
+.edv-col-headers {
+  display: grid;
+  grid-template-columns: 10rem 1fr 1fr;
+  gap: 0;
+  padding: 0.25rem 0.875rem;
+  background: rgba(15, 23, 42, 0.4);
+  border-block-end: 1px solid var(--glass-border, rgba(148, 163, 184, 0.1));
+}
+
+.edv-col-header {
+  font-size: 0.625rem;
+  font-weight: var(--font-weight-bold, 700);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-muted, #94a3b8);
+  padding: 0.25rem 0.5rem;
+}
+
+.edv-col-header--before { color: rgba(239, 68, 68, 0.7); }
+.edv-col-header--after  { color: rgba(16, 185, 129, 0.7); }
+
+/* ─── Field list ────────────────────────────────────────────────────── */
+
+.edv-field-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.edv-field {
+  display: grid;
+  grid-template-columns: 10rem 1fr 1fr;
+  gap: 0;
+  border-block-end: 1px solid rgba(148, 163, 184, 0.07);
+  min-block-size: 2.25rem;
+}
+
+.edv-field:last-child {
+  border-block-end: none;
+}
+
+.edv-field:hover {
+  background: rgba(148, 163, 184, 0.03);
+}
+
+/* ─── Field label ───────────────────────────────────────────────────── */
+
+.edv-field-label {
+  display: flex;
+  align-items: flex-start;
+  padding: 0.375rem 0.5rem 0.375rem 0.875rem;
+  font-size: 0.75rem;
+  font-weight: var(--font-weight-semibold, 600);
+  color: var(--text-main, #f1f5f9);
+  line-height: 1.4;
+  word-break: break-word;
+  border-inline-end: 1px solid rgba(148, 163, 184, 0.07);
+}
+
+/* Change-type badge beside label */
+.edv-change-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-inline-start: 0.375rem;
+  padding: 1px 5px;
+  border-radius: var(--radius-full, 9999px);
+  font-size: 0.5625rem;
+  font-weight: var(--font-weight-bold, 700);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  flex-shrink: 0;
+  align-self: flex-start;
+  margin-block-start: 1px;
+}
+
+.edv-change-badge--added {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.edv-change-badge--removed {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.edv-change-badge--changed {
+  background: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+/* ─── Value cells ───────────────────────────────────────────────────── */
+
+.edv-value {
+  padding: 0.375rem 0.5rem;
+  font-size: 0.75rem;
+  font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+  color: var(--text-muted, #94a3b8);
+  line-height: 1.5;
+  word-break: break-all;
+  white-space: pre-wrap;
+  border-inline-end: 1px solid rgba(148, 163, 184, 0.07);
+  position: relative;
+}
+
+.edv-value--before {
+  background: rgba(239, 68, 68, 0.04);
+}
+
+.edv-value--after {
+  background: rgba(16, 185, 129, 0.04);
+  border-inline-end: none;
+}
+
+.edv-value--empty {
+  font-style: italic;
+  color: rgba(148, 163, 184, 0.45);
+  font-family: inherit;
+}
+
+/* Redacted value */
+.edv-value--redacted {
+  color: rgba(148, 163, 184, 0.35);
+  letter-spacing: 0.15em;
+  font-style: italic;
+  font-family: inherit;
+}
+
+/* Binary / blob value */
+.edv-value--binary {
+  font-style: italic;
+  font-family: inherit;
+  color: rgba(148, 163, 184, 0.45);
+}
+
+/* Long-string collapse toggle */
+.edv-expand-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  margin-block-start: 0.25rem;
+  font-size: 0.6875rem;
+  color: var(--primary, #3b82f6);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+  line-height: 1;
+}
+
+.edv-expand-btn:focus-visible {
+  outline: 2px solid var(--primary, #3b82f6);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* ─── Word-level diff tokens ────────────────────────────────────────── */
+
+.edv-token-insert {
+  background: rgba(16, 185, 129, 0.18);
+  color: #10b981;
+  border-radius: 2px;
+  padding: 0 2px;
+}
+
+.edv-token-delete {
+  background: rgba(239, 68, 68, 0.18);
+  color: #ef4444;
+  border-radius: 2px;
+  padding: 0 2px;
+  text-decoration: line-through;
+  text-decoration-color: rgba(239, 68, 68, 0.55);
+}
+
+.edv-token-equal {
+  color: var(--text-muted, #94a3b8);
+}
+
+/* ─── No-diff empty state ───────────────────────────────────────────── */
+
+.edv-no-diff {
+  padding: 1rem 0.875rem;
+  font-size: 0.8125rem;
+  color: var(--text-muted, #94a3b8);
+  font-style: italic;
+}
+
+/* ─── Responsive: stacked on narrow screens ─────────────────────────── */
+
+@media (max-width: 599px) {
+  .edv-col-headers {
+    display: none; /* column labels become inline labels */
+  }
+
+  .edv-field {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+  }
+
+  .edv-field-label {
+    border-inline-end: none;
+    border-block-end: 1px solid rgba(148, 163, 184, 0.07);
+    padding: 0.375rem 0.875rem 0.25rem;
+  }
+
+  .edv-value {
+    border-inline-end: none;
+    border-block-end: 1px solid rgba(148, 163, 184, 0.07);
+    padding: 0.25rem 0.875rem;
+  }
+
+  .edv-value::before {
+    display: block;
+    font-size: 0.5625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-block-end: 2px;
+    font-family: inherit;
+  }
+
+  .edv-value--before::before {
+    content: 'Before';
+    color: rgba(239, 68, 68, 0.7);
+  }
+
+  .edv-value--after::before {
+    content: 'After';
+    color: rgba(16, 185, 129, 0.7);
+  }
+
+  .edv-value--after {
+    border-block-end: none;
+  }
+}
+
+/* ─── High Contrast ─────────────────────────────────────────────────── */
+
+@media (forced-colors: active) {
+  .edv-panel        { border: 2px solid ButtonText; }
+  .edv-token-insert { forced-color-adjust: none; }
+  .edv-token-delete { forced-color-adjust: none; }
+  .edv-change-badge { forced-color-adjust: none; }
+}
+
+/* ─── Print ─────────────────────────────────────────────────────────── */
+
+@media print {
+  .edv-toggle,
+  .edv-toolbar-actions { display: none; }
+  .edv-panel { border: 1px solid #ccc; animation: none; }
+  .edv-token-insert { background: #d1fae5; color: #065f46; }
+  .edv-token-delete { background: #fee2e2; color: #991b1b; }
+}

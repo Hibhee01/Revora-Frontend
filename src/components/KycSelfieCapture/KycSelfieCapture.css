@@ -1,0 +1,375 @@
+/**
+ * KycSelfieCapture styles (Issue #228).
+ *
+ * WCAG 2.1 AA, responsive, reduced-motion, high-contrast, RTL, print.
+ */
+
+/* ─── Container ────────────────────────────────────────────────────── */
+
+.ksc-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  max-width: 36rem;
+  margin: 0 auto;
+}
+
+/* ─── Header ─────────────────────────────────────────────────────────── */
+
+.ksc-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2xs);
+  position: relative;
+}
+
+.ksc-title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-main);
+  margin: 0;
+}
+
+.ksc-subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.ksc-close-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: var(--spacing-xs);
+  border-radius: var(--radius-md);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.ksc-close-btn:hover,
+.ksc-close-btn:focus-visible {
+  background: var(--bg-subtle);
+  color: var(--text-main);
+}
+
+[dir="rtl"] .ksc-close-btn {
+  right: auto;
+  left: 0;
+}
+
+/* ─── Permission Primer ──────────────────────────────────────────────── */
+
+.ksc-permission-primer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-xl) var(--spacing-md);
+  background: var(--bg-elevated);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+}
+
+.ksc-permission-primer__icon {
+  color: var(--accent);
+  width: 48px;
+  height: 48px;
+}
+
+.ksc-permission-primer__heading {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-main);
+  margin: 0;
+}
+
+.ksc-permission-primer__reason-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  text-align: left;
+}
+
+.ksc-permission-primer__reason {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.ksc-permission-primer__reason-icon {
+  color: var(--accent);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.ksc-permission-primer__privacy-note {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--bg-subtle);
+  border-radius: var(--radius-md);
+  margin: 0;
+  max-width: 28rem;
+}
+
+.ksc-permission-primer__actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.ksc-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ksc-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.ksc-btn--primary {
+  background: var(--accent);
+  color: var(--accent-text, #fff);
+}
+
+.ksc-btn--primary:hover {
+  background: var(--accent-hover);
+}
+
+.ksc-btn--secondary {
+  background: var(--bg-subtle);
+  color: var(--text-main);
+  border-color: var(--border-subtle);
+}
+
+.ksc-btn--secondary:hover {
+  background: var(--bg-elevated);
+}
+
+/* ─── Camera Viewport ────────────────────────────────────────────────── */
+
+.ksc-camera-viewport {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  max-height: 480px;
+  background: #000;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.ksc-camera-viewport video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Face-alignment oval overlay */
+.ksc-face-oval {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 60%;
+  aspect-ratio: 3 / 4;
+  border: 2.5px dashed rgba(255, 255, 255, 0.7);
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  pointer-events: none;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.35);
+}
+
+.ksc-face-oval__label {
+  position: absolute;
+  bottom: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: var(--font-size-xs);
+  white-space: nowrap;
+}
+
+/* Camera toolbar below viewport */
+.ksc-camera-toolbar {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-sm) 0;
+}
+
+.ksc-capture-btn {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 4px solid var(--accent);
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.12s ease, background 0.12s ease;
+}
+
+.ksc-capture-btn__inner {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--accent);
+  transition: background 0.12s ease;
+}
+
+.ksc-capture-btn:hover {
+  transform: scale(1.05);
+}
+
+.ksc-capture-btn:active .ksc-capture-btn__inner {
+  background: var(--accent-hover);
+}
+
+.ksc-capture-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+.ksc-capture-btn[aria-busy="true"] {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* ─── Preview & Retake ───────────────────────────────────────────────── */
+
+.ksc-preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.ksc-preview__image {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  max-height: 480px;
+  border-radius: var(--radius-lg);
+  object-fit: cover;
+  border: 1px solid var(--border-subtle);
+}
+
+.ksc-preview__actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  justify-content: center;
+}
+
+/* ─── Fallback States ────────────────────────────────────────────────── */
+
+.ksc-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-xl);
+  background: var(--bg-elevated);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+}
+
+.ksc-fallback__icon {
+  color: var(--text-muted);
+  width: 40px;
+  height: 40px;
+}
+
+.ksc-fallback__heading {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-main);
+  margin: 0;
+}
+
+.ksc-fallback__text {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin: 0;
+  max-width: 24rem;
+}
+
+/* ─── Camera Denied / Unavailable ────────────────────────────────────── */
+
+.ksc-denied {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-xl);
+}
+
+.ksc-denied__icon {
+  color: var(--warning, #f59e0b);
+  width: 40px;
+  height: 40px;
+}
+
+.ksc-denied__heading {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-main);
+  margin: 0;
+}
+
+.ksc-denied__text {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* ─── Reduced Motion ─────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .ksc-close-btn,
+  .ksc-capture-btn {
+    transition: none;
+  }
+}
+
+/* ─── Responsive ─────────────────────────────────────────────────────── */
+
+@media (max-width: 480px) {
+  .ksc-camera-viewport {
+    aspect-ratio: 4 / 5;
+    max-height: 360px;
+  }
+
+  .ksc-permission-primer__reason-list {
+    text-align: center;
+  }
+
+  .ksc-capture-btn {
+    width: 56px;
+    height: 56px;
+  }
+
+  .ksc-capture-btn__inner {
+    width: 42px;
+    height: 42px;
+  }
+}

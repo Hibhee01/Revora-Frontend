@@ -3,14 +3,128 @@ import { Link } from 'react-router-dom';
 import { Button } from '../components/Button';
 import { LockupClaimModal } from '../components/LockupClaimModal';
 import React, { useState, useMemo, useRef, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { EmptyState } from '../components/designSystem/EmptyState';
 import { KycResubmissionTimeline } from '../components/KycResubmissionTimeline';
 import { GovernanceResults } from '../components/designSystem/GovernanceResults';
-import { GovernanceProposalDetail } from '../components/designSystem/GovernanceProposalDetail';
-import { ThumbnailGrid, ThumbnailFile } from '../components/ThumbnailGrid/ThumbnailGrid';
 import { DocumentUploadStatus } from '../components/DocumentUploadStatus';
-import { PreOpenBanner } from '../components/PreOpenBanner';
+import type { DistributionFilterState } from '../components/DistributionFilterToolbar/DistributionFilterToolbar.types';
+import type { PayoutDetail, RecipientItem, RetryEvent } from '../components/PayoutDrillDownPanel/PayoutDrillDownPanel.types';
+import { ErrorRateSparklineTile } from '../components/ErrorRateSparklineTile/ErrorRateSparklineTile';
+import type { ErrorRateDataPoint } from '../components/ErrorRateSparklineTile/ErrorRateSparklineTile';
+
+interface ExtendedPayoutDetail extends PayoutDetail {
+  region: string;
+}
+
+const MOCK_RECIPIENTS_BASE: RecipientItem[] = [
+  { id: 'r1', walletAddress: 'GA…abcd', name: 'Alice', tier: 'Gold', sharePercentage: 40, amount: 40000, status: 'success', gasAllocatedGwei: 18 },
+  { id: 'r2', walletAddress: 'GB…ef01', name: 'Bob', tier: 'Silver', sharePercentage: 30, amount: 30000, status: 'success', gasAllocatedGwei: 18 },
+  { id: 'r3', walletAddress: 'GC…2345', name: 'Carol', tier: 'Bronze', sharePercentage: 20, amount: 20000, status: 'success', gasAllocatedGwei: 18 },
+  { id: 'r4', walletAddress: 'GD…6789', name: 'Dave', tier: 'Bronze', sharePercentage: 10, amount: 10000, status: 'pending', gasAllocatedGwei: 18 },
+];
+
+const MOCK_RETRIES: RetryEvent[] = [
+  { id: 'ret-1', timestamp: '2026-07-20T10:00:00Z', attemptNumber: 1, status: 'failed', reason: 'Gas estimation underrun.', gasUsedGwei: 21 },
+  { id: 'ret-2', timestamp: '2026-07-21T14:30:00Z', attemptNumber: 2, status: 'success', reason: 'Retry with adjusted gas.', gasUsedGwei: 22 },
+];
+
+const MOCK_PAYOUTS: ExtendedPayoutDetail[] = [
+  {
+    id: 'PO-2026-004', payoutNumber: 'PO-2026-004', date: '2026-07-15', time: '14:30 UTC',
+    status: 'completed', grossAmount: 105000, netAmount: 100000, protocolFeeUsd: 5000,
+    currency: 'USDC', offeringName: 'Nexus Cloud Series A', offeringId: 'off-nexus-001',
+    gasFeeUsd: 42.50, gasFeeEth: 0.018, gasPriceGwei: 22, estimatedGasUsd: 45, estimatedGasPriceGwei: 24,
+    executionNetwork: 'Stellar', blockNumber: 8912345, contractAddress: '0x…789A', transactionHash: '0x…DEF0',
+    recipientsCount: 4, recipients: MOCK_RECIPIENTS_BASE, retries: [],
+    region: 'North America', nextPayoutDate: '2026-08-15', nextPayoutEstimateUsd: 105000, nextPayoutLink: '/startup/distributions?payoutId=PO-2026-005',
+  },
+  {
+    id: 'PO-2026-003', payoutNumber: 'PO-2026-003', date: '2026-07-10', time: '09:15 UTC',
+    status: 'failed', grossAmount: 82000, netAmount: 78000, protocolFeeUsd: 4000,
+    currency: 'USDC', offeringName: 'AeroDynamics Fund II', offeringId: 'off-aero-002',
+    gasFeeUsd: 38.20, gasFeeEth: 0.016, gasPriceGwei: 21, estimatedGasUsd: 40, estimatedGasPriceGwei: 23,
+    executionNetwork: 'Stellar', blockNumber: 8901234, contractAddress: '0x…456B', transactionHash: '0x…789C',
+    recipientsCount: 4, recipients: MOCK_RECIPIENTS_BASE, retries: MOCK_RETRIES,
+    region: 'Europe', nextPayoutDate: '2026-08-10', nextPayoutEstimateUsd: 85000, nextPayoutLink: '/startup/distributions?payoutId=PO-2026-005',
+  },
+];
+
+const ERROR_RATE_BY_ISSUER: Array<{
+  id: string; title: string; value: string; rate: number; delta: number;
+  sparklineData: ErrorRateDataPoint[]; filterValue: string;
+}> = [
+  {
+    id: 'issuer-acme', title: 'ERROR RATE', value: '2.4%', rate: 2.4, delta: -0.8,
+    sparklineData: [
+      { label: 'W1', value: 3.2 }, { label: 'W2', value: 2.8 },
+      { label: 'W3', value: 3.5 }, { label: 'W4', value: 2.4 },
+    ],
+    filterValue: 'Nexus Cloud Series A',
+  },
+  {
+    id: 'issuer-nexus', title: 'ERROR RATE', value: '4.1%', rate: 4.1, delta: 1.2,
+    sparklineData: [
+      { label: 'W1', value: 2.9 }, { label: 'W2', value: 3.3 },
+      { label: 'W3', value: 3.8 }, { label: 'W4', value: 4.1 },
+    ],
+    filterValue: 'AeroDynamics Fund II',
+  },
+  {
+    id: 'issuer-aero', title: 'ERROR RATE', value: '1.2%', rate: 1.2, delta: -0.3,
+    sparklineData: [
+      { label: 'W1', value: 1.5 }, { label: 'W2', value: 1.8 },
+      { label: 'W3', value: 1.3 }, { label: 'W4', value: 1.2 },
+    ],
+    filterValue: 'StellarTech Ventures',
+  },
+  {
+    id: 'issuer-stellar', title: 'ERROR RATE', value: '3.7%', rate: 3.7, delta: 0.5,
+    sparklineData: [
+      { label: 'W1', value: 3.2 }, { label: 'W2', value: 3.4 },
+      { label: 'W3', value: 3.6 }, { label: 'W4', value: 3.7 },
+    ],
+    filterValue: 'Quantum Labs',
+  },
+];
+
+const ERROR_RATE_BY_REGION: Array<{
+  id: string; title: string; value: string; rate: number; delta: number;
+  sparklineData: ErrorRateDataPoint[]; filterValue: string;
+}> = [
+  {
+    id: 'region-na', title: 'ERROR RATE', value: '2.8%', rate: 2.8, delta: 0.4,
+    sparklineData: [
+      { label: 'W1', value: 2.4 }, { label: 'W2', value: 2.6 },
+      { label: 'W3', value: 2.7 }, { label: 'W4', value: 2.8 },
+    ],
+    filterValue: 'North America',
+  },
+  {
+    id: 'region-eu', title: 'ERROR RATE', value: '1.9%', rate: 1.9, delta: -0.6,
+    sparklineData: [
+      { label: 'W1', value: 2.5 }, { label: 'W2', value: 2.3 },
+      { label: 'W3', value: 2.0 }, { label: 'W4', value: 1.9 },
+    ],
+    filterValue: 'Europe',
+  },
+  {
+    id: 'region-apac', title: 'ERROR RATE', value: '3.5%', rate: 3.5, delta: 0.9,
+    sparklineData: [
+      { label: 'W1', value: 2.6 }, { label: 'W2', value: 2.9 },
+      { label: 'W3', value: 3.2 }, { label: 'W4', value: 3.5 },
+    ],
+    filterValue: 'Asia Pacific',
+  },
+  {
+    id: 'region-latam', title: 'ERROR RATE', value: '2.1%', rate: 2.1, delta: -0.2,
+    sparklineData: [
+      { label: 'W1', value: 2.3 }, { label: 'W2', value: 2.2 },
+      { label: 'W3', value: 2.2 }, { label: 'W4', value: 2.1 },
+    ],
+    filterValue: 'Latin America',
+  },
+];
 
 export const DistributionDashboard: React.FC = () => {
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(true);
@@ -311,50 +425,78 @@ export const DistributionDashboard: React.FC = () => {
         </div>
       </div>
 
-      <div className="mt-8">
-        <h2 className="text-xl font-semibold mb-4">Uploaded Documents</h2>
-        <ThumbnailGrid
-          files={uploadedFiles}
-          onView={handleViewFile}
-          onReplace={handleReplaceFile}
-          onRemove={handleRemoveFile}
-          onReorder={handleReorderFiles}
-        />
-      </div>
+      {/* ── Payout Error Rate Sparkline Tiles ── */}
+      <section aria-labelledby="error-rate-heading" data-testid="error-rate-section">
+        <div className="flex items-center justify-between mb-4">
+          <h2 id="error-rate-heading" className="text-xl font-semibold">
+            Payout Error Rates
+          </h2>
+          <Link
+            to="/startup/distributions?status=failed"
+            className="text-xs text-primary hover:text-primary-hover transition-colors"
+            data-testid="error-rate-view-all"
+          >
+            View all failed →
+          </Link>
+        </div>
 
-      {/* Governance Section */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Governance</h2>
-        <a
-          href="/startup/governance/proposals/create"
-          className="payout-btn-primary"
-          style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
-        >
-          + Create Proposal
-        </a>
-      </div>
+        <div className="space-y-6">
+          {/* By Issuer */}
+          <div data-testid="error-rate-by-issuer">
+            <h3 className="text-sm font-medium text-muted mb-3 uppercase tracking-wide">
+              By Issuer
+            </h3>
+            <div
+              className="grid grid-cols-2 md:grid-cols-4 gap-4"
+              role="list"
+              aria-label="Error rates by issuer"
+            >
+              {ERROR_RATE_BY_ISSUER.map((item) => (
+                <div role="listitem" key={item.id}>
+                  <ErrorRateSparklineTile
+                    id={item.id}
+                    title={item.title}
+                    value={item.value}
+                    rate={item.rate}
+                    delta={item.delta}
+                    sparklineData={item.sparklineData}
+                    groupBy="issuer"
+                    filterValue={item.filterValue}
+                    href={`/startup/distributions?issuer=${encodeURIComponent(item.filterValue)}&status=failed`}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
 
-      {/* Governance Proposal Detail */}
-      <section aria-label="Governance proposal detail">
-        <GovernanceProposalDetail
-          proposal={{
-            id: 'prop-1',
-            title: 'Increase Developer Grant Fund',
-            description:
-              'A proposal to allocate an additional 500,000 tokens to the developer grant program to support ecosystem growth.',
-            proposer: '0x1234...abcd',
-            status: 'active',
-            endTime: Date.now() + 86400000 * 3,
-            quorumRequired: 4_000_000,
-            quorumReached: 2_500_000,
-            results: { for: 2000000, against: 450000, abstain: 50000 },
-            participation: { turnout: 68.4, uniqueVoters: 142, delegates: 12 },
-            userVote: null,
-          }}
-          onVote={(choice) => {
-            console.log(`Vote cast: ${choice}`);
-          }}
-        />
+          {/* By Region */}
+          <div data-testid="error-rate-by-region">
+            <h3 className="text-sm font-medium text-muted mb-3 uppercase tracking-wide">
+              By Region
+            </h3>
+            <div
+              className="grid grid-cols-2 md:grid-cols-4 gap-4"
+              role="list"
+              aria-label="Error rates by region"
+            >
+              {ERROR_RATE_BY_REGION.map((item) => (
+                <div role="listitem" key={item.id}>
+                  <ErrorRateSparklineTile
+                    id={item.id}
+                    title={item.title}
+                    value={item.value}
+                    rate={item.rate}
+                    delta={item.delta}
+                    sparklineData={item.sparklineData}
+                    groupBy="region"
+                    filterValue={item.filterValue}
+                    href={`/startup/distributions?region=${encodeURIComponent(item.filterValue)}&status=failed`}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* Financial terms wizard step */}

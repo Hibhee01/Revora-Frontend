@@ -1,0 +1,155 @@
+/* ── Error Rate Sparkline Tile ──────────────────────────────
+ * A compact KPI tile with severity-coloured delta and inline
+ * SVG sparkline, used on the Distribution Dashboard.
+ * ──────────────────────────────────────────────────────────── */
+
+.error-rate-tile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs, 0.5rem);
+  padding: var(--spacing-md, 1rem);
+  min-width: 0;
+  position: relative;
+}
+
+.error-rate-tile--interactive {
+  cursor: pointer;
+}
+
+.error-rate-tile--interactive:hover {
+  border-color: var(--glass-border-bright, rgba(148, 163, 184, 0.35));
+  transform: translateY(-1px);
+}
+
+.error-rate-tile--interactive:focus-visible {
+  outline: 2px solid var(--primary, #3b82f6);
+  outline-offset: 2px;
+  border-radius: var(--radius-xl, 1rem);
+}
+
+/* Remove link underline from wrapping <a> */
+.error-rate-tile__link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.error-rate-tile__link:hover {
+  text-decoration: none;
+}
+
+/* Header row: title + icon */
+.error-rate-tile__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.error-rate-tile__title {
+  font-size: var(--font-size-xs, 0.75rem);
+  font-weight: var(--font-weight-medium, 500);
+  color: var(--text-muted, #cbd5e1);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.error-rate-tile__icon {
+  color: var(--text-muted, #cbd5e1);
+  flex-shrink: 0;
+}
+
+/* Body row: value + sparkline */
+.error-rate-tile__body {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--spacing-xs, 0.5rem);
+}
+
+.error-rate-tile__value {
+  font-size: var(--font-size-2xl, 1.5rem);
+  font-weight: var(--font-weight-bold, 700);
+  line-height: var(--line-height-tight, 1.2);
+  color: var(--text-main, #e5e7eb);
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.error-rate-sparkline-svg {
+  flex-shrink: 0;
+}
+
+/* Delta row */
+.error-rate-tile__delta {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: var(--font-size-xs, 0.75rem);
+  font-weight: var(--font-weight-medium, 500);
+  line-height: var(--line-height-snug, 1.375);
+}
+
+.error-rate-delta--good {
+  color: var(--success, #10b981);
+}
+
+.error-rate-delta--bad {
+  color: var(--error, #ef4444);
+}
+
+.error-rate-delta--neutral {
+  color: var(--text-muted, #cbd5e1);
+}
+
+/* Footer */
+.error-rate-tile__footer {
+  display: flex;
+  align-items: center;
+}
+
+.error-rate-tile__group-label {
+  font-size: var(--font-size-xs, 0.75rem);
+  color: var(--text-muted, #cbd5e1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Density mode overrides ─────────────────────────────── */
+
+[data-density="cozy"] .error-rate-tile {
+  padding: var(--spacing-sm, 0.75rem);
+  gap: var(--spacing-2xs, 0.25rem);
+}
+
+[data-density="cozy"] .error-rate-tile__value {
+  font-size: var(--font-size-xl, 1.25rem);
+}
+
+[data-density="compact"] .error-rate-tile {
+  padding: var(--spacing-xs, 0.5rem);
+  gap: var(--spacing-2xs, 0.25rem);
+}
+
+[data-density="compact"] .error-rate-tile__value {
+  font-size: var(--font-size-lg, 1.125rem);
+}
+
+/* ── Responsive: smallest KPI header size ──────────────── */
+@media (max-width: 480px) {
+  .error-rate-tile {
+    padding: var(--spacing-sm, 0.75rem);
+  }
+
+  .error-rate-tile__value {
+    font-size: var(--font-size-xl, 1.25rem);
+  }
+
+  .error-rate-sparkline-svg {
+    width: 48px;
+    height: 22px;
+  }
+}

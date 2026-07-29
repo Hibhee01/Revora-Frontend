@@ -5,6 +5,8 @@ import { getOfferingRegistrationMilestones } from '../components/StatusTimeline/
 import { DocumentUploader } from '../components/DocumentUploader';
 import type { UploadableFile } from '../components/DocumentUploader';
 import { SaveAsDraft } from '../components/designSystem/SaveAsDraft';
+import { HelpDrawer, HelpTrigger, OFFERING_HELP_CONTENT } from '../components/HelpDrawer';
+import type { OfferingStep } from '../components/HelpDrawer';
 
 const MAX_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
 const ACCEPT = '.pdf,.png,.jpg,.jpeg';
@@ -23,6 +25,10 @@ export const OfferingRegistrationDemo: React.FC = () => {
   const [files, setFiles] = useState<UploadableFile[]>([]);
   const nextId = useRef(0);
   const timers = useRef<Map<string, ReturnType<typeof setInterval>>>(new Map());
+
+  // Help drawer state
+  const [helpStep, setHelpStep] = useState<OfferingStep | null>(null);
+  const helpTriggerRef = useRef<HTMLButtonElement>(null);
 
   const simulateUpload = useCallback((id: string, name: string, shouldFail: boolean) => {
     const timer = setInterval(() => {
@@ -102,9 +108,16 @@ export const OfferingRegistrationDemo: React.FC = () => {
       />
 
       <section aria-labelledby="kyc-documents-heading" className="space-y-3">
-        <h2 id="kyc-documents-heading" className="text-xl font-semibold">
-          Verification documents
-        </h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <h2 id="kyc-documents-heading" className="text-xl font-semibold" style={{ margin: 0 }}>
+            Verification documents
+          </h2>
+          <HelpTrigger
+            ref={helpTriggerRef}
+            label="Help: KYC Check step"
+            onClick={() => setHelpStep('kyc-check')}
+          />
+        </div>
         <p className="text-muted text-sm">
           Attach the legal and financial documents required for KYC review. You can keep working on
           this step without losing your place in the wizard.
@@ -121,12 +134,56 @@ export const OfferingRegistrationDemo: React.FC = () => {
         />
       </section>
 
+      {/* Step-level help triggers row (demonstrates all steps) */}
+      <div
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '0.5rem',
+          padding: '0.75rem',
+          background: 'rgba(148,163,184,0.04)',
+          borderRadius: '0.75rem',
+          border: '1px solid rgba(148,163,184,0.12)',
+        }}
+        aria-label="Step help quick links"
+      >
+        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', alignSelf: 'center', marginRight: '0.25rem' }}>
+          Step help:
+        </span>
+        {(['application', 'kyc-check', 'compliance-review', 'listed', 'funding-open'] as OfferingStep[]).map((step) => (
+          <button
+            key={step}
+            type="button"
+            onClick={() => setHelpStep(step)}
+            style={{
+              fontSize: '0.75rem',
+              padding: '0.25rem 0.625rem',
+              borderRadius: '9999px',
+              border: '1px solid rgba(148,163,184,0.2)',
+              background: helpStep === step ? 'rgba(59,130,246,0.12)' : 'transparent',
+              color: helpStep === step ? 'var(--primary,#3b82f6)' : 'var(--text-muted,#94a3b8)',
+              cursor: 'pointer',
+            }}
+          >
+            {OFFERING_HELP_CONTENT[step].title}
+          </button>
+        ))}
+      </div>
+
       <div className="flex justify-between items-center mt-8 pt-4 border-t border-slate-700">
         <SaveAsDraft onSave={() => new Promise((resolve) => setTimeout(resolve, 800))} />
         <Link to="/" className="btn btn--secondary btn--md">
           Back to Home
         </Link>
       </div>
+
+      {/* Contextual Help Drawer */}
+      <HelpDrawer
+        isOpen={helpStep !== null}
+        onClose={() => setHelpStep(null)}
+        content={helpStep ? OFFERING_HELP_CONTENT[helpStep] : OFFERING_HELP_CONTENT['kyc-check']}
+        triggerRef={helpTriggerRef}
+      />
     </div>
   );
 };

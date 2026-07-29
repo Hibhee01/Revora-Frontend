@@ -14,6 +14,7 @@ import type { DistributionFilterState } from '../components/DistributionFilterTo
 import type { PayoutDetail, RecipientItem, RetryEvent } from '../components/PayoutDrillDownPanel/PayoutDrillDownPanel.types';
 import { ErrorRateSparklineTile } from '../components/ErrorRateSparklineTile/ErrorRateSparklineTile';
 import type { ErrorRateDataPoint } from '../components/ErrorRateSparklineTile/ErrorRateSparklineTile';
+import { GovernanceDelegation } from '../components/GovernanceDelegation/GovernanceDelegation';
 
 interface ExtendedPayoutDetail extends PayoutDetail {
   region: string;
@@ -419,9 +420,15 @@ export const DistributionDashboard: React.FC = () => {
           </p>
         </div>
 
-        <a href="/startup/report-revenue" className="payout-btn-primary self-start md:self-auto">
-          + Report Monthly Revenue
-        </a>
+        <div className="flex flex-col sm:flex-row items-center gap-4 self-start md:self-auto">
+          <div className="glass-card px-4 py-2 flex flex-col items-end">
+            <span className="text-xs text-muted uppercase">Delegated Power</span>
+            <span className="text-sm font-bold text-white">0 VP</span>
+          </div>
+          <a href="/startup/report-revenue" className="payout-btn-primary">
+            + Report Monthly Revenue
+          </a>
+        </div>
       </div>
 
       {/* Filter Toolbar */}
@@ -545,6 +552,11 @@ export const DistributionDashboard: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* Governance Delegation */}
+      <div className="mt-8">
+        <GovernanceDelegation />
+      </div>
 
       {/* Financial terms wizard step */}
       <section aria-labelledby="financial-terms-heading">

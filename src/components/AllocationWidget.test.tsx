@@ -15,7 +15,7 @@ const SLICES: AllocationSlice[] = [
 ];
 
 describe("AllocationWidget – empty state", () => {
-  it("renders allocation-widget testid", () => {
+  it("renders allocation-widget testid", () => { 
     render(<AllocationWidget slices={[]} />);
     expect(screen.getByTestId("allocation-widget")).toBeInTheDocument();
   });

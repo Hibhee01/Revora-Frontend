@@ -1,89 +1,56 @@
-import React, { useState, useMemo, useRef, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import React, { useCallback } from 'react';
 import { EmptyState } from '../components/designSystem/EmptyState';
-import { KycResubmissionTimeline } from '../components/KycResubmissionTimeline';
-import { GovernanceResults } from '../components/designSystem/GovernanceResults';
-import { GovernanceProposalDetail } from '../components/designSystem/GovernanceProposalDetail';
-import { ThumbnailGrid, ThumbnailFile } from '../components/ThumbnailGrid/ThumbnailGrid';
-import { DocumentUploadStatus } from '../components/DocumentUploadStatus';
-import { TokenSupplyBlock } from '../components/TokenSupplyBlock/TokenSupplyBlock';
+import { UploadQueue } from '../components/UploadQueue';
+import { useUploadQueue, type Uploader } from '../hooks/useUploadQueue';
+import { FinancialTermsForm } from '../components/FinancialTermsForm';
+import type { FinancialTermsField } from '../utils/financialTermsValidation';
 
-export const DistributionDashboard: React.FC = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
-
-  const [filterState, setFilterState] = useState<DistributionFilterState>(() => {
-    return {
-      searchQuery: searchParams.get('search') || '',
-      dateRange: (searchParams.get('date') as any) || 'all',
-      issuer: searchParams.get('issuer') || 'all',
-      region: searchParams.get('region') || 'all',
-      status: searchParams.get('status') || 'all',
-      segmentBy: (searchParams.get('segment') as any) || 'none',
-      compareMode: searchParams.get('compare') === 'true',
-    };
+/**
+ * Simulated uploader — replace with a real API call (e.g. fetch / axios).
+ * Resolves after ~2 s with incremental progress ticks.
+ */
+const mockUploader: Uploader = (file, onProgress) =>
+  new Promise<void>((resolve, reject) => {
+    // Simulate occasional failures for demo purposes
+    if (file.name.startsWith('fail_')) {
+      setTimeout(() => reject(new Error('Server rejected the file')), 800);
+      return;
+    }
+    let pct = 0;
+    const interval = setInterval(() => {
+      pct = Math.min(100, pct + Math.floor(Math.random() * 20) + 10);
+      onProgress(pct);
+      if (pct >= 100) {
+        clearInterval(interval);
+        resolve();
+      }
+    }, 200);
   });
 
-  const [selectedPayoutId, setSelectedPayoutId] = useState<string | null>(
-    searchParams.get('payoutId')
-  );
-  const [payoutsList, setPayoutsList] = useState<ExtendedPayoutDetail[]>(MOCK_PAYOUTS);
+export const DistributionDashboard: React.FC = () => {
+  const {
+    queue,
+    addFiles,
+    removeFile,
+    retryFile,
+    uploadFiles,
+    clearComplete,
+    totalCount,
+    successCount,
+    errorCount,
+    uploadingCount,
+    overallProgress,
+  } = useUploadQueue();
 
-  const [uploadedFiles, setUploadedFiles] = useState<ThumbnailFile[]>([
-    { id: 'doc-1', name: 'Q3_Revenue_Report.pdf', size: 245760, type: 'application/pdf', previewUrl: '/previews/q3-report.png' },
-    { id: 'doc-2', name: 'Financial_Audit_2023.pdf', size: 524288, type: 'application/pdf' },
-    { id: 'doc-3', name: 'Distribution_Chart.png', size: 102400, type: 'image/png', previewUrl: '/previews/dist-chart.png' },
-    { id: 'doc-4', name: 'K-1_Distribution_Schedule.xlsx', size: 1048576, type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' },
-  ]);
+  const handleUploadAll = useCallback(() => {
+    uploadFiles(mockUploader);
+  }, [uploadFiles]);
 
-  const handleViewFile = useCallback((file: ThumbnailFile) => {
-    window.open(file.previewUrl || '#', '_blank', 'noopener,noreferrer');
-  }, []);
-
-  const handleReplaceFile = useCallback((file: ThumbnailFile) => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.pdf,.png,.jpg,.xlsx,.docx';
-    input.onchange = (e) => {
-      const selected = (e.target as HTMLInputElement).files?.[0];
-      if (!selected) return;
-      setUploadedFiles((prev) =>
-        prev.map((f) =>
-          f.id === file.id
-            ? { ...f, name: selected.name, size: selected.size, type: selected.type, previewUrl: selected.type.startsWith('image/') ? URL.createObjectURL(selected) : undefined }
-            : f
-        )
-      );
-    };
-    input.click();
-  }, []);
-
-  const handleRemoveFile = useCallback((fileId: string) => {
-    setUploadedFiles((prev) => prev.filter((f) => f.id !== fileId));
-  }, []);
-
-  const handleReorderFiles = useCallback((fileIds: string[]) => {
-    setUploadedFiles((prev) => fileIds.map((id) => prev.find((f) => f.id === id)!).filter(Boolean));
-  }, []);
-
-  const rowRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
-
-  const updateFiltersAndUrl = useCallback(
-    (newState: DistributionFilterState) => {
-      setFilterState(newState);
-
-      const params: Record<string, string> = {};
-      if (newState.searchQuery) params.search = newState.searchQuery;
-      if (newState.dateRange !== 'all') params.date = newState.dateRange;
-      if (newState.issuer !== 'all' && newState.issuer !== 'All Issuers') params.issuer = newState.issuer;
-      if (newState.region !== 'all' && newState.region !== 'All Regions') params.region = newState.region;
-      if (newState.status !== 'all' && newState.status !== 'All Statuses') params.status = newState.status;
-      if (newState.segmentBy !== 'none') params.segment = newState.segmentBy;
-      if (newState.compareMode) params.compare = 'true';
-      if (selectedPayoutId) params.payoutId = selectedPayoutId;
-
-      setSearchParams(params);
+  const handleRetry = useCallback(
+    (id: string, uploader: Uploader) => {
+      retryFile(id, uploader);
     },
-    [selectedPayoutId, setSearchParams]
+    [retryFile],
   );
 
   const handleResetFilters = useCallback(() => {
@@ -272,93 +239,49 @@ export const DistributionDashboard: React.FC = () => {
         </a>
       </div>
 
-      {/* Filter Toolbar */}
-      <DistributionFilterToolbar
-        filters={filterState}
-        onFilterChange={updateFiltersAndUrl}
-        onResetFilters={handleResetFilters}
-      />
-
-      {/* Token Supply Configuration */}
-      <div className="mt-8">
-        <TokenSupplyBlock />
-      </div>
-
-      {/* KPI Summary Cards */}
-      <div
-        className="grid grid-cols-2 md:grid-cols-4 gap-4"
-        role="list"
-        aria-label="Distribution key metrics"
-      >
-        <div role="listitem" data-testid="kpi-total-distributed">
-          <div className="glass-card p-5 flex flex-col gap-2">
-            <span className="text-muted text-xs font-medium uppercase tracking-wide">Total Distributed</span>
-            <span className="text-2xl font-bold tracking-tight">
-              ${totalDistributed.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </span>
-          </div>
-        </div>
-        <div role="listitem" data-testid="kpi-active-payouts">
-          <div className="glass-card p-5 flex flex-col gap-2">
-            <span className="text-muted text-xs font-medium uppercase tracking-wide">Active Payouts</span>
-            <span className="text-2xl font-bold tracking-tight">{activePayouts}</span>
-          </div>
-        </div>
-        <div role="listitem" data-testid="kpi-gas-spent">
-          <div className="glass-card p-5 flex flex-col gap-2">
-            <span className="text-muted text-xs font-medium uppercase tracking-wide">Gas Spent</span>
-            <span className="text-2xl font-bold tracking-tight">
-              ${totalGasSpent.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </span>
-          </div>
-        </div>
-        <div role="listitem" data-testid="kpi-pending-retries">
-          <div className="glass-card p-5 flex flex-col gap-2">
-            <span className="text-muted text-xs font-medium uppercase tracking-wide">Pending Retries</span>
-            <span className="text-2xl font-bold tracking-tight">{pendingRetries}</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-8">
-        <h2 className="text-xl font-semibold mb-4">Uploaded Documents</h2>
-        <ThumbnailGrid
-          files={uploadedFiles}
-          onView={handleViewFile}
-          onReplace={handleReplaceFile}
-          onRemove={handleRemoveFile}
-          onReorder={handleReorderFiles}
-        />
-      </div>
-
-      {/* Governance Proposal Detail */}
-      <section aria-label="Governance proposal detail">
-        <GovernanceProposalDetail
-          proposal={{
-            id: 'prop-1',
-            title: 'Increase Developer Grant Fund',
-            description:
-              'A proposal to allocate an additional 500,000 tokens to the developer grant program to support ecosystem growth.',
-            proposer: '0x1234...abcd',
-            status: 'active',
-            endTime: Date.now() + 86400000 * 3,
-            quorumRequired: 4_000_000,
-            quorumReached: 2_500_000,
-            results: { for: 2000000, against: 450000, abstain: 50000 },
-            participation: { turnout: 68.4, uniqueVoters: 142, delegates: 12 },
-            userVote: null,
-          }}
-          onVote={(choice) => {
-            console.log(`Vote cast: ${choice}`);
-          }}
+      {/* Document upload queue */}
+      <section aria-labelledby="upload-section-heading">
+        <h2
+          id="upload-section-heading"
+          className="text-xl font-semibold mb-4"
+          style={{ fontSize: 'var(--font-size-xl)', fontWeight: 'var(--font-weight-semibold)', marginBottom: 'var(--spacing-md)' }}
+        >
+          Upload Documents
+        </h2>
+        <UploadQueue
+          queue={queue}
+          onAddFiles={addFiles}
+          onRemove={removeFile}
+          onRetry={handleRetry}
+          onUploadAll={handleUploadAll}
+          onClearComplete={clearComplete}
+          totalCount={totalCount}
+          successCount={successCount}
+          errorCount={errorCount}
+          uploadingCount={uploadingCount}
+          overallProgress={overallProgress}
+          uploader={mockUploader}
+          accept=".pdf,.doc,.docx,.xls,.xlsx,.csv"
         />
       </section>
 
-      <GovernanceResults
-        results={{ for: 2500000, against: 450000, abstain: 50000 }}
-        participation={{ turnout: 68.4, uniqueVoters: 142, delegates: 12 }}
-        status="passed"
-      />
+      {/* Financial terms wizard step */}
+      <section aria-labelledby="financial-terms-heading">
+        <h2
+          id="financial-terms-heading"
+          style={{ fontSize: 'var(--font-size-xl)', fontWeight: 'var(--font-weight-semibold)', marginBottom: 'var(--spacing-md)' }}
+        >
+          Configure Offering Terms
+        </h2>
+        <div className="glass-card" style={{ padding: 'var(--spacing-xl)' }}>
+          <FinancialTermsForm
+            onSubmit={(values: Record<FinancialTermsField, number>) => {
+              // Replace with real API call
+              console.log('Financial terms submitted:', values);
+            }}
+          />
+        </div>
+      </section>
 
       {/* Drill-down Panel */}
       <PayoutDrillDownPanel

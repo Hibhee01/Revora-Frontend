@@ -7,7 +7,7 @@ export function formatKeyLabels(keys: string[], isMac: boolean): string[] {
     if (lower === 'escape') return isMac ? '\u238B' : 'Esc';
     if (lower === 'enter') return '\u21B5';
     return key.length === 1 ? key.toUpperCase() : key;
-  });
+  }); 
 }
 
 export function shortcutAriaLabel(keys: string[], isMac: boolean): string {

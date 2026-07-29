@@ -142,7 +142,7 @@ export const AuditTrail: React.FC<AuditTrailProps> = ({ entries = MOCK_AUDIT_ENT
         <p className="text-muted text-sm mt-1">
           Complete activity log for compliance and transparency.
         </p>
-      </div>
+      </div> 
 
       <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem' }}>
         <button 

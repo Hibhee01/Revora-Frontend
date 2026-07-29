@@ -14,7 +14,7 @@ describe('App Components Accessibility', () => {
     expect(getStartedLink).toBeInTheDocument();
     expect(getStartedLink.tagName.toLowerCase()).toBe('a');
     expect(signInLink).toBeInTheDocument();
-    expect(signInLink.tagName.toLowerCase()).toBe('a');
+    expect(signInLink.tagName.toLowerCase()).toBe('a'); 
   });
 
   it('renders the header correctly', () => {

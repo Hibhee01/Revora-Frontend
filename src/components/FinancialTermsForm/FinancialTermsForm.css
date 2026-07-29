@@ -1,0 +1,316 @@
+/* ─── Financial Terms Form Styles (Issue #197) ─────────────────────────────
+   Design tokens consumed from src/index.css :root:
+   --glass-bg, --glass-border, --glass-border-bright, --glass-blur,
+   --shadow-md, --radius-*, --spacing-*, --font-size-*, --font-weight-*,
+   --text-main, --text-muted, --primary, --primary-hover, --error, --success
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* ── Form container ────────────────────────────────────────────────────── */
+.ftf {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+  width: 100%;
+}
+
+.ftf__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2xs);
+}
+
+.ftf__title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-main);
+  line-height: var(--line-height-tight);
+}
+
+.ftf__subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  line-height: var(--line-height-normal);
+}
+
+/* ── Field grid ────────────────────────────────────────────────────────── */
+.ftf__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-lg);
+}
+
+@media (min-width: 640px) {
+  .ftf__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ── Field group ───────────────────────────────────────────────────────── */
+.ftf__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2xs);
+}
+
+/* ── Label row ─────────────────────────────────────────────────────────── */
+.ftf__label-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-xs);
+}
+
+.ftf__label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.ftf__constraint-hint {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  opacity: 0.7;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Help text (above input) ───────────────────────────────────────────── */
+.ftf__help {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  line-height: var(--line-height-normal);
+}
+
+/* ── Input wrapper ─────────────────────────────────────────────────────── */
+.ftf__input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.ftf__input {
+  width: 100%;
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  padding-right: 3rem; /* room for unit badge */
+  color: var(--text-main);
+  font-size: var(--font-size-sm);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  -moz-appearance: textfield; /* hide number spinners in Firefox */
+}
+
+.ftf__input::-webkit-outer-spin-button,
+.ftf__input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.ftf__input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+
+.ftf__input:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Error state */
+.ftf__input--error {
+  border-color: var(--error);
+}
+
+.ftf__input--error:focus {
+  border-color: var(--error);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+}
+
+/* Warning state */
+.ftf__input--warning {
+  border-color: #f59e0b;
+}
+
+.ftf__input--warning:focus {
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+}
+
+/* OK / valid state */
+.ftf__input--ok {
+  border-color: rgba(16, 185, 129, 0.4);
+}
+
+/* ── Unit badge ────────────────────────────────────────────────────────── */
+.ftf__unit {
+  position: absolute;
+  right: var(--spacing-md);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-muted);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ── Inline feedback (below input) ────────────────────────────────────── */
+.ftf__feedback {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-2xs);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-normal);
+  animation: ftf-fade-in 0.15s ease-out;
+}
+
+.ftf__feedback--error   { color: var(--error); }
+.ftf__feedback--warning { color: #f59e0b; }
+.ftf__feedback--ok      { color: var(--success); }
+
+.ftf__feedback-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+@keyframes ftf-fade-in {
+  from { opacity: 0; transform: translateY(-2px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Cross-field error banner ──────────────────────────────────────────── */
+.ftf__cross-error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  color: var(--error);
+  line-height: var(--line-height-normal);
+}
+
+/* ── Error summary banner ──────────────────────────────────────────────── */
+.ftf__error-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  color: var(--error);
+}
+
+/* ── Actions row ───────────────────────────────────────────────────────── */
+.ftf__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.ftf__submit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) var(--spacing-2xl);
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.ftf__submit-btn:hover:not(:disabled) {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
+.ftf__submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.ftf__submit-btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.ftf__reset-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) var(--spacing-xl);
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.ftf__reset-btn:hover {
+  background: rgba(148, 163, 184, 0.08);
+  color: var(--text-main);
+}
+
+.ftf__reset-btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* ── Success confirmation ──────────────────────────────────────────────── */
+.ftf__success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-2xl);
+  background: rgba(16, 185, 129, 0.06);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: var(--radius-lg);
+  text-align: center;
+}
+
+.ftf__success-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--success);
+}
+
+.ftf__success-body {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+}
+
+/* ── Reduced motion ────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .ftf__feedback { animation: none; }
+  .ftf__submit-btn:hover:not(:disabled) { transform: none; }
+}
+
+/* ── Responsive — narrow viewports ────────────────────────────────────── */
+@media (max-width: 480px) {
+  .ftf__actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .ftf__submit-btn,
+  .ftf__reset-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

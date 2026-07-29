@@ -35,6 +35,7 @@ import {
   Menu,
   List,
   Upload,
+  LayoutGrid,
 } from "lucide-react";
 import {
   formatDate,
@@ -332,7 +333,6 @@ interface CalendarGridComponentProps {
   weekStartsOn: number;
   onDateSelect: (date: string) => void;
   onFocusDate: (date: string) => void;
-  onJumpToToday?: () => void;
   locale: string;
   ariaLabel: string;
 }
@@ -344,7 +344,6 @@ const CalendarGridComponent: React.FC<CalendarGridComponentProps> = ({
   weekStartsOn,
   onDateSelect,
   onFocusDate,
-  onJumpToToday,
   locale,
   ariaLabel,
 }) => {
@@ -477,12 +476,6 @@ const CalendarGridComponent: React.FC<CalendarGridComponentProps> = ({
         }
         break;
       }
-      case 't':
-      case 'T': {
-        e.preventDefault();
-        onJumpToToday?.();
-        return;
-      }
       default:
         return;
     }
@@ -528,6 +521,249 @@ const CalendarGridComponent: React.FC<CalendarGridComponentProps> = ({
               locale={locale}
             />
           ))}
+        </div>
+      ))}
+    </div>
+  );
+};
+
+/* ─── Year Grid View ───────────────────────────────────────────────── */
+
+/** Returns aggregate status for all reports in a given year+month */
+function getMonthStatus(
+  reports: RevenueReport[],
+  year: number,
+  month: number,
+): ReportStatus {
+  const monthReports = reports.filter((r) => {
+    const d = parseISODate(r.date);
+    return d.year === year && d.month === month;
+  });
+  if (monthReports.length === 0) return 'none';
+  // Re-use priority order: overdue > due > submitted > accepted
+  if (monthReports.some((r) => r.status === 'overdue')) return 'overdue';
+  if (monthReports.some((r) => r.status === 'due')) return 'due';
+  if (monthReports.some((r) => r.status === 'submitted')) return 'submitted';
+  return 'accepted';
+}
+
+interface MonthTileProps {
+  year: number;
+  month: number; // 0-based
+  status: ReportStatus;
+  isCurrentMonth: boolean;
+  isSelected: boolean;
+  isFocused: boolean;
+  locale: string;
+  onClick: (year: number, month: number) => void;
+  onFocus: (month: number) => void;
+  reportCount: number;
+}
+
+const MonthTile: React.FC<MonthTileProps> = ({
+  year,
+  month,
+  status,
+  isCurrentMonth,
+  isSelected,
+  isFocused,
+  locale,
+  onClick,
+  onFocus,
+  reportCount,
+}) => {
+  const monthName = new Date(year, month).toLocaleDateString(
+    locale as SupportedLocale,
+    { month: 'short' },
+  );
+  const fullMonthName = new Date(year, month).toLocaleDateString(
+    locale as SupportedLocale,
+    { month: 'long', year: 'numeric' },
+  );
+
+  const statusColor = status !== 'none' ? REPORT_STATUS_COLORS[status] : undefined;
+  const statusLabel = REPORT_STATUS_LABELS[status];
+
+  const ariaLabel = [
+    fullMonthName,
+    statusLabel !== 'No report' ? `Status: ${statusLabel}.` : 'No reports.',
+    reportCount > 0 ? `${reportCount} report${reportCount !== 1 ? 's' : ''}.` : '',
+    isCurrentMonth ? 'Current month.' : '',
+    isSelected ? 'Selected.' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  const tileClass = [
+    'rc-year-month-tile',
+    isCurrentMonth && 'rc-year-month-tile--current',
+    isSelected && 'rc-year-month-tile--selected',
+    status !== 'none' && `rc-year-month-tile--${status}`,
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  return (
+    <button
+      type="button"
+      className={tileClass}
+      tabIndex={isFocused ? 0 : -1}
+      aria-label={ariaLabel}
+      aria-pressed={isSelected}
+      data-month={month}
+      onClick={() => onClick(year, month)}
+      onFocus={() => onFocus(month)}
+    >
+      <span className="rc-year-month-name">{monthName}</span>
+      {status !== 'none' ? (
+        <span
+          className="rc-year-month-glyph"
+          style={{ backgroundColor: statusColor }}
+          aria-hidden="true"
+        />
+      ) : (
+        <span className="rc-year-month-glyph rc-year-month-glyph--empty" aria-hidden="true" />
+      )}
+      {reportCount > 0 && (
+        <span className="rc-year-month-count" aria-hidden="true">
+          {reportCount}
+        </span>
+      )}
+    </button>
+  );
+};
+
+interface YearGridViewProps {
+  year: number;
+  reports: RevenueReport[];
+  selectedDate: string | undefined;
+  locale: string;
+  /** Called when user drills down to a month */
+  onMonthSelect: (year: number, month: number) => void;
+}
+
+const YearGridView: React.FC<YearGridViewProps> = ({
+  year,
+  reports,
+  selectedDate,
+  locale,
+  onMonthSelect,
+}) => {
+  const today = new Date();
+  const selectedMonth = selectedDate ? parseISODate(selectedDate).month : undefined;
+  const selectedYear = selectedDate ? parseISODate(selectedDate).year : undefined;
+
+  // Roving focus within the grid
+  const [focusedMonth, setFocusedMonth] = useState<number>(() => {
+    if (selectedYear === year && selectedMonth !== undefined) return selectedMonth;
+    if (today.getFullYear() === year) return today.getMonth();
+    return 0;
+  });
+
+  const gridRef = useRef<HTMLDivElement>(null);
+
+  // When focusedMonth changes, move DOM focus
+  useEffect(() => {
+    if (gridRef.current) {
+      const tile = gridRef.current.querySelector(
+        `[data-month="${focusedMonth}"]`,
+      ) as HTMLElement | null;
+      if (tile && document.activeElement !== tile) {
+        tile.focus({ preventScroll: true });
+      }
+    }
+  }, [focusedMonth]);
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    const cols = 3; // 3 columns × 4 rows
+    switch (e.key) {
+      case 'ArrowRight':
+        e.preventDefault();
+        setFocusedMonth((m) => Math.min(m + 1, 11));
+        break;
+      case 'ArrowLeft':
+        e.preventDefault();
+        setFocusedMonth((m) => Math.max(m - 1, 0));
+        break;
+      case 'ArrowDown':
+        e.preventDefault();
+        setFocusedMonth((m) => Math.min(m + cols, 11));
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setFocusedMonth((m) => Math.max(m - cols, 0));
+        break;
+      case 'Home':
+        e.preventDefault();
+        // First month in current row
+        setFocusedMonth((m) => Math.floor(m / cols) * cols);
+        break;
+      case 'End':
+        e.preventDefault();
+        // Last month in current row
+        setFocusedMonth((m) => Math.min(Math.floor(m / cols) * cols + cols - 1, 11));
+        break;
+      case 'Enter':
+      case ' ':
+        e.preventDefault();
+        onMonthSelect(year, focusedMonth);
+        break;
+      default:
+        break;
+    }
+  };
+
+  const months = useMemo(
+    () =>
+      Array.from({ length: 12 }, (_, i) => {
+        const monthReports = reports.filter((r) => {
+          const d = parseISODate(r.date);
+          return d.year === year && d.month === i;
+        });
+        return {
+          month: i,
+          status: getMonthStatus(reports, year, i),
+          reportCount: monthReports.length,
+        };
+      }),
+    [reports, year],
+  );
+
+  return (
+    <div
+      ref={gridRef}
+      className="rc-year-grid"
+      role="grid"
+      aria-label={`Year overview for ${year}. Use arrow keys to navigate months, Enter or Space to drill down.`}
+      onKeyDown={handleKeyDown}
+    >
+      {/* 4 rows × 3 columns */}
+      {[0, 1, 2, 3].map((rowIdx) => (
+        <div key={rowIdx} className="rc-year-grid-row" role="row">
+          {[0, 1, 2].map((colIdx) => {
+            const m = rowIdx * 3 + colIdx;
+            const item = months[m];
+            const isCurrentMonth =
+              today.getFullYear() === year && today.getMonth() === m;
+            const isSelected =
+              selectedYear === year && selectedMonth === m;
+            return (
+              <div key={m} role="gridcell">
+                <MonthTile
+                  year={year}
+                  month={item.month}
+                  status={item.status}
+                  isCurrentMonth={isCurrentMonth}
+                  isSelected={isSelected}
+                  isFocused={focusedMonth === m}
+                  locale={locale}
+                  onClick={onMonthSelect}
+                  onFocus={setFocusedMonth}
+                  reportCount={item.reportCount}
+                />
+              </div>
+            );
+          })}
         </div>
       ))}
     </div>
@@ -821,7 +1057,6 @@ export const RevenueReportingCalendar: React.FC<
   onMonthChange,
   onSubmitReport,
   onReportAction,
-  onOpenShortcuts,
   className = "",
 }) => {
   // Determine current month from reports or use today
@@ -836,6 +1071,8 @@ export const RevenueReportingCalendar: React.FC<
   const [panelOpen, setPanelOpen] = useState(true);
   const [mobileView, setMobileView] = useState<"calendar" | "agenda">("agenda");
   const [showImportWizard, setShowImportWizard] = useState(false);
+  // Calendar view mode: month or year
+  const [calendarView, setCalendarView] = useState<'month' | 'year'>('month');
 
   const viewMonth = controlledViewMonth ?? internalViewMonth;
   const selectedDate = controlledSelectedDate ?? internalSelectedDate;
@@ -889,6 +1126,29 @@ export const RevenueReportingCalendar: React.FC<
     onMonthChange?.(newMonthStr);
   }, [viewMonthNum, viewYear, onMonthChange]);
 
+  const goToPrevYear = useCallback(() => {
+    const newMonthStr = `${viewYear - 1}-${String(viewMonthNum + 1).padStart(2, "0")}`;
+    setInternalViewMonth(newMonthStr);
+    onMonthChange?.(newMonthStr);
+  }, [viewYear, viewMonthNum, onMonthChange]);
+
+  const goToNextYear = useCallback(() => {
+    const newMonthStr = `${viewYear + 1}-${String(viewMonthNum + 1).padStart(2, "0")}`;
+    setInternalViewMonth(newMonthStr);
+    onMonthChange?.(newMonthStr);
+  }, [viewYear, viewMonthNum, onMonthChange]);
+
+  /** Drill down from year grid: select the month and switch back to month view */
+  const handleYearMonthSelect = useCallback(
+    (year: number, month: number) => {
+      const newMonthStr = `${year}-${String(month + 1).padStart(2, "0")}`;
+      setInternalViewMonth(newMonthStr);
+      onMonthChange?.(newMonthStr);
+      setCalendarView('month');
+    },
+    [onMonthChange],
+  );
+
   const handleDateSelect = useCallback(
     (date: string) => {
       setInternalSelectedDate(date);
@@ -902,23 +1162,6 @@ export const RevenueReportingCalendar: React.FC<
   const handleFocusDate = useCallback((date: string) => {
     setFocusedDate(date);
   }, []);
-
-  const handleJumpToToday = useCallback(() => {
-    const today = new Date();
-    const todayStr = toISODate(today.getFullYear(), today.getMonth(), today.getDate());
-    const targetMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-
-    // Navigate to today's month if not already viewing it
-    if (targetMonth !== viewMonth) {
-      setInternalViewMonth(targetMonth);
-      onMonthChange?.(targetMonth);
-    }
-
-    // Focus and select today's date
-    setFocusedDate(todayStr);
-    setInternalSelectedDate(todayStr);
-    onDateSelect?.(todayStr);
-  }, [viewMonth, onMonthChange, onDateSelect]);
 
   const handleSubmitReport = useCallback(
     (date: string) => {
@@ -997,49 +1240,69 @@ export const RevenueReportingCalendar: React.FC<
             <button
               type="button"
               className="rc-nav-btn"
-              onClick={goToPrevMonth}
-              aria-label={`Previous month: ${new Date(viewYear, viewMonthNum - 1).toLocaleDateString(locale as SupportedLocale, { month: "long", year: "numeric" })}`}
+              onClick={calendarView === 'year' ? goToPrevYear : goToPrevMonth}
+              aria-label={
+                calendarView === 'year'
+                  ? `Previous year: ${viewYear - 1}`
+                  : `Previous month: ${new Date(viewYear, viewMonthNum - 1).toLocaleDateString(locale as SupportedLocale, { month: "long", year: "numeric" })}`
+              }
             >
               <ChevronLeft size={20} aria-hidden="true" />
             </button>
-            <h2 className="rc-month-title">{monthName}</h2>
+            <h2 className="rc-month-title">
+              {calendarView === 'year' ? String(viewYear) : monthName}
+            </h2>
             <button
               type="button"
               className="rc-nav-btn"
-              onClick={goToNextMonth}
-              aria-label={`Next month: ${new Date(viewYear, viewMonthNum + 1).toLocaleDateString(locale as SupportedLocale, { month: "long", year: "numeric" })}`}
+              onClick={calendarView === 'year' ? goToNextYear : goToNextMonth}
+              aria-label={
+                calendarView === 'year'
+                  ? `Next year: ${viewYear + 1}`
+                  : `Next month: ${new Date(viewYear, viewMonthNum + 1).toLocaleDateString(locale as SupportedLocale, { month: "long", year: "numeric" })}`
+              }
             >
               <ChevronRight size={20} aria-hidden="true" />
             </button>
           </div>
+
+          {/* View switcher: Month / Year segmented control */}
+          <div
+            className="rc-view-switcher"
+            role="tablist"
+            aria-label="Calendar view"
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={calendarView === 'month'}
+              className={`rc-view-switcher-btn${calendarView === 'month' ? ' rc-view-switcher-btn--active' : ''}`}
+              onClick={() => setCalendarView('month')}
+            >
+              <Calendar size={14} aria-hidden="true" />
+              Month
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={calendarView === 'year'}
+              className={`rc-view-switcher-btn${calendarView === 'year' ? ' rc-view-switcher-btn--active' : ''}`}
+              onClick={() => setCalendarView('year')}
+            >
+              <LayoutGrid size={14} aria-hidden="true" />
+              Year
+            </button>
+          </div>
           
-          <div className="rc-actions" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 var(--spacing-6) var(--spacing-4)' }}>
-            <div className="rc-shortcuts-hint" aria-label="Keyboard shortcuts hint">
-              <span className="rc-shortcuts-hint-text">
-                Press <kbd className="rc-shortcut-key">T</kbd> for today&ensp;·&ensp;
-                <kbd className="rc-shortcut-key">?</kbd> for shortcuts
-              </span>
-            </div>
-            <div style={{ display: 'flex', gap: 'var(--spacing-2)' }}>
-              {onOpenShortcuts && (
-                <button
-                  type="button"
-                  className="rc-shortcuts-btn"
-                  onClick={onOpenShortcuts}
-                  aria-label="Keyboard shortcuts"
-                  title="Keyboard shortcuts"
-                >
-                  <span aria-hidden="true">?</span>
-                </button>
-              )}
-              <Button variant="secondary" onClick={() => setShowImportWizard(true)} aria-label="Import historical revenue from CSV">
-                <Upload size={16} aria-hidden="true" />
-                Import CSV
-              </Button>
-            </div>
+          <div className="rc-actions" style={{ display: 'flex', justifyContent: 'flex-end', padding: '0 var(--spacing-6) var(--spacing-4)' }}>
+            <Button variant="secondary" onClick={() => setShowImportWizard(true)} aria-label="Import historical revenue from CSV">
+              <Upload size={16} aria-hidden="true" />
+              Import CSV
+            </Button>
           </div>
 
-          {/* Mobile view toggle (calendar/agenda */}
+          {/* Mobile view toggle (calendar/agenda) — only relevant in month view */}
+          {calendarView === 'month' && (
           <div
             className="rc-view-toggle"
             role="tablist"
@@ -1068,6 +1331,7 @@ export const RevenueReportingCalendar: React.FC<
               <span>Agenda</span>
             </button>
           </div>
+          )}
 
           {/* Legend */}
           <div
@@ -1112,7 +1376,19 @@ export const RevenueReportingCalendar: React.FC<
             </span>
           </div>
 
-          {/* Calendar grid (shown on desktop, or when mobile view is calendar */}
+          {/* Year overview grid */}
+          {calendarView === 'year' && (
+            <YearGridView
+              year={viewYear}
+              reports={reports}
+              selectedDate={selectedDate}
+              locale={locale}
+              onMonthSelect={handleYearMonthSelect}
+            />
+          )}
+
+          {/* Calendar grid (shown on desktop, or when mobile view is calendar — month view only */}
+          {calendarView === 'month' && (
           <div
             className={`rc-calendar-wrapper ${mobileView === "agenda" ? "rc-calendar-wrapper--hidden-on-agenda" : ""}`}
           >
@@ -1123,13 +1399,14 @@ export const RevenueReportingCalendar: React.FC<
               weekStartsOn={weekStartsOn}
               onDateSelect={handleDateSelect}
               onFocusDate={handleFocusDate}
-              onJumpToToday={handleJumpToToday}
               locale={locale}
-              ariaLabel={`Revenue reporting calendar for ${monthName}. Use arrow keys to navigate, Home and End for row edges, Page Up and Page Down for month navigation, Enter or Space to select, T for today.`}
+              ariaLabel={`Revenue reporting calendar for ${monthName}. Use arrow keys to navigate, Home and End for row edges, Page Up and Page Down for month navigation, Enter or Space to select.`}
             />
           </div>
+          )}
 
-          {/* Agenda view (shown when mobile view is agenda) */}
+          {/* Agenda view (shown when mobile view is agenda — month view only) */}
+          {calendarView === 'month' && (
           <div
             className={`rc-agenda-wrapper ${mobileView === "calendar" ? "rc-agenda-wrapper--hidden-on-calendar" : ""}`}
           >
@@ -1142,6 +1419,7 @@ export const RevenueReportingCalendar: React.FC<
               viewMonth={viewMonth}
             />
           </div>
+          )}
         </section>
 
         {/* Details panel */}
@@ -1178,179 +1456,6 @@ export const RevenueReportingCalendar: React.FC<
           />
         </div>
       )}
-    </div>
-  );
-};
-
-/* ─── Agenda View (Mobile) ─────────────────────────────────────────── */
-
-interface AgendaViewProps {
-  reports: RevenueReport[];
-  selectedDate: string | undefined;
-  locale: string;
-  onSelect: (date: string) => void;
-  onSubmitReport?: (date: string) => void;
-  viewMonth: string;
-}
-
-const AgendaView: React.FC<AgendaViewProps> = ({
-  reports,
-  selectedDate,
-  locale,
-  onSelect,
-  onSubmitReport,
-  viewMonth,
-}) => {
-  const [viewYear, viewMonthNum] = useMemo(() => {
-    const [y, m] = viewMonth.split('-').map(Number);
-    return [y, m - 1];
-  }, [viewMonth]);
-
-  const monthReports = useMemo(
-    () => getMonthReports(reports, viewYear, viewMonthNum),
-    [reports, viewYear, viewMonthNum],
-  );
-
-  const groupedReports = useMemo(() => {
-    const groups: { status: ReportStatus; label: string; reports: RevenueReport[] }[] = [];
-    const statusOrder: ReportStatus[] = ['overdue', 'due', 'submitted', 'accepted'];
-
-    const statusMap: Record<ReportStatus, RevenueReport[]> = {
-      overdue: [],
-      due: [],
-      submitted: [],
-      accepted: [],
-      none: [],
-    };
-
-    monthReports.forEach((r) => {
-      const isOverdueStatus = r.status === 'overdue' || (r.status === 'due' && isOverdue(r));
-      const effectiveStatus: ReportStatus = isOverdueStatus ? 'overdue' : r.status;
-      if (statusMap[effectiveStatus]) {
-        statusMap[effectiveStatus].push(r);
-      }
-    });
-
-    statusOrder.forEach((status) => {
-      if (statusMap[status].length > 0) {
-        groups.push({
-          status,
-          label: REPORT_STATUS_LABELS[status],
-          reports: statusMap[status],
-        });
-      }
-    });
-
-    return groups;
-  }, [monthReports]);
-
-  const formatDay = (iso: string) => {
-    const d = parseISODate(iso);
-    return d.day;
-  };
-
-  const formatWeekday = (iso: string) => {
-    const d = parseISODate(iso);
-    const date = new Date(d.year, d.month, d.day);
-    return date.toLocaleDateString(locale as SupportedLocale, { weekday: 'short' });
-  };
-
-  const formatShortDate = (iso: string) =>
-    formatDate(iso, locale as SupportedLocale, { month: 'short', day: 'numeric' });
-
-  if (monthReports.length === 0) {
-    return (
-      <div className="rc-agenda-view" data-testid="agenda-view">
-        <div className="rc-agenda-empty">
-          <Calendar size={24} aria-hidden="true" />
-          <p className="rc-agenda-empty-text">No reports scheduled for this month.</p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="rc-agenda-view" data-testid="agenda-view">
-      {groupedReports.map((group) => (
-        <div
-          key={group.status}
-          className={`rc-agenda-group rc-agenda-group--${group.status}`}
-        >
-          <h3 className="rc-agenda-group-title">
-            {group.label}
-            <span className="rc-agenda-group-count" aria-hidden="true">
-              {group.reports.length}
-            </span>
-          </h3>
-          <ul className="rc-agenda-list">
-            {group.reports.map((report) => {
-              const isSelected = report.date === selectedDate;
-              return (
-                <li key={report.id} className="rc-agenda-listitem">
-                  <button
-                    type="button"
-                    className={`rc-agenda-row rc-agenda-row--${group.status} ${isSelected ? 'rc-agenda-row--selected' : ''}`}
-                    onClick={() => onSelect(report.date)}
-                    aria-label={`${formatDate(report.date, locale as SupportedLocale, { weekday: 'long', month: 'long', day: 'numeric' })} — ${group.label}`}
-                  >
-                    <div className="rc-agenda-row-date" aria-hidden="true">
-                      <span className="rc-agenda-row-weekday">{formatWeekday(report.date)}</span>
-                      <span className="rc-agenda-row-day">{formatDay(report.date)}</span>
-                    </div>
-                    <div className="rc-agenda-row-body">
-                      <div className="rc-agenda-row-header">
-                        <span className={`rc-status-pill rc-status-pill--${group.status}`}>
-                          {group.label}
-                        </span>
-                        <span className="rc-agenda-row-duedate">
-                          <Clock size={10} aria-hidden="true" />
-                          Due: {formatShortDate(report.dueDate)}
-                        </span>
-                      </div>
-                      <div className="rc-agenda-row-meta">
-                        {report.grossRevenue !== undefined && (
-                          <span className="rc-agenda-row-revenue">
-                            {formatCurrency(report.grossRevenue, report.currency || 'USD', locale as SupportedLocale)}
-                          </span>
-                        )}
-                        {report.submittedAt && (
-                          <span className="rc-agenda-row-submitted">
-                            <CheckCircle2 size={10} aria-hidden="true" />
-                            Submitted {formatShortDate(report.submittedAt)}
-                          </span>
-                        )}
-                        {report.acceptedAt && (
-                          <span className="rc-agenda-row-accepted">
-                            <CheckCircle2 size={10} aria-hidden="true" />
-                            Accepted {formatShortDate(report.acceptedAt)}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <ChevronRight size={16} className="rc-agenda-row-chevron" aria-hidden="true" />
-                  </button>
-                  {onSubmitReport && (group.status === 'due' || group.status === 'overdue') && (
-                    <div className="rc-agenda-row-cta">
-                      <Button
-                        variant="primary"
-                        size="sm"
-                        onClick={(e: React.MouseEvent) => {
-                          e.stopPropagation();
-                          onSubmitReport(report.date);
-                        }}
-                        aria-label={`Submit report for ${formatDate(report.date, locale as SupportedLocale, { month: 'long', day: 'numeric' })}`}
-                      >
-                        <Send size={12} aria-hidden="true" />
-                        Submit
-                      </Button>
-                    </div>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      ))}
     </div>
   );
 };

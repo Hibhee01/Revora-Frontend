@@ -106,4 +106,73 @@ describe("useUndoBanners", () => {
     expect(result.current.banners).toHaveLength(1);
     expect(result.current.banners[0].message).toBe("B");
   });
+
+  it("reverses all pending actions when undoAll is called", () => {
+    const onUndo1 = vi.fn();
+    const onUndo2 = vi.fn();
+    const onCommit1 = vi.fn();
+    const onCommit2 = vi.fn();
+    const { result } = renderHook(() => useUndoBanners());
+
+    act(() => {
+      result.current.registerUndo({ message: "A", onUndo: onUndo1, onCommit: onCommit1 });
+      result.current.registerUndo({ message: "B", onUndo: onUndo2, onCommit: onCommit2 });
+    });
+
+    expect(result.current.banners).toHaveLength(2);
+
+    act(() => {
+      result.current.undoAll();
+    });
+
+    expect(result.current.banners).toHaveLength(0);
+    expect(onUndo1).toHaveBeenCalledTimes(1);
+    expect(onUndo2).toHaveBeenCalledTimes(1);
+    expect(onCommit1).not.toHaveBeenCalled();
+    expect(onCommit2).not.toHaveBeenCalled();
+  });
+
+  it("commits all pending actions immediately when dismissAll is called", () => {
+    const onUndo1 = vi.fn();
+    const onUndo2 = vi.fn();
+    const onCommit1 = vi.fn();
+    const onCommit2 = vi.fn();
+    const { result } = renderHook(() => useUndoBanners());
+
+    act(() => {
+      result.current.registerUndo({ message: "A", onUndo: onUndo1, onCommit: onCommit1 });
+      result.current.registerUndo({ message: "B", onUndo: onUndo2, onCommit: onCommit2 });
+    });
+
+    expect(result.current.banners).toHaveLength(2);
+
+    act(() => {
+      result.current.dismissAll();
+    });
+
+    expect(result.current.banners).toHaveLength(0);
+    expect(onCommit1).toHaveBeenCalledTimes(1);
+    expect(onCommit2).toHaveBeenCalledTimes(1);
+    expect(onUndo1).not.toHaveBeenCalled();
+    expect(onUndo2).not.toHaveBeenCalled();
+  });
+
+  it("scales auto-dismiss duration dynamically based on current stack size", () => {
+    const { result } = renderHook(() => useUndoBanners());
+
+    act(() => {
+      result.current.registerUndo({ message: "First action", onUndo: vi.fn() });
+    });
+    expect(result.current.banners[0].durationMs).toBe(5000); // base
+
+    act(() => {
+      result.current.registerUndo({ message: "Second action burst", onUndo: vi.fn() });
+    });
+    expect(result.current.banners[1].durationMs).toBe(6000); // 5000 + 1000
+
+    act(() => {
+      result.current.registerUndo({ message: "Third action burst", onUndo: vi.fn() });
+    });
+    expect(result.current.banners[2].durationMs).toBe(7000); // 5000 + 2000
+  });
 });

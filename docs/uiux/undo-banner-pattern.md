@@ -21,19 +21,23 @@ Use a confirmation dialog instead when an action is **irreversible** or
 ## Anatomy
 
 ```
-┌─────────────────────────────────────────────┐
-│  ◷  Deleted "Q3 report"        ↶ Undo    ✕   │
-└─────────────────────────────────────────────┘
-   │              │                  │       │
- countdown     message          Undo CTA   dismiss
-   ring                        (primary)  (commit now)
+┌─────────────────────────────────────────────┐  ▲
+│  2 pending actions           ↶ Undo all  ✕  │  │  Aggregate Stack Header
+├─────────────────────────────────────────────┤  │  (shown when >1 active items)
+│  ◷  Deleted "Q4 forecast"       ↶ Undo   ✕  │  │  Newest Banner (top)
+├─────────────────────────────────────────────┤  │
+│  ◷  Deleted "Q3 report"         ↶ Undo   ✕  │  │  Older Banner
+├─────────────────────────────────────────────┤  │
+│  +2 more pending                            │  ▼  Overflow Summary
+└─────────────────────────────────────────────┘     (visible when > maxVisible)
 ```
 
-- **Countdown ring** — depletes over the reversible window (default 5s),
+- **Countdown ring** — depletes over the reversible window (default 5s, auto-scaled for bursts),
   signalling time-to-permanence. Decorative (`aria-hidden`).
 - **Message** — past-tense description of what happened (`Deleted "Q3 report"`).
 - **Undo CTA** — primary action; reverses the change and removes the banner.
 - **Dismiss (✕)** — commits the action immediately and removes the banner.
+- **Aggregate "Undo all" Header** — shown when multiple actions (`>1`) are pending; reverses all stacked actions in reverse chronological order.
 
 ## Action contract (for engineers)
 
@@ -45,10 +49,10 @@ Drive banners through `useUndoBanners`. Each reversible action provides:
 | `onUndo` | yes | Reverse the action (restore UI + cancel/rollback any persistence). |
 | `onCommit` | no | Make the action permanent — runs when the timer elapses **or** the user dismisses. Omit if the action is already persisted and only `onUndo` changes state. |
 | `actionLabel` | no | CTA label, defaults to `Undo`. |
-| `durationMs` | no | Reversible window, defaults to `5000`. |
+| `durationMs` | no | Reversible window, defaults to `5000` (+1000ms scaling per existing item in stack when omitted). |
 
 ```tsx
-const { banners, registerUndo, undo, dismiss } = useUndoBanners();
+const { banners, registerUndo, undo, dismiss, undoAll, dismissAll } = useUndoBanners();
 
 function deleteDraft(draft: Draft) {
   removeDraftFromList(draft.id);              // optimistic UI update
@@ -62,7 +66,14 @@ function deleteDraft(draft: Draft) {
 return (
   <>
     {/* …page… */}
-    <UndoBanner banners={banners} onUndo={undo} onDismiss={dismiss} />
+    <UndoBanner
+      banners={banners}
+      onUndo={undo}
+      onDismiss={dismiss}
+      onUndoAll={undoAll}
+      onDismissAll={dismissAll}
+      maxVisible={4}
+    />
   </>
 );
 ```
@@ -77,15 +88,30 @@ pure render of the current stack.
   `pointer-events-none` so it never blocks the page; each banner re-enables
   pointer events for its own controls.
 - **Stacking** — multiple banners stack vertically with the **newest on top**.
-  Beyond `maxVisible` (default 3) older banners collapse into a `+N more pending`
+  Beyond `maxVisible` (defaults to **4**) older banners collapse into a `+N more pending`
   summary rather than overflowing the viewport.
-- **Independent lifecycles** — each banner has its own countdown; expiring or
-  undoing one never affects the others.
+- **Undo all affordance** — when 2 or more actions are active, an aggregate header appears offering
+  an **Undo all** button to bulk-revert all actions and a **Dismiss all (✕)** control to commit all.
+- **Independent lifecycles** — each banner maintains its own timer; expiring or
+  undoing one item preserves remaining items in the stack.
+
+## Auto-dismiss timing per stack size
+
+To prevent rapid action bursts from overwhelming users before they can react, auto-dismiss durations scale dynamically with stack size when explicit `durationMs` is omitted:
+
+| Active Stack Size | Reversible Window Duration |
+| --- | --- |
+| 1 item | 5.0s (5000ms) |
+| 2 items | 6.0s (6000ms) |
+| 3 items | 7.0s (7000ms) |
+| 4 items | 8.0s (8000ms) |
+| 5+ items | 9.0s - 10.0s max (10000ms cap) |
 
 ## Responsive behaviour
 
 - Banners are `w-full max-w-md`: full width with side padding on small screens,
   capped to a comfortable card width on larger screens.
+- Mobile stack caps at `maxVisible = 4` to prevent vertical viewport clipping on smaller devices while leaving interactive controls easily tapable.
 - The layout is a single flex row; the message truncates (`truncate`) so the
   Undo and dismiss controls always remain reachable.
 
@@ -110,7 +136,7 @@ pure render of the current stack.
 
 ### axe notes
 
-`UndoBanner.test.tsx` runs `jest-axe` against a rendered banner and asserts
+`UndoBanner.test.tsx` runs `jest-axe` against single banners as well as full stacked layouts with "Undo all" headers and asserts
 **no violations**. Points verified during design:
 
 - Contrast: white text and the `#60a5fa` Undo CTA on the `#1f2937` banner
@@ -123,8 +149,8 @@ pure render of the current stack.
 ## Test coverage
 
 - [`UndoBanner.test.tsx`](../../src/components/UndoBanner/UndoBanner.test.tsx) —
-  rendering, Undo/dismiss callbacks, custom labels, newest-on-top stacking,
-  `+N more` overflow, decorative ring, reduced-motion fallback, and axe.
+  rendering, Undo/dismiss callbacks, `onUndoAll`/`onDismissAll` aggregate actions, custom labels, newest-on-top stacking,
+  `+N more` overflow (max 4 default), decorative ring, reduced-motion fallback, and axe assertions.
 - [`useUndoBanners.test.tsx`](../../src/hooks/useUndoBanners.test.tsx) —
   registration, countdown→commit, undo (with no late commit), dismiss→commit,
-  and independent stacked lifecycles.
+  `undoAll()`, `dismissAll()`, dynamic auto-dismiss scaling by stack size, and independent stacked lifecycles.

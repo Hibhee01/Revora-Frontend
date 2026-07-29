@@ -76,6 +76,10 @@ export interface UseUndoBannersResult {
   undo: (id: string) => void;
   /** Commit the action immediately and remove its banner. */
   dismiss: (id: string) => void;
+  /** Reverse all pending actions in reverse chronological order and clear all banners. */
+  undoAll: () => void;
+  /** Commit all pending actions immediately and clear all banners. */
+  dismissAll: () => void;
 }
 
 export function useUndoBanners(): UseUndoBannersResult {
@@ -120,7 +124,11 @@ export function useUndoBanners(): UseUndoBannersResult {
   const registerUndo = useCallback(
     (options: RegisterUndoOptions): string => {
       const id = nextId();
-      const durationMs = options.durationMs ?? DEFAULT_UNDO_DURATION_MS;
+      // Auto-dismiss timing per stack size: base 5s + 1s per existing banner in stack (capped at 10s)
+      const currentStackSize = entriesRef.current.size;
+      const autoDismissBonus = Math.min(currentStackSize, 5) * 1000;
+      const durationMs = options.durationMs ?? DEFAULT_UNDO_DURATION_MS + autoDismissBonus;
+
       entriesRef.current.set(id, {
         id,
         message: options.message,
@@ -159,5 +167,23 @@ export function useUndoBanners(): UseUndoBannersResult {
     [sync],
   );
 
-  return { banners, registerUndo, undo, dismiss };
+  const undoAll = useCallback(() => {
+    const entries = Array.from(entriesRef.current.values()).reverse();
+    entriesRef.current.clear();
+    for (const entry of entries) {
+      entry.onUndo();
+    }
+    sync();
+  }, [sync]);
+
+  const dismissAll = useCallback(() => {
+    const entries = Array.from(entriesRef.current.values()).reverse();
+    entriesRef.current.clear();
+    for (const entry of entries) {
+      entry.onCommit?.();
+    }
+    sync();
+  }, [sync]);
+
+  return { banners, registerUndo, undo, dismiss, undoAll, dismissAll };
 }

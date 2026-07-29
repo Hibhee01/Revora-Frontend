@@ -97,7 +97,17 @@ describe("UndoBanner", () => {
     expect(rendered[1]).toHaveTextContent("Older action");
   });
 
-  it("collapses banners beyond maxVisible into a summary", () => {
+  it("collapses banners beyond maxVisible (default 4) into a summary", () => {
+    const banners = Array.from({ length: 6 }, (_, i) =>
+      makeBanner({ id: `b${i}`, message: `Action ${i}` }),
+    );
+    render(<UndoBanner banners={banners} onUndo={vi.fn()} onDismiss={vi.fn()} />);
+
+    expect(screen.getAllByTestId("undo-banner")).toHaveLength(4);
+    expect(screen.getByTestId("undo-overflow")).toHaveTextContent("+2 more pending");
+  });
+
+  it("collapses banners beyond custom maxVisible into a summary", () => {
     const banners = Array.from({ length: 5 }, (_, i) =>
       makeBanner({ id: `b${i}`, message: `Action ${i}` }),
     );
@@ -105,6 +115,33 @@ describe("UndoBanner", () => {
 
     expect(screen.getAllByTestId("undo-banner")).toHaveLength(3);
     expect(screen.getByTestId("undo-overflow")).toHaveTextContent("+2 more pending");
+  });
+
+  it("renders stack header with Undo All and Dismiss All affordances when multiple banners exist", () => {
+    const onUndoAll = vi.fn();
+    const onDismissAll = vi.fn();
+    const banners = [
+      makeBanner({ id: "b1", message: "Action 1" }),
+      makeBanner({ id: "b2", message: "Action 2" }),
+    ];
+
+    render(
+      <UndoBanner
+        banners={banners}
+        onUndo={vi.fn()}
+        onDismiss={vi.fn()}
+        onUndoAll={onUndoAll}
+        onDismissAll={onDismissAll}
+      />,
+    );
+
+    expect(screen.getByTestId("undo-stack-header")).toHaveTextContent("2 pending actions");
+
+    fireEvent.click(screen.getByTestId("undo-all-button"));
+    expect(onUndoAll).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(screen.getByTestId("dismiss-all-button"));
+    expect(onDismissAll).toHaveBeenCalledTimes(1);
   });
 
   it("renders an animated countdown ring by default (decorative)", () => {
@@ -128,9 +165,19 @@ describe("UndoBanner", () => {
     expect(countdown).toHaveTextContent("3"); // ceil(2.4s)
   });
 
-  it("has no axe-detectable accessibility violations", async () => {
+  it("has no axe-detectable accessibility violations for single banner or stack with Undo All", async () => {
+    const banners = [
+      makeBanner({ id: "b1", message: "Action 1" }),
+      makeBanner({ id: "b2", message: "Action 2" }),
+    ];
     const { container } = render(
-      <UndoBanner banners={[makeBanner()]} onUndo={vi.fn()} onDismiss={vi.fn()} />,
+      <UndoBanner
+        banners={banners}
+        onUndo={vi.fn()}
+        onDismiss={vi.fn()}
+        onUndoAll={vi.fn()}
+        onDismissAll={vi.fn()}
+      />,
     );
     expect(await axe(container)).toHaveNoViolations();
   });

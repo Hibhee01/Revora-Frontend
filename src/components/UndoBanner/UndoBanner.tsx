@@ -10,10 +10,14 @@ export interface UndoBannerProps {
   onUndo: (id: string) => void;
   /** Commit the action for a banner immediately and dismiss it. */
   onDismiss: (id: string) => void;
+  /** Reverse all pending actions in the stack at once. */
+  onUndoAll?: () => void;
+  /** Commit all pending actions immediately and dismiss them. */
+  onDismissAll?: () => void;
   /**
    * Maximum number of banners shown at once. Older banners beyond this are
    * collapsed into a "+N more" summary rather than overflowing the viewport.
-   * Defaults to 3.
+   * Defaults to 4.
    */
   maxVisible?: number;
   /** Optional id for the live-region container. */
@@ -96,7 +100,9 @@ export const UndoBanner: React.FC<UndoBannerProps> = ({
   banners,
   onUndo,
   onDismiss,
-  maxVisible = 3,
+  onUndoAll,
+  onDismissAll,
+  maxVisible = 4,
   id = "undo-banner-region",
   className = "",
 }) => {
@@ -116,6 +122,41 @@ export const UndoBanner: React.FC<UndoBannerProps> = ({
       aria-label="Undo notifications"
       className={`pointer-events-none fixed inset-x-0 bottom-16 z-50 flex flex-col items-center gap-2 px-4 ${className}`}
     >
+      {banners.length > 1 && (onUndoAll || onDismissAll) && (
+        <div
+          data-testid="undo-stack-header"
+          className="pointer-events-auto flex w-full max-w-md items-center justify-between gap-2 rounded-lg border border-white/15 bg-[#111827] px-4 py-2 text-xs text-white/90 shadow-md"
+        >
+          <span className="font-medium text-white/80">
+            {banners.length} pending actions
+          </span>
+          <div className="flex items-center gap-2">
+            {onUndoAll && (
+              <button
+                type="button"
+                onClick={onUndoAll}
+                data-testid="undo-all-button"
+                className="flex items-center gap-1 rounded px-2 py-1 font-semibold text-[#60a5fa] hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-[#60a5fa]"
+              >
+                <Undo2 size={14} aria-hidden="true" />
+                Undo all
+              </button>
+            )}
+            {onDismissAll && (
+              <button
+                type="button"
+                onClick={onDismissAll}
+                aria-label="Dismiss all pending actions"
+                data-testid="dismiss-all-button"
+                className="rounded p-1 text-white/70 hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-white/50"
+              >
+                <X size={14} aria-hidden="true" />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {visible.map((banner) => (
         <div
           key={banner.id}

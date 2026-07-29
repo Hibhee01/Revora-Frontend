@@ -81,6 +81,37 @@ export const InvestorStatement: React.FC<InvestorStatementProps> = ({
       aria-label={`Investor Statement for ${investorName} — ${statementPeriod}`}
       data-testid="investor-statement"
     >
+      {/* Cover Page - only visible in print */}
+      <div className="cover-page print-only">
+        <h1 className="statement-title">Investor Statement</h1>
+        <dl className="statement-meta">
+          <div className="statement-meta-row">
+            <dt>Account Holder</dt>
+            <dd>{investorName}</dd>
+          </div>
+          {accountId && (
+            <div className="statement-meta-row">
+              <dt>Account ID</dt>
+              <dd>{accountId}</dd>
+            </div>
+          )}
+          <div className="statement-meta-row">
+            <dt>Statement Period</dt>
+            <dd>{statementPeriod}</dd>
+          </div>
+          <div className="statement-meta-row">
+            <dt>Date Generated</dt>
+            <dd>{formattedDate}</dd>
+          </div>
+        </dl>
+        <p className="statement-disclaimer">
+          This statement is generated for informational purposes only. All values
+          are denominated in {currency} and subject to market fluctuations.
+          Past performance is not indicative of future results.
+        </p>
+      </div>
+
+      {/* Main Statement Content */}
       {/* ── Document Header ── */}
       <header className="statement-header">
         <h1 className="statement-title">Investor Statement</h1>
@@ -359,6 +390,21 @@ export const InvestorStatement: React.FC<InvestorStatementProps> = ({
           Revora Platform &copy; {new Date().getFullYear()}. All rights reserved.
         </p>
       </footer>
+
+      {/* Signature Section - only visible in print */}
+      <section className="signature-section print-only">
+        <h2 className="statement-footer-heading">Authorization</h2>
+        <div className="signature-line">
+          <div className="signature-label">Authorized Signature</div>
+          <div className="signature-date">Date</div>
+          <div className="signature-spacer"></div>
+        </div>
+        <div className="signature-line">
+          <div className="signature-label">Prepared By</div>
+          <div className="signature-date">Date</div>
+          <div className="signature-spacer"></div>
+        </div>
+      </section>
     </article>
   );
 };

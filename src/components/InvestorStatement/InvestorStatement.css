@@ -1,0 +1,609 @@
+/* ─── Investor Statement Print Stylesheet ──────────────────────────────────────
+   Optimized for PDF/UA compliance and print output
+   Supports both A4 (international) and Letter (US) page sizes
+   Includes cover page, structured sections, repeating headers, and footer
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* Print-specific variables */
+:root {
+  /* Page margins for print (in points, 1pt = 1/72 inch) */
+  --print-margin-top: 36pt;    /* 0.5 inch */
+  --print-margin-right: 28pt;  /* ~0.39 inch */
+  --print-margin-bottom: 36pt; /* 0.5 inch */
+  --print-margin-left: 28pt;   /* ~0.39 inch */
+
+  /* A4 vs Letter size handling */
+  --page-width-a4: 595pt;   /* 210mm */
+  --page-width-letter: 612pt; /* 8.5 inch */
+  --page-height-a4: 842pt;  /* 297mm */
+  --page-height-letter: 792pt; /* 11 inch */
+
+  /* Font sizes for print (smaller for density) */
+  --font-size-print-xs: 0.65rem;   /* ~9px */
+  --font-size-print-sm: 0.75rem;   /* ~10px */
+  --font-size-print-base: 0.875rem; /* ~12px */
+  --font-size-print-lg: 1rem;      /* ~14px */
+  --font-size-print-xl: 1.125rem;  /* ~15px */
+
+  /* Line heights for print */
+  --line-height-print-tight: 1.2;
+  --line-height-print-normal: 1.4;
+  --line-height-print-relaxed: 1.6;
+
+  /* Monochrome/accessibility adjustments */
+  --text-print-primary: #000000;
+  --text-print-secondary: #333333;
+  --border-print: #cccccc;
+}
+
+/* Base print styles */
+@media print {
+  /* Reset screen-specific styles */
+  * {
+    color: var(--text-print-primary) !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  body {
+    background: white !important;
+    color: var(--text-print-primary) !important;
+    font-size: var(--font-size-print-base) !important;
+    line-height: var(--line-height-print-normal) !important;
+    margin: 0 !important;
+    padding: var(--print-margin-top) var(--print-margin-right) var(--print-margin-bottom) var(--print-margin-left) !important;
+  }
+
+  /* Prevent elements from breaking awkwardly */
+  * {
+    break-inside: avoid !important;
+  }
+
+  /* Headings need room after */
+  h1, h2, h3, h4, h5, h6 {
+    break-after: avoid !important;
+    page-break-after: avoid !important;
+  }
+
+  /* Paragraphs and list items can break */
+  p, li, td, th {
+    break-inside: auto !important;
+    page-break-inside: auto !important;
+  }
+
+  /* Tables and sections should avoid breaking inside */
+  table, section, .statement-section {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* Table headers should repeat on new pages */
+  thead {
+    display: table-header-group !important;
+  }
+
+  tfoot {
+    display: table-footer-group !important;
+  }
+
+  /* Remove interactive elements */
+  button, .btn, .input-field, [role="button"], a[href] {
+    pointer-events: none !important;
+    -webkit-print-color-adjust: exact !important;
+            color-adjust: exact !important;
+  }
+
+  /* Hide screen-only elements */
+  .sr-only,
+  .animate-fade-in,
+  .animate-shake,
+  .animate-shimmer,
+  .animate-spin-loader,
+  .glass-card,
+  .glass-card-interactive,
+  .focus-ring,
+  .hover-underline {
+    display: none !important;
+  }
+
+  /* Show print-specific elements */
+  .print-only {
+    display: block !important;
+  }
+
+  /* Hide print-specific elements on screen */
+  .screen-only {
+    display: none !important;
+  }
+
+  /* Force page breaks for major sections */
+  .statement-section {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    margin-bottom: 24pt !important;
+  }
+
+  /* Ensure tables don't break strangely */
+  table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-bottom: 16pt !important;
+  }
+
+  th, td {
+    border: 1px solid var(--border-print) !important;
+    padding: 6pt 4pt !important;
+    font-size: var(--font-size-print-sm) !important;
+    vertical-align: top !important;
+  }
+
+  th {
+    background-color: #f0f0f0 !important;
+    font-weight: 600 !important;
+    text-align: left !important;
+    font-size: var(--font-size-print-base) !important;
+  }
+
+  /* Statement-specific print styling */
+  .investor-statement {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  .statement-header {
+    margin-bottom: 24pt !important;
+    padding-bottom: 12pt !important;
+    border-bottom: 2px solid var(--border-print) !important;
+  }
+
+  .statement-title {
+    font-size: var(--font-size-print-xl) !important;
+    font-weight: 700 !important;
+    text-align: center !important;
+    margin-bottom: 8pt !important;
+    letter-spacing: -0.025em !important;
+  }
+
+  .statement-meta {
+    font-size: var(--font-size-print-sm) !important;
+    line-height: var(--line-height-print-relaxed) !important;
+  }
+
+  .statement-meta-row {
+    display: flex !important;
+    justify-content: space-between !important;
+    margin-bottom: 4pt !important;
+    flex-wrap: wrap !important;
+  }
+
+  .statement-meta dt {
+    font-weight: 600 !important;
+    width: 40% !important;
+  }
+
+  .statement-meta dd {
+    width: 55% !important;
+    margin: 0 !important;
+  }
+
+  .statement-disclaimer {
+    font-size: var(--font-size-print-xs) !important;
+    line-height: var(--line-height-print-relaxed) !important;
+    margin: 16pt 0 !important;
+    padding: 8pt !important;
+    background-color: #f9f9f9 !important;
+    border-left: 3px solid var(--border-print) !important;
+    font-style: italic !important;
+  }
+
+  /* Section headings */
+  .statement-section-heading {
+    font-size: var(--font-size-print-lg) !important;
+    font-weight: 600 !important;
+    margin: 20pt 0 12pt 0 !important;
+    padding-top: 16pt !important;
+    border-top: 1px solid var(--border-print) !important;
+    page-break-before: avoid !important;
+    break-before: avoid !important;
+  }
+
+  .statement-subheading {
+    font-size: var(--font-size-print-base) !important;
+    font-weight: 600 !important;
+    margin: 12pt 0 8pt 0 !important;
+  }
+
+  /* KPI table specific styling */
+  .statement-kpi-table {
+    width: 100% !important;
+    margin-bottom: 16pt !important;
+  }
+
+  .statement-kpi-table th,
+  .statement-kpi-table td {
+    padding: 6pt 4pt !important;
+    border: 1px solid var(--border-print) !important;
+    vertical-align: top !important;
+  }
+
+  .statement-kpi-table th {
+    background-color: #f0f0f0 !important;
+    font-weight: 600 !important;
+    width: 30% !important;
+  }
+
+  .statement-value {
+    font-weight: 600 !important;
+    font-family: 'Inter', 'Courier New', monospace !important;
+    text-align: right !important;
+  }
+
+  /* Allocation bars - convert to print-friendly representation */
+  .statement-allocation-bars {
+    display: block !important;
+    margin: 12pt 0 !important;
+    padding: 0 !important;
+    list-style: none !important;
+  }
+
+  .statement-allocation-item {
+    margin-bottom: 8pt !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .statement-allocation-label {
+    display: flex !important;
+    justify-content: space-between !important;
+    margin-bottom: 2pt !important;
+    font-size: var(--font-size-print-sm) !important;
+  }
+
+  .statement-allocation-name {
+    font-weight: 500 !important;
+    flex: 1 !important;
+    min-width: 120pt !important;
+  }
+
+  .statement-allocation-value {
+    font-weight: 600 !important;
+    text-align: right !important;
+    white-space: nowrap !important;
+  }
+
+  .statement-bar-track {
+    height: 8pt !important;
+    background-color: #f0f0f0 !important;
+    border: 1px solid var(--border-print) !important;
+    margin-bottom: 2pt !important;
+    position: relative !important;
+    overflow: hidden !important;
+  }
+
+  .statement-bar-fill {
+    height: 100% !important;
+    background-color: #d0d0d0 !important; /* Grayscale for print */
+  }
+
+  /* Data tables */
+  .statement-data-table {
+    width: 100% !important;
+    margin-bottom: 16pt !important;
+    border-collapse: collapse !important;
+  }
+
+  .statement-data-table caption {
+    caption-side: top !important;
+    text-align: left !important;
+    font-weight: 600 !important;
+    font-size: var(--font-size-print-base) !important;
+    margin-bottom: 4pt !important;
+  }
+
+  .statement-data-table thead {
+    display: table-header-group !important;
+  }
+
+  .statement-data-table tfoot {
+    display: table-footer-group !important;
+  }
+
+  .statement-data-table th,
+  .statement-data-table td {
+    border: 1px solid var(--border-print) !important;
+    padding: 6pt 4pt !important;
+    font-size: var(--font-size-print-sm) !important;
+    vertical-align: top !important;
+  }
+
+  .statement-data-table th {
+    background-color: #f0f0f0 !important;
+    font-weight: 600 !important;
+    text-align: left !important;
+  }
+
+  .statement-data-table tfoot th {
+    font-weight: 700 !important;
+    border-top: 2px solid var(--border-print) !important;
+  }
+
+  /* Performance table specific */
+  .statement-data-table tfoot td {
+    font-weight: 700 !important;
+  }
+
+  /* Text color indicators for print (use patterns or labels) */
+  .text-success,
+  .text-error {
+    color: var(--text-print-primary) !important;
+  }
+
+  /* Add visual indicators for positive/negative in B&W */
+  .text-success::after {
+    content: " (+)" !important;
+    font-size: var(--font-size-print-xs) !important;
+  }
+
+  .text-error::after {
+    content: " (-)" !important;
+    font-size: var(--font-size-print-xs) !important;
+  }
+
+  /* Footer styling */
+  .statement-footer {
+    margin-top: 24pt !important;
+    padding-top: 16pt !important;
+    border-top: 2px solid var(--border-print) !important;
+    page-break-before: avoid !important;
+    break-before: avoid !important;
+  }
+
+  .statement-footer-heading {
+    font-size: var(--font-size-print-base) !important;
+    font-weight: 600 !important;
+    margin-bottom: 12pt !important;
+  }
+
+  .statement-disclaimer-list {
+    font-size: var(--font-size-print-sm) !important;
+    line-height: var(--line-height-print-relaxed) !important;
+    margin: 0 0 16pt 0 !important;
+    padding-left: 16pt !important;
+  }
+
+  .statement-disclaimer-list li {
+    margin-bottom: 4pt !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .statement-copyright {
+    font-size: var(--font-size-print-xs) !important;
+    text-align: center !important;
+    margin-top: 16pt !important;
+    color: var(--text-print-secondary) !important;
+  }
+
+  /* Page numbering */
+  @page {
+    size: A4; /* Default to A4, will be overridden by @media for Letter */
+    margin: var(--print-margin-top) var(--print-margin-right) var(--print-margin-bottom) var(--print-margin-left);
+
+    /* Page numbers in footer */
+    @bottom-center {
+      content: "Page " counter(page) " of " counter(pages);
+      font-size: var(--font-size-print-xs);
+      color: var(--text-print-secondary);
+      padding-top: 8pt;
+    }
+  }
+
+  /* US Letter size override */
+  @media print and (width: 8.5in) and (height: 11in) {
+    @page {
+      size: Letter;
+      margin: var(--print-margin-top) var(--print-margin-right) var(--print-margin-bottom) var(--print-margin-left);
+    }
+  }
+
+  /* A4 size explicit */
+  @media print and (width: 210mm) and (height: 297mm) {
+    @page {
+      size: A4;
+      margin: var(--print-margin-top) var(--print-margin-right) var(--print-margin-bottom) var(--print-margin-left);
+    }
+  }
+
+  /* Handle landscape/portrait and different paper sizes gracefully */
+  @media print {
+    /* Ensure content fits within printable area */
+    * {
+      max-width: 100% !important;
+      overflow: visible !important;
+    }
+
+    /* Prevent extremely long words from overflowing */
+    .localized-text {
+      overflow-wrap: break-word !important;
+      word-wrap: break-word !important;
+      hyphens: auto !important;
+    }
+
+    /* RTL support for print */
+    [dir="rtl"] {
+      direction: rtl !important;
+    }
+
+    [dir="rtl"] .statement-meta dt {
+      width: auto !important;
+      margin-right: 16pt !important;
+    }
+
+    [dir="rtl"] .statement-meta dd {
+      width: auto !important;
+      margin-left: 0 !important;
+    }
+
+    [dir="rtl"] .statement-allocation-label {
+      flex-direction: row-reverse !important;
+    }
+
+    [dir="rtl"] .statement-allocation-name {
+      margin-right: 8pt !important;
+    }
+
+    [dir="rtl"] .statement-allocation-value {
+      margin-left: 8pt !important;
+    }
+  }
+}
+
+/* ─── Cover Page Styles for Print ──────────────────────────────────────────── */
+/* Add a cover page before the statement content */
+@media print {
+  /* Cover page styling - will be first page */
+  .cover-page {
+    page-break-after: always;
+    text-align: center;
+    padding: 40pt 20pt;
+    position: relative;
+    min-height: 100vh;
+    box-sizing: border-box;
+  }
+
+  .cover-page .statement-title {
+    font-size: 2.5rem !important;
+    margin-bottom: 24pt !important;
+    letter-spacing: -0.03em !important;
+  }
+
+  .cover-page .statement-meta {
+    display: inline-block;
+    text-align: left;
+    max-width: 400pt;
+    margin: 20pt auto;
+    font-size: var(--font-size-print-base) !important;
+  }
+
+  .cover-page .statement-meta-row {
+    margin-bottom: 8pt !important;
+  }
+
+  .cover-page .statement-meta dt {
+    width: 100pt !important;
+    font-weight: 600 !important;
+  }
+
+  .cover-page .statement-meta dd {
+    width: calc(100% - 100pt) !important;
+    font-weight: 400 !important;
+  }
+
+  .cover-page .statement-disclaimer {
+    position: absolute;
+    bottom: 40pt;
+    left: 20pt;
+    right: 20pt;
+    font-size: var(--font-size-print-xs) !important;
+    line-height: var(--line-height-print-relaxed) !important;
+    text-align: left !important;
+  }
+
+  /* Add Revora logo/branding to cover (placeholder) */
+  .cover-page::after {
+    content: "Revora Platform";
+    display: block;
+    position: absolute;
+    bottom: 16pt;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: var(--font-size-print-sm) !important;
+    color: var(--text-print-secondary) !important;
+    font-weight: 500 !important;
+  }
+}
+
+/* ─── Signature Section for Print ─────────────────────────────────────────── */
+/* Add signature lines at the end */
+@media print {
+  .signature-section {
+    margin-top: 32pt !important;
+    page-break-before: avoid !important;
+    break-before: avoid !important;
+  }
+
+  .signature-section h2 {
+    font-size: var(--font-size-print-base) !important;
+    font-weight: 600 !important;
+    margin-bottom: 16pt !important;
+  }
+
+  .signature-line {
+    display: flex !important;
+    justify-content: space-between !important;
+    margin-bottom: 20pt !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .signature-label {
+    width: 40% !important;
+    font-weight: 500 !important;
+    border-bottom: 1px solid var(--border-print) !important;
+    padding-bottom: 2pt !important;
+  }
+
+  .signature-date {
+    width: 30% !important;
+    text-align: center !important;
+    font-weight: 500 !important;
+    border-bottom: 1px solid var(--border-print) !important;
+    padding-bottom: 2pt !important;
+  }
+
+  .signature-spacer {
+    width: 30% !important;
+  }
+}
+
+/* ─── Watermark and Security Features ─────────────────────────────────────── */
+@media print {
+  /* Optional: Add faint watermark for security */
+  body::after {
+    content: "CONFIDENTIAL - INVESTOR STATEMENT";
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    font-size: 48pt;
+    font-weight: 700;
+    color: rgba(0, 0, 0, 0.03);
+    pointer-events: none;
+    z-index: -1;
+    transform: translate(-50%, -50%) rotate(-45deg);
+    text-align: center;
+    line-height: 1.2;
+    white-space: nowrap;
+    letter-spacing: 4pt;
+  }
+
+  /* Only show watermark on first page if desired */
+  /* body:nth-of-type(1)::after { display: block; } */
+  /* body:nth-of-type(n+2)::after { display: none; } */
+}
+
+/* ─── Accessibility Enhancements for Print ────────────────────────────────── */
+/* Ensure sufficient contrast for B&W printing */
+@media print {
+  /* Ensure focus indicators are visible in print (though not interactive) */
+  [class*="focus"] {
+    outline: 1px solid var(--text-print-primary) !important;
+  }
+}

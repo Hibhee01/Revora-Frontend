@@ -15,6 +15,7 @@ import type { PayoutDetail, RecipientItem, RetryEvent } from '../components/Payo
 import { ErrorRateSparklineTile } from '../components/ErrorRateSparklineTile/ErrorRateSparklineTile';
 import type { ErrorRateDataPoint } from '../components/ErrorRateSparklineTile/ErrorRateSparklineTile';
 import { GovernanceDelegation } from '../components/GovernanceDelegation/GovernanceDelegation';
+import { RevenuePayoutChart, RevenuePayoutDataPoint } from '../components/RevenuePayoutChart/RevenuePayoutChart';
 
 interface ExtendedPayoutDetail extends PayoutDetail {
   region: string;
@@ -51,6 +52,15 @@ const MOCK_PAYOUTS: ExtendedPayoutDetail[] = [
     recipientsCount: 4, recipients: MOCK_RECIPIENTS_BASE, retries: MOCK_RETRIES,
     region: 'Europe', nextPayoutDate: '2026-08-10', nextPayoutEstimateUsd: 85000, nextPayoutLink: '/startup/distributions?payoutId=PO-2026-005',
   },
+];
+
+const MOCK_REVENUE_PAYOUT_DATA: RevenuePayoutDataPoint[] = [
+  { period: 'Jan', revenue: 95000, payout: 90000 },
+  { period: 'Feb', revenue: 110000, payout: 105000 },
+  { period: 'Mar', revenue: 105000, payout: 95000 },
+  { period: 'Apr', revenue: 125000, payout: 115000 },
+  { period: 'May', revenue: 140000, payout: 130000 },
+  { period: 'Jun', revenue: 135000, payout: 125000 },
 ];
 
 const ERROR_RATE_BY_ISSUER: Array<{
@@ -477,6 +487,11 @@ export const DistributionDashboard: React.FC = () => {
             <span className="text-2xl font-bold tracking-tight">{pendingRetries}</span>
           </div>
         </div>
+      </div>
+
+      {/* ── Revenue vs Payouts Chart ── */}
+      <div className="mt-8">
+        <RevenuePayoutChart data={MOCK_REVENUE_PAYOUT_DATA} revenueCurrency="USD" payoutCurrency="USD" />
       </div>
 
       {/* ── Payout Error Rate Sparkline Tiles ── */}

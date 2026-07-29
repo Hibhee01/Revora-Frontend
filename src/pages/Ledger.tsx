@@ -179,9 +179,7 @@ export const Ledger: React.FC = () => {
           </div>
           <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
             <div>
-              <p className="text-sm text-gray-700">
-                Showing <span className="font-medium">{(currentPage - 1) * pageSize + 1}</span> to <span className="font-medium">{Math.min(currentPage * pageSize, MOCK_ENTRIES.length)}</span> of <span className="font-medium">{MOCK_ENTRIES.length}</span> results
-              </p>
+              <p className="text-sm text-gray-700">{`Showing ${(currentPage - 1) * pageSize + 1} to ${Math.min(currentPage * pageSize, MOCK_ENTRIES.length)} of ${MOCK_ENTRIES.length} results`}</p>
             </div>
             <div>
               <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">

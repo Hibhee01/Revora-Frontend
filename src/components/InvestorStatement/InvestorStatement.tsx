@@ -178,7 +178,7 @@ export const InvestorStatement: React.FC<InvestorStatementProps> = ({
                   return (
                     <li key={slice.id} className="statement-allocation-item">
                       <div className="statement-allocation-label">
-                        <span className="statement-allocation-name">{slice.label}</span>
+                        <span className="statement-allocation-name">{'\u200B'}{slice.label}</span>
                         <span className="statement-allocation-value">
                           {formatCurrency(slice.value, currency)} ({slice.percentage.toFixed(1)}%)
                         </span>
@@ -230,7 +230,7 @@ export const InvestorStatement: React.FC<InvestorStatementProps> = ({
                       )}
                     </td>
                     <td>
-                      {allocations.reduce((sum, s) => sum + s.percentage, 0).toFixed(1)}%
+                      {allocations.reduce((sum, s) => sum + s.percentage, 0).toFixed(1)}%<span className="sr-only"> total</span>
                     </td>
                   </tr>
                 )}

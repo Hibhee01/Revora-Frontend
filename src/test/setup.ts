@@ -8,17 +8,16 @@ global.ResizeObserver = class ResizeObserver {
   disconnect() {}
 };
 
-// window.matchMedia stub — jsdom does not implement it.
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: (query: string) => ({
+// jsdom does not implement window.matchMedia — provide a minimal stub
+if (typeof window !== 'undefined' && !window.matchMedia) {
+  window.matchMedia = (query: string) => ({
     matches: false,
     media: query,
     onchange: null,
-    addListener: () => {},
-    removeListener: () => {},
     addEventListener: () => {},
     removeEventListener: () => {},
+    addListener: () => {},
+    removeListener: () => {},
     dispatchEvent: () => false,
-  }),
-});
+  });
+}

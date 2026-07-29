@@ -1187,3 +1187,248 @@ input:focus-visible,
   border-radius: var(--radius-md);
   width: auto;
 }
+
+/* ─── Pre-Open Redemption Banner (Issue #TBD) ──────────────────────────
+ *  Countdown banner shown before a redemption window opens.
+ *  Supports compact (mobile) and full layouts, opt-in bell, and toast.
+ *  Tokens: --glass-*, --primary, --text-*, --success, --error, --radius-*
+ * ─────────────────────────────────────────────────────────────────────── */
+
+.preopen-banner {
+  position: relative;
+  overflow: hidden;
+}
+
+.preopen-banner-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg) var(--spacing-xl);
+}
+
+.preopen-banner-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  min-width: 0;
+}
+
+.preopen-banner-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.preopen-clock-icon {
+  flex-shrink: 0;
+  color: var(--text-accent);
+}
+
+.preopen-title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-main);
+  white-space: nowrap;
+}
+
+.preopen-countdown {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2xs);
+}
+
+.preopen-segment {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.125rem;
+}
+
+.preopen-segment-value {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+  color: var(--text-accent);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.025em;
+}
+
+.preopen-segment-label {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.preopen-separator {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-muted);
+  line-height: 1;
+  margin-bottom: var(--spacing-lg);
+  opacity: 0.5;
+}
+
+.preopen-timezone {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  margin-top: var(--spacing-3xs);
+}
+
+.preopen-timezone strong {
+  color: var(--text-main);
+  font-weight: var(--font-weight-medium);
+}
+
+.preopen-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  flex-shrink: 0;
+}
+
+.preopen-optin-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: rgba(59, 130, 246, 0.12);
+  color: var(--primary);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+  white-space: nowrap;
+}
+
+.preopen-optin-btn:hover {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+.preopen-optin-btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.preopen-optedin-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--success);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.preopen-dismiss-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  background: transparent;
+  color: var(--text-muted);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.preopen-dismiss-btn:hover {
+  background: rgba(148, 163, 184, 0.12);
+  color: var(--text-main);
+}
+
+.preopen-dismiss-btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Toast notification */
+.preopen-toast {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) var(--spacing-xl);
+  background: rgba(16, 185, 129, 0.12);
+  border-top: 1px solid rgba(16, 185, 129, 0.2);
+  font-size: var(--font-size-xs);
+  color: var(--success);
+  animation: preopenToastIn 0.3s ease-out forwards;
+}
+
+@keyframes preopenToastIn {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Compact layout for mobile */
+.preopen-segment--compact .preopen-segment-value {
+  font-size: var(--font-size-lg);
+}
+
+@media (max-width: 639px) {
+  .preopen-banner-inner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+  }
+
+  .preopen-banner-header {
+    justify-content: center;
+  }
+
+  .preopen-countdown {
+    justify-content: center;
+  }
+
+  .preopen-banner-actions {
+    justify-content: center;
+    gap: var(--spacing-sm);
+  }
+
+  .preopen-title {
+    font-size: var(--font-size-xs);
+  }
+
+  .preopen-toast {
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+}
+
+/* Reduced motion: no animations */
+@media (prefers-reduced-motion: reduce) {
+  .preopen-toast {
+    animation: none;
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* RTL overrides */
+[dir="rtl"] .preopen-banner-header {
+  flex-direction: row;
+}
+
+[dir="rtl"] .preopen-banner-actions {
+  flex-direction: row;
+}

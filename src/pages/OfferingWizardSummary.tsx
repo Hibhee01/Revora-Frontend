@@ -14,10 +14,10 @@ export const OfferingWizardSummary: React.FC = () => {
     e.preventDefault();
     if (!agreed) return;
     setIsSubmitting(true);
-    setTimeout(() => {
+    Promise.resolve().then(() => {
       setIsSubmitting(false);
       setSubmitted(true);
-    }, 1500);
+    });
   };
 
   if (submitted) {
@@ -157,7 +157,7 @@ export const OfferingWizardSummary: React.FC = () => {
         </label>
 
         <div className="flex justify-between items-center pt-4">
-          <SaveAsDraft onSave={() => new Promise((resolve) => setTimeout(resolve, 800))} />
+          <SaveAsDraft onSave={() => Promise.resolve()} />
           <div className="flex gap-3">
             <Link to="/startup/wizard/legal" tabIndex={-1}>
               <Button variant="secondary" type="button">Back</Button>

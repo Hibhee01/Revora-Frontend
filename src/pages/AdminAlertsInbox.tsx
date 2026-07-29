@@ -15,20 +15,12 @@ export const AdminAlertsInbox: React.FC = () => {
   const [undoTimeout, setUndoTimeout] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    // Simulate fetching data
-    const fetchAlerts = async () => {
-      try {
-        setLoading(true);
-        // fake delay
-        await new Promise(resolve => setTimeout(resolve, 600));
-        setAlerts(mockAlerts);
-      } catch (err) {
-        setError('Failed to load alerts.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchAlerts();
+    setLoading(true);
+    const timer = setTimeout(() => {
+      setAlerts(mockAlerts);
+      setLoading(false);
+    }, 600);
+    return () => clearTimeout(timer);
   }, []);
 
   const handleAction = (id: string, action: 'acknowledge' | 'assign' | 'resolve') => {

@@ -565,7 +565,6 @@ const UploadStep: React.FC<UploadStepProps> = ({
     if (preselected) {
       onNext(preselected);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const processFile = useCallback(

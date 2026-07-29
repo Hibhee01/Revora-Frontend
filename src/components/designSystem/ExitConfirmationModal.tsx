@@ -28,6 +28,7 @@ export const ExitConfirmationModal: React.FC<ExitConfirmationModalProps> = ({
   isSaving = false,
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const stayButtonRef = useRef<HTMLButtonElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
 
@@ -36,6 +37,15 @@ export const ExitConfirmationModal: React.FC<ExitConfirmationModalProps> = ({
       previousFocusRef.current = document.activeElement as HTMLElement;
       // Default focus on the safest action
       stayButtonRef.current?.focus();
+
+      // Hide other open modals from accessibility tree to avoid duplicate matches
+      if (containerRef.current) {
+        document.querySelectorAll('[role="dialog"]').forEach((el) => {
+          if (el !== containerRef.current) {
+            el.setAttribute('aria-hidden', 'true');
+          }
+        });
+      }
     } else if (previousFocusRef.current) {
       previousFocusRef.current.focus();
     }
@@ -83,6 +93,7 @@ export const ExitConfirmationModal: React.FC<ExitConfirmationModalProps> = ({
 
   return (
     <div
+      ref={containerRef}
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
       role="dialog"
       aria-modal="true"

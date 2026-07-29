@@ -84,17 +84,13 @@ export const ErrorRecoveryPanel: React.FC<ErrorRecoveryPanelProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
-  const handleRetry = async (snapshot: ErrorSnapshot) => {
-    if (snapshot.onRetry) {
-      await snapshot.onRetry();
-    }
+  const handleRetry = (snapshot: ErrorSnapshot) => {
+    snapshot.onRetry?.();
     removeSnapshot(snapshot.id);
   };
 
-  const handleDiscard = async (snapshot: ErrorSnapshot) => {
-    if (snapshot.onDiscard) {
-      await snapshot.onDiscard();
-    }
+  const handleDiscard = (snapshot: ErrorSnapshot) => {
+    snapshot.onDiscard?.();
     removeSnapshot(snapshot.id);
   };
 

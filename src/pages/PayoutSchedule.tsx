@@ -15,126 +15,32 @@ import { PayoutStatusPill, PAYOUT_STATUS_ORDER } from '../components/PayoutStatu
 import { EmptyState } from '../components/designSystem/EmptyState';
 import { CalendarExportDialog } from '../components/CalendarExportDialog';
 import { Button } from '../components/Button';
+import { PayoutStatusPill, PAYOUT_STATUS_ORDER } from '../components/PayoutStatusPill';
 
-/* ─── Types ─────────────────────────────────────────────────────────── */
-
-export type PayoutData = {
+export interface Payout {
   id: string;
   recipient: string;
   amount: string;
-  scheduledFor: string; // ISO date YYYY-MM-DD
+  scheduledFor: string;
   status: string;
-};
+}
 
-export type PayoutScheduleProps = {
-  /** When true, show the empty state instead of the schedule */
-  empty?: boolean;
-  /** Payout data. Falls back to DEMO_PAYOUTS. */
-  payouts?: PayoutData[];
-};
-
-/* ─── Demo Data ─────────────────────────────────────────────────────── */
-
-export const DEMO_PAYOUTS: PayoutData[] = [
-  { id: 'p1', recipient: 'Issuer A', amount: 'USDC 12,500', scheduledFor: '2026-07-15', status: 'confirmed' },
-  { id: 'p2', recipient: 'Issuer A', amount: 'USDC 12,500', scheduledFor: '2026-08-15', status: 'preparing' },
-  { id: 'p3', recipient: 'Issuer B', amount: 'USDC 8,200', scheduledFor: '2026-07-20', status: 'sending' },
-  { id: 'p4', recipient: 'Issuer B', amount: 'USDC 8,200', scheduledFor: '2026-08-20', status: 'scheduled' },
-  { id: 'p5', recipient: 'Issuer C', amount: 'USDC 5,000', scheduledFor: '2026-07-10', status: 'confirmed' },
-  { id: 'p6', recipient: 'Issuer C', amount: 'USDC 5,000', scheduledFor: '2026-07-25', status: 'failed' },
-  { id: 'p7', recipient: 'Issuer C', amount: 'USDC 5,000', scheduledFor: '2026-08-10', status: 'retrying' },
-  { id: 'p8', recipient: 'Issuer D', amount: 'USDC 3,000', scheduledFor: '2026-07-30', status: 'canceled' },
+export const DEMO_PAYOUTS: Payout[] = [
+  { id: '1', recipient: '0x1234...abcd', amount: 'USDC 500', scheduledFor: '2026-08-15', status: 'scheduled' },
+  { id: '2', recipient: '0x5678...ef01', amount: 'USDC 250', scheduledFor: '2026-08-01', status: 'preparing' },
+  { id: '3', recipient: '0x9abc...def0', amount: 'USDC 100', scheduledFor: '2026-07-15', status: 'sending' },
+  { id: '4', recipient: '0x2468...1357', amount: 'USDC 750', scheduledFor: '2026-07-01', status: 'confirmed' },
+  { id: '5', recipient: '0x1357...2468', amount: 'USDC 300', scheduledFor: '2026-06-15', status: 'retrying' },
+  { id: '6', recipient: '0xabcd...1234', amount: 'USDC 50', scheduledFor: '2026-06-01', status: 'failed' },
+  { id: '7', recipient: '0xef01...5678', amount: 'USDC 200', scheduledFor: '2026-05-15', status: 'canceled' },
 ];
 
-/* ─── Date Helpers ──────────────────────────────────────────────────── */
-
-type ZoomLevel = 'week' | 'month' | 'quarter';
-
-function getWeekStart(date: Date): Date {
-  const d = new Date(date);
-  d.setDate(d.getDate() - d.getDay());
-  d.setHours(0, 0, 0, 0);
-  return d;
+interface PayoutScheduleProps {
+  payouts?: Payout[];
+  empty?: boolean;
 }
 
-function addDays(date: Date, days: number): Date {
-  const d = new Date(date);
-  d.setDate(d.getDate() + days);
-  return d;
-}
-
-function addMonths(date: Date, months: number): Date {
-  const d = new Date(date);
-  d.setMonth(d.getMonth() + months);
-  return d;
-}
-
-function daysBetween(a: Date, b: Date): number {
-  return Math.round((b.getTime() - a.getTime()) / 86_400_000);
-}
-
-function formatDate(date: Date): string {
-  return date.toISOString().slice(0, 10);
-}
-
-function parseDate(iso: string): Date {
-  const [y, m, d] = iso.split('-').map(Number);
-  return new Date(y, (m ?? 1) - 1, d ?? 1);
-}
-
-function getRange(payouts: PayoutData[], zoom: ZoomLevel): { start: Date; end: Date; label: string } {
-  if (payouts.length === 0) {
-    const now = new Date();
-    if (zoom === 'week') return { start: getWeekStart(now), end: addDays(getWeekStart(now), 7), label: 'This Week' };
-    if (zoom === 'quarter')
-      return { start: new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3, 1), end: addMonths(new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3 + 3, 1), 0), label: 'This Quarter' };
-    return { start: new Date(now.getFullYear(), now.getMonth(), 1), end: new Date(now.getFullYear(), now.getMonth() + 1, 1), label: 'This Month' };
-  }
-
-  const dates = payouts.map((p) => parseDate(p.scheduledFor));
-  let min = new Date(Math.min(...dates.map((d) => d.getTime())));
-  let max = new Date(Math.max(...dates.map((d) => d.getTime())));
-
-  if (zoom === 'week') {
-    min = getWeekStart(min);
-    max = addDays(getWeekStart(max), 7);
-  } else if (zoom === 'month') {
-    min = new Date(min.getFullYear(), min.getMonth(), 1);
-    max = new Date(max.getFullYear(), max.getMonth() + 1, 1);
-  } else {
-    min = new Date(min.getFullYear(), Math.floor(min.getMonth() / 3) * 3, 1);
-    max = new Date(max.getFullYear(), Math.floor(max.getMonth() / 3) * 3 + 3, 1);
-  }
-
-  const label = formatDate(min) + ' — ' + formatDate(max);
-  return { start: min, end: max, label };
-}
-
-/* ─── Gantt Bar ─────────────────────────────────────────────────────── */
-
-function statusBarColor(status: string): string {
-  switch (status) {
-    case 'confirmed':
-      return 'var(--success, #10b981)';
-    case 'preparing':
-    case 'sending':
-      return 'var(--primary, #3b82f6)';
-    case 'scheduled':
-      return '#94a3b8';
-    case 'retrying':
-      return '#f59e0b';
-    case 'failed':
-      return 'var(--error, #ef4444)';
-    case 'canceled':
-      return '#64748b';
-    default:
-      return '#94a3b8';
-  }
-}
-
-/* ─── Main Component ────────────────────────────────────────────────── */
-
-export const PayoutSchedule: React.FC<PayoutScheduleProps> = ({ empty = false, payouts: payoutsProp }) => {
+export const PayoutSchedule: React.FC<PayoutScheduleProps> = ({ payouts = DEMO_PAYOUTS, empty = false }) => {
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const [showGantt, setShowGantt] = useState(false); // default to table for backward compatibility
   const [zoom, setZoom] = useState<ZoomLevel>('month');
@@ -224,125 +130,52 @@ export const PayoutSchedule: React.FC<PayoutScheduleProps> = ({ empty = false, p
         </Button>
       </div>
 
-      {/* View toggle & Zoom controls */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2" role="tablist" aria-label="View mode">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={showGantt}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-              showGantt
-                ? 'bg-primary/20 text-primary border border-primary/30'
-                : 'bg-[rgba(148,163,184,0.08)] text-muted border border-transparent'
-            }`}
-            onClick={() => setShowGantt(true)}
-          >
-            <BarChart3 size={14} aria-hidden="true" />
-            Gantt
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={!showGantt}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-              !showGantt
-                ? 'bg-primary/20 text-primary border border-primary/30'
-                : 'bg-[rgba(148,163,184,0.08)] text-muted border border-transparent'
-            }`}
-            onClick={() => setShowGantt(false)}
-          >
-            <Table2 size={14} aria-hidden="true" />
-            Table
-          </button>
-        </div>
-
-        {showGantt && (
-          <div className="flex items-center gap-2" role="group" aria-label="Zoom controls">
-            {(['week', 'month', 'quarter'] as const).map((level) => (
-              <button
-                key={level}
-                type="button"
-                className={`px-2.5 py-1 rounded text-xs font-medium capitalize transition-all ${
-                  zoom === level
-                    ? 'bg-primary/20 text-primary border border-primary/30'
-                    : 'bg-[rgba(148,163,184,0.08)] text-muted border border-transparent hover:bg-[rgba(148,163,184,0.15)]'
-                }`}
-                onClick={() => setZoom(level)}
-                aria-pressed={zoom === level}
-              >
-                {level}
-              </button>
+      {empty ? (
+        <EmptyState
+          variant="payout-schedule"
+          title="No payouts scheduled"
+          description="Payouts will appear here once revenue is reported and the distribution cycle begins."
+          primaryAction={{
+            label: 'Report Revenue',
+            href: '/startup/report-revenue',
+          }}
+          secondaryAction={{
+            label: 'Learn How It Works',
+            href: '/',
+          }}
+        />
+      ) : (
+        <>
+          <div data-testid="payout-status-legend" className="flex flex-wrap gap-2">
+            {PAYOUT_STATUS_ORDER.map((status) => (
+              <PayoutStatusPill key={status} status={status} variant="full" />
             ))}
           </div>
-        )}
-      </div>
 
-      {/* Range label - only in Gantt view */}
-      {showGantt && (
-        <div className="flex items-center justify-between text-xs text-muted">
-          <span>{range.label}</span>
-          <div className="flex items-center gap-1">
-            <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary/60" aria-hidden="true" />
-            Today
-          </div>
-        </div>
+          <table data-testid="payout-schedule-table" className="w-full">
+            <thead>
+              <tr>
+                <th className="text-left text-muted text-xs font-medium uppercase tracking-wide pb-3">Recipient</th>
+                <th className="text-left text-muted text-xs font-medium uppercase tracking-wide pb-3">Amount</th>
+                <th className="text-left text-muted text-xs font-medium uppercase tracking-wide pb-3">Date</th>
+                <th className="text-left text-muted text-xs font-medium uppercase tracking-wide pb-3">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {payouts.map((payout) => (
+                <tr key={payout.id} data-testid={`payout-row-${payout.id}`} className="border-t border-border">
+                  <td className="py-3 text-sm">{payout.recipient}</td>
+                  <td className="py-3 text-sm">{payout.amount}</td>
+                  <td className="py-3 text-sm">{payout.scheduledFor}</td>
+                  <td className="py-3">
+                    <PayoutStatusPill status={payout.status} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </>
       )}
-
-      {/* Gantt Chart View (presentational — table alternative below) */}
-      {showGantt && (
-        <div
-          className="rounded-xl border border-[rgba(148,163,184,0.15)] bg-[rgba(15,23,42,0.35)] p-4 overflow-x-auto"
-          aria-label={`Gantt chart showing payout schedule, ${lanes.length} issuers, ${payouts.length} payouts`}
-        >
-          <div className="min-w-[600px]">
-            {/* Header row: month/week labels */}
-            <div className="flex mb-2">
-              <div className="w-36 shrink-0 pr-3" aria-hidden="true" />
-              <div className="flex-1 relative h-6" aria-hidden="true">
-                {zoom === 'month' &&
-                  Array.from({ length: Math.min(12, totalDays) }, (_, i) => {
-                    const d = addDays(range.start, i * Math.max(1, Math.floor(totalDays / 12)));
-                    const isMajor = d.getDate() <= 7;
-                    if (!isMajor) return null;
-                    return (
-                      <div
-                        key={i}
-                        className="absolute text-[10px] text-muted font-medium"
-                        style={{ left: `${(daysBetween(range.start, d) / totalDays) * 100}%`, top: 0 }}
-                      >
-                        {d.toLocaleDateString('en-US', { month: 'short' })}
-                      </div>
-                    );
-                  })}
-                {zoom === 'week' &&
-                  Array.from({ length: 7 }, (_, i) => {
-                    const d = addDays(range.start, i);
-                    return (
-                      <div
-                        key={i}
-                        className="absolute text-[10px] text-muted"
-                        style={{ left: `${(i / 7) * 100}%`, top: 0 }}
-                      >
-                        {d.toLocaleDateString('en-US', { weekday: 'short' })}
-                      </div>
-                    );
-                  })}
-                {zoom === 'quarter' &&
-                  Array.from({ length: 3 }, (_, i) => {
-                    const d = addMonths(range.start, i);
-                    return (
-                      <div
-                        key={i}
-                        className="absolute text-[10px] text-muted font-medium"
-                        style={{ left: `${(daysBetween(range.start, d) / totalDays) * 100}%`, top: 0 }}
-                      >
-                        {d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-                      </div>
-                    );
-                  })}
-              </div>
-            </div>
 
             {/* Gantt lanes */}
             {lanes.map((lane) => (

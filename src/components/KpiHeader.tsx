@@ -3,7 +3,7 @@ import { TrendingUp, TrendingDown, DollarSign, BarChart2, Percent, Activity } fr
 import { useReducedMotion } from "../hooks/useReducedMotion";
 
 function parseValue(str: string) {
-  const match = str.match(/^([^\d\-\+]*)([\-\+]?\d+(?:,\d+)*(?:\.\d+)?)(.*)$/);
+  const match = str.match(/^([^\d\-+]*)([-+]?\d+(?:,\d+)*(?:\.\d+)?)(.*)$/);
   if (match) {
     const rawNum = match[2].replace(/,/g, "");
     return {
@@ -20,7 +20,7 @@ function parseValue(str: string) {
 
 function AnimatedValue({ value }: { value: string }) {
   const prefersReducedMotion = useReducedMotion();
-  const [displayValue, setDisplayValue] = useState(prefersReducedMotion ? value : "0");
+  const [displayValue, setDisplayValue] = useState(value);
 
   useEffect(() => {
     if (prefersReducedMotion) {

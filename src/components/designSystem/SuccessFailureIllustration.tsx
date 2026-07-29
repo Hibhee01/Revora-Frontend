@@ -1,4 +1,5 @@
 import React from 'react';
+import { OnchainRejectionIllustration } from './OnchainRejectionIllustration';
 
 export type SuccessFailureIllustrationVariant =
   | 'transactionSuccess'

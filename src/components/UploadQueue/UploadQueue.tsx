@@ -232,7 +232,7 @@ const SummaryBar: React.FC<SummaryBarProps> = ({
             </span>
           )}
           {errorCount > 0 && (
-            <span className="upload-queue__summary-stat upload-queue__summary-stat--error">
+            <span className="upload-queue__summary-stat upload-queue__summary-stat--error" aria-hidden="true">
               <AlertCircle size={12} aria-hidden="true" />
               {errorCount} failed
             </span>

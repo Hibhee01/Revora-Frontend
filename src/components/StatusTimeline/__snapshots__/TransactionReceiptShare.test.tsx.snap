@@ -1,0 +1,252 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`TransactionReceiptShare > renders correctly and matches snapshot 1`] = `
+<div>
+  <div
+    class="tx-receipt-container"
+  >
+    <div
+      class="tx-receipt-actions"
+    >
+      <button
+        aria-label="Hide amount"
+        aria-pressed="false"
+        class="tx-action-btn"
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-eye-off"
+          fill="none"
+          height="16"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="16"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"
+          />
+          <path
+            d="M14.084 14.158a3 3 0 0 1-4.242-4.242"
+          />
+          <path
+            d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"
+          />
+          <path
+            d="m2 2 20 20"
+          />
+        </svg>
+        Hide Amount
+      </button>
+      <div
+        class="tx-action-group"
+      >
+        <button
+          aria-label="Copy receipt as image"
+          class="tx-action-btn"
+          type="button"
+        >
+          <svg
+            aria-hidden="true"
+            class="lucide lucide-copy"
+            fill="none"
+            height="16"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="16"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <rect
+              height="14"
+              rx="2"
+              ry="2"
+              width="14"
+              x="8"
+              y="8"
+            />
+            <path
+              d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"
+            />
+          </svg>
+          Copy Image
+        </button>
+        <button
+          aria-label="Download receipt as image"
+          class="tx-action-btn primary"
+          type="button"
+        >
+          <svg
+            aria-hidden="true"
+            class="lucide lucide-download"
+            fill="none"
+            height="16"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="16"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M12 15V3"
+            />
+            <path
+              d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
+            />
+            <path
+              d="m7 10 5 5 5-5"
+            />
+          </svg>
+          Download
+        </button>
+      </div>
+    </div>
+    <div
+      aria-label="Transaction Receipt Details"
+      class="tx-receipt-card "
+    >
+      <div
+        class="tx-receipt-header"
+      >
+        <div
+          class="tx-receipt-brand"
+        >
+          <span
+            class="tx-brand-name"
+          >
+            Revora
+          </span>
+        </div>
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-shield-check tx-verified-icon"
+          fill="none"
+          height="20"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="20"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"
+          />
+          <path
+            d="m9 12 2 2 4-4"
+          />
+        </svg>
+      </div>
+      <div
+        class="tx-receipt-amount-section"
+      >
+        <div
+          class="tx-receipt-label"
+        >
+          Amount
+        </div>
+        <div
+          class="tx-receipt-amount"
+        >
+          <span>
+            1,500.00
+             
+            USDC
+          </span>
+        </div>
+      </div>
+      <div
+        class="tx-receipt-details"
+      >
+        <div
+          class="tx-detail-row"
+        >
+          <span
+            class="tx-detail-label"
+          >
+            Status
+          </span>
+          <span
+            class="tx-detail-value status-completed"
+          >
+            COMPLETED
+          </span>
+        </div>
+        <div
+          class="tx-detail-row"
+        >
+          <span
+            class="tx-detail-label"
+          >
+            Date
+          </span>
+          <span
+            class="tx-detail-value"
+          >
+            Oct 24, 2023 14:30
+          </span>
+        </div>
+        <div
+          class="tx-detail-row"
+        >
+          <span
+            class="tx-detail-label"
+          >
+            Transaction ID
+          </span>
+          <span
+            class="tx-detail-value"
+          >
+            TX-12345
+          </span>
+        </div>
+        <div
+          class="tx-detail-row sensitive-field"
+        >
+          <span
+            class="tx-detail-label"
+          >
+            From
+          </span>
+          <span
+            aria-label="Sender Wallet (Copy disabled)"
+            class="tx-detail-value unselectable"
+          >
+            0x123...abc
+          </span>
+        </div>
+        <div
+          class="tx-detail-row sensitive-field"
+        >
+          <span
+            class="tx-detail-label"
+          >
+            To
+          </span>
+          <span
+            aria-label="Recipient Wallet (Copy disabled)"
+            class="tx-detail-value unselectable"
+          >
+            0x456...def
+          </span>
+        </div>
+      </div>
+      <div
+        class="tx-receipt-footer"
+      >
+        Generated securely by 
+        Revora
+      </div>
+    </div>
+  </div>
+</div>
+`;

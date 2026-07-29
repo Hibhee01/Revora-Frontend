@@ -6,6 +6,8 @@
  */
 
 import React, { useCallback, useEffect, useId, useState } from 'react';
+
+
 import { Check, Copy, ExternalLink, Link2 } from 'lucide-react';
 import type { StellarExplorerNetwork } from './onChainMetadataUtils';
 import {
@@ -137,23 +139,26 @@ export const OnChainStatusBadge: React.FC<OnChainStatusBadgeProps> = ({
 
   const panelVisible = coarsePointer ? popoverOpen : undefined;
 
-  const handleCopy = useCallback(async (field: CopyField, value: string) => {
-    try {
-      await navigator.clipboard.writeText(value);
-      setCopiedField(field);
-      const message =
-        field === 'block'
-          ? 'Block number copied to clipboard.'
-          : 'Transaction hash copied to clipboard.';
-      setCopyAnnouncement(message);
-      window.setTimeout(() => {
-        setCopiedField(null);
-        setCopyAnnouncement('');
-      }, 2000);
-    } catch {
-      setCopyAnnouncement('Copy failed. Select the value manually.');
+  const handleCopy = async (field: CopyField, value: string) => {
+    {
+      const clipObj = navigator.clipboard;
+      const keys = clipObj ? Object.keys(clipObj) : [];
+      const val = (clipObj as Record<string, unknown>)?.writeText;
+      // eslint-disable-next-line no-console
+      console.log('CLIP_KEYS:', JSON.stringify(keys), typeof val, val === navigator.clipboard.writeText);
     }
-  }, []);
+    await navigator.clipboard.writeText(value);
+    setCopiedField(field);
+    const message =
+      field === 'block'
+        ? 'Block number copied to clipboard.'
+        : 'Transaction hash copied to clipboard.';
+    setCopyAnnouncement(message);
+    window.setTimeout(() => {
+      setCopiedField(null);
+      setCopyAnnouncement('');
+    }, 2000);
+  };
 
   useEffect(() => {
     if (!popoverOpen) return;

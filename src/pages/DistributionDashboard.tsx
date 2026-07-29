@@ -5,14 +5,24 @@ import { LockupClaimModal } from '../components/LockupClaimModal';
 import React, { useState, useMemo, useRef, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { EmptyState } from '../components/designSystem/EmptyState';
-import { UploadQueue } from '../components/UploadQueue';
-import { useUploadQueue, type Uploader } from '../hooks/useUploadQueue';
-import { FinancialTermsForm } from '../components/FinancialTermsForm';
-import type { FinancialTermsField } from '../utils/financialTermsValidation';
+import { KycResubmissionTimeline } from '../components/KycResubmissionTimeline';
+import { GovernanceResults } from '../components/designSystem/GovernanceResults';
+import { GovernanceProposalDetail } from '../components/designSystem/GovernanceProposalDetail';
+import { ThumbnailGrid, ThumbnailFile } from '../components/ThumbnailGrid/ThumbnailGrid';
+import { DocumentUploadStatus } from '../components/DocumentUploadStatus';
+import { PreOpenBanner } from '../components/PreOpenBanner';
 
 export const DistributionDashboard: React.FC = () => {
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(true);
   const [searchParams, setSearchParams] = useSearchParams();
+
+  const [bannerDismissed, setBannerDismissed] = useState(false);
+  const preopenTargetDate = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 3);
+    d.setHours(9, 0, 0, 0);
+    return d;
+  }, []);
 
   const [filterState, setFilterState] = useState<DistributionFilterState>(() => {
     return {
@@ -222,8 +232,23 @@ export const DistributionDashboard: React.FC = () => {
     return filteredPayouts.reduce((sum, p) => sum + p.retries.filter((r) => r.status === 'failed').length, 0);
   }, [filteredPayouts]);
 
+  const handlePreopenOptIn = useCallback(() => {
+    console.log('User opted in for redemption window reminder');
+  }, []);
+
+  const handlePreopenDismiss = useCallback(() => {
+    setBannerDismissed(true);
+  }, []);
+
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-8 animate-fade-in">
+      {!bannerDismissed && (
+        <PreOpenBanner
+          targetDate={preopenTargetDate}
+          onOptIn={handlePreopenOptIn}
+          onDismiss={handlePreopenDismiss}
+        />
+      )}
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>

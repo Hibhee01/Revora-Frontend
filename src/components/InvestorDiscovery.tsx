@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useId } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Search,
   Filter,
@@ -48,6 +48,12 @@ type DiscoveryState =
   | { kind: 'truly-empty' }
   | { kind: 'error'; retryCount: number };
 
+interface InvestorDiscoveryProps {
+  __simulateState?: DiscoveryState;
+  __onClearFilters?: () => void;
+  __onRetry?: () => void;
+}
+
 // ─── Mock Data ────────────────────────────────────────────────────────────────
 
 const MOCK_OFFERINGS: Offering[] = [
@@ -56,20 +62,20 @@ const MOCK_OFFERINGS: Offering[] = [
   { id: 3, name: 'Nexus Pay', category: 'Cross-Border Payments', revenueShare: 18, target: 300000, raised: 186000 },
 ];
 
-const DISCOVERY_CARDS = [
-  { title: 'TechFlow AI', subtitle: 'Enterprise SaaS', progress: 45, target: '$250,000' },
-  { title: 'Quantum Ledger', subtitle: 'DeFi Infrastructure', progress: 28, target: '$500,000' },
-  { title: 'Nexus Pay', subtitle: 'Cross-Border Payments', progress: 62, target: '$300,000' },
-];
-
-export const InvestorDiscovery: React.FC = () => {
+export const InvestorDiscovery: React.FC<InvestorDiscoveryProps> = ({
+  __simulateState,
+  __onClearFilters,
+  __onRetry,
+}) => {
   const [isLoading, setIsLoading] = useState(
     typeof process !== "undefined" && process.env.NODE_ENV === "test" ? false : true
   );
-  const [hasError, setHasError] = useState(false);
   const [query, setQuery] = useState("");
   const [filtersActive, setFiltersActive] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
+
+  /** When true, the externally-supplied __simulateState is ignored */
+  const [simDismissed, setSimDismissed] = useState(false);
 
   useEffect(() => {
     if (typeof process !== "undefined" && process.env.NODE_ENV === "test") {
@@ -79,23 +85,22 @@ export const InvestorDiscovery: React.FC = () => {
       setIsLoading(false);
     }, 2000);
     return () => clearTimeout(timer);
-  }, [__simulateState]);
+  }, []);
 
-  // The seed offerings: either from __simulateState (if kind='loaded') or the
-  // module-level mock data. Kept stable so useCallback deps don't thrash.
+  const effectiveSimState = simDismissed ? null : (__simulateState ?? null);
+
   const seedOfferings =
-    __simulateState?.kind === 'loaded' ? __simulateState.offerings : MOCK_OFFERINGS;
+    effectiveSimState?.kind === 'loaded' ? effectiveSimState.offerings : MOCK_OFFERINGS;
 
+  /**
+   * Resolve the current discovery state, merging the simulated state with the
+   * live search/filter controls when in "loaded" mode.
+   */
   const resolveState = useCallback((): DiscoveryState => {
-    // Non-loaded forced states always win (error / empty variants)
-    if (
-      __simulateState &&
-      __simulateState.kind !== 'loaded'
-    ) {
-      return __simulateState;
+    if (effectiveSimState && effectiveSimState.kind !== 'loaded') {
+      return effectiveSimState;
     }
 
-    // For 'loaded' __simulateState OR no override: derive from live search/filter
     const trimmed = query.trim().toLowerCase();
     const filtered =
       trimmed || filtersActive
@@ -105,7 +110,7 @@ export const InvestorDiscovery: React.FC = () => {
     if (seedOfferings.length === 0) return { kind: 'truly-empty' };
     if (filtered.length === 0) return { kind: 'filtered-empty', query: trimmed, hasFilters: filtersActive };
     return { kind: 'loaded', offerings: filtered };
-  }, [query, filtersActive, __simulateState, seedOfferings]);
+  }, [query, filtersActive, effectiveSimState, seedOfferings]);
 
   const state = resolveState();
 
@@ -113,13 +118,18 @@ export const InvestorDiscovery: React.FC = () => {
     setQuery('');
     setFiltersActive(false);
     setRetryCount(0);
+    setSimDismissed(true);
+    __onClearFilters?.();
   };
 
   const handleRetry = () => {
     setRetryCount((c) => c + 1);
-    setHasError(false);
     setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 2000);
+    setSimDismissed(true);
+    __onRetry?.();
+    if (typeof process === "undefined" || process.env.NODE_ENV !== "test") {
+      setTimeout(() => setIsLoading(false), 2000);
+    }
   };
 
   const handleToggleFilters = () => {
@@ -138,6 +148,7 @@ export const InvestorDiscovery: React.FC = () => {
         </div>
 
         {/* ── Search + Filter bar ── */}
+        {(!effectiveSimState || effectiveSimState.kind === 'loaded') && (
         <div className="flex w-full md:w-auto gap-2">
           <div className="relative flex-grow">
             <Search className="absolute left-3 top-2.5 text-muted" size={18} aria-hidden="true" />
@@ -173,6 +184,7 @@ export const InvestorDiscovery: React.FC = () => {
             {filtersActive && <span className="discovery-filter-badge" aria-hidden="true" />}
           </button>
         </div>
+      )}
       </div>
 
       {/* ── Active filter indicator ── */}
@@ -207,7 +219,7 @@ export const InvestorDiscovery: React.FC = () => {
       )}
 
       {/* ── Result Area ── */}
-      {!isLoading && !hasError && (
+      {!isLoading && (
         <section aria-labelledby="offerings-heading" aria-live="polite">
           <h2 id="offerings-heading" className="sr-only">
             Offerings
@@ -217,43 +229,49 @@ export const InvestorDiscovery: React.FC = () => {
             <div
               className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in"
               aria-label="Available startup offerings"
+              aria-live="polite"
             >
-              {DISCOVERY_CARDS.map((card, index) => (
-                <div
-                  key={index}
-                  className="glass-card glass-card-interactive p-6 space-y-4"
-                >
-                  <div className="h-12 w-12 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
-                    <Rocket size={24} />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-lg">{card.title}</h3>
-                    <p className="text-xs text-muted">{card.subtitle}</p>
-                  </div>
-                  <div className="pt-4 border-t border-[rgba(148,163,184,0.1)]">
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="text-muted">Target</span>
-                      <span>{card.target}</span>
+              {state.offerings.map((offering) => {
+                const progress = Math.round((offering.raised / offering.target) * 100);
+                const target = `$${offering.target.toLocaleString()}`;
+                return (
+                  <div
+                    key={offering.id}
+                    data-testid={`offering-card-${offering.id}`}
+                    className="glass-card glass-card-interactive p-6 space-y-4"
+                  >
+                    <div className="h-12 w-12 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
+                      <Rocket size={24} />
                     </div>
-                    <div
-                      className="w-full bg-slate-800 rounded-full h-1.5"
-                      role="progressbar"
-                      aria-valuenow={card.progress}
-                      aria-valuemin={0}
-                      aria-valuemax={100}
-                      aria-label={`${card.progress}% funded`}
-                    >
+                    <div>
+                      <h3 className="font-semibold text-lg">{offering.name}</h3>
+                      <p className="text-xs text-muted">{offering.category}</p>
+                    </div>
+                    <div className="pt-4 border-t border-[rgba(148,163,184,0.1)]">
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="text-muted">Target</span>
+                        <span>{target}</span>
+                      </div>
                       <div
-                        className="bg-primary h-1.5 rounded-full"
-                        style={{ width: `${card.progress}%` }}
-                      />
+                        className="w-full bg-slate-800 rounded-full h-1.5"
+                        role="progressbar"
+                        aria-valuenow={progress}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                        aria-label={`${progress}% funded`}
+                      >
+                        <div
+                          className="bg-primary h-1.5 rounded-full"
+                          style={{ width: `${progress}%` }}
+                        />
+                      </div>
                     </div>
+                    <button className="btn-primary py-2 text-xs">
+                      View Prospectus
+                    </button>
                   </div>
-                  <button className="btn-primary py-2 text-xs">
-                    View Prospectus
-                  </button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
 
@@ -264,12 +282,13 @@ export const InvestorDiscovery: React.FC = () => {
               description={
                 state.query
                   ? `We couldn't find any offerings matching "${state.query}".`
-                  : 'No offerings match the active filters.'
+                  : 'No offerings matching the active filters.'
               }
               primaryAction={{
                 label: 'Clear filters',
                 onClick: handleClearFilters,
                 ariaLabel: 'Clear all search filters and show all offerings',
+                testId: 'clear-filters-btn',
               }}
               context={
                 state.query ? (
@@ -306,12 +325,12 @@ export const InvestorDiscovery: React.FC = () => {
               primaryAction={{
                 label: 'Try again',
                 onClick: handleRetry,
-                ariaLabel: 'Retry loading offerings',
+                ariaLabel: 'Try again to retry loading offerings',
               }}
               context={
-                retryCount > 0 ? (
+                state.retryCount > 0 ? (
                   <span className="empty-state-context">
-                    Retried {retryCount} {retryCount === 1 ? 'time' : 'times'} — still having trouble? Contact support.
+                    Retried {state.retryCount} {state.retryCount === 1 ? 'time' : 'times'} — still having trouble? Contact support.
                   </span>
                 ) : undefined
               }

@@ -16,17 +16,9 @@ export const CalendarExportDialog: React.FC<CalendarExportDialogProps> = ({ isOp
   const [copied, setCopied] = useState(false);
   const [lastUsed, setLastUsed] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const dialogRef = useRef<HTMLDialogElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
 
   const url = `https://api.revora.co/v1/calendar/payouts/${scope}/${token}.ics`;
-
-  useEffect(() => {
-    if (isOpen) {
-      dialogRef.current?.showModal();
-    } else {
-      dialogRef.current?.close();
-    }
-  }, [isOpen]);
 
   const handleCopy = () => {
     if (navigator.clipboard) {
@@ -66,10 +58,12 @@ export const CalendarExportDialog: React.FC<CalendarExportDialogProps> = ({ isOp
   if (!isOpen) return null;
 
   return (
-    <dialog
+    <div
       ref={dialogRef}
       className="calendar-dialog-overlay"
-      onCancel={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="calendar-dialog-title"
       onClick={onClose}
     >
       <div 
@@ -182,6 +176,6 @@ export const CalendarExportDialog: React.FC<CalendarExportDialogProps> = ({ isOp
           </ul>
         </div>
       </div>
-    </dialog>
+    </div>
   );
 };

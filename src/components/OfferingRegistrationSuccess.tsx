@@ -105,11 +105,12 @@ export const OfferingRegistrationSuccess: React.FC<OfferingRegistrationSuccessPr
   const estimatedDate = submissionDate
     ? (() => {
         const d = new Date(submissionDate);
-        d.setDate(d.getDate() + estimatedReviewDays);
+        d.setUTCDate(d.getUTCDate() + estimatedReviewDays);
         return d.toLocaleDateString('en-US', {
           month: 'long',
           day: 'numeric',
           year: 'numeric',
+          timeZone: 'UTC',
         });
       })()
     : null;

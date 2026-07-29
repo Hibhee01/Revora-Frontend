@@ -99,7 +99,7 @@ export const RemediationChecklist: React.FC<RemediationChecklistProps> = ({
                   : "bg-[rgba(148,163,184,0.05)] hover:bg-[rgba(148,163,184,0.1)]"
               }`}
               role="listitem"
-              aria-current={!step.completed && index === 0 ? "step" : undefined}
+              aria-current={!step.completed && steps.findIndex(s => !s.completed) === index ? "step" : undefined}
             >
               <div className="flex-shrink-0 pt-0.5">
                 <Icon
@@ -132,7 +132,7 @@ export const RemediationChecklist: React.FC<RemediationChecklistProps> = ({
                     onClick={() => {
                       if (step.onAction && !isDisabled) {
                         step.onAction(step.id);
-                      } else if (step.actionUrl) {
+                      } else if (step.actionUrl && !step.disabled) {
                         window.open(step.actionUrl, "_blank", "noopener,noreferrer");
                       }
                     }}
@@ -143,7 +143,7 @@ export const RemediationChecklist: React.FC<RemediationChecklistProps> = ({
                         : "text-[#3b82f6] hover:text-[#2563eb]"
                     }`}
                     type="button"
-                    aria-label={`${step.actionLabel} for ${step.title}`}
+                    aria-label={`${step.actionLabel || "Learn more"} for ${step.title}`}
                   >
                     {step.actionLabel || "Learn more"}
                     {step.actionUrl ? (

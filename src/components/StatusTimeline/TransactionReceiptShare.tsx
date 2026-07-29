@@ -106,7 +106,7 @@ export const TransactionReceiptShare: React.FC<TransactionReceiptShareProps> = (
             className="tx-action-btn"
             onClick={handleCopy}
             disabled={isCapturing}
-            aria-label="Copy receipt as image"
+            aria-label="Copy image of receipt"
           >
             <Copy size={16} aria-hidden="true" />
             Copy Image

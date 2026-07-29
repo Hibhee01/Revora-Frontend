@@ -118,7 +118,9 @@ export const OfferingDetail: React.FC = () => {
       ) : activeTab === 'payouts' ? (
         <PayoutSettingsTab />
       ) : (
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">{/* Main Content Grid */}
+      <>
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Offering Overview */}
         <div className="lg:col-span-2 space-y-6">
           {/* Offering Header Card */}
@@ -324,6 +326,7 @@ export const OfferingDetail: React.FC = () => {
           </div>
         </div>
       </div>
+      </>
       )}
     </div>
   );

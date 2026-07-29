@@ -1,30 +1,29 @@
-import React, { useCallback } from 'react';
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Button } from '../components/Button';
+import { LockupClaimModal } from '../components/LockupClaimModal';
+import React, { useState, useMemo, useRef, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { EmptyState } from '../components/designSystem/EmptyState';
 import { UploadQueue } from '../components/UploadQueue';
 import { useUploadQueue, type Uploader } from '../hooks/useUploadQueue';
 import { FinancialTermsForm } from '../components/FinancialTermsForm';
 import type { FinancialTermsField } from '../utils/financialTermsValidation';
 
-/**
- * Simulated uploader — replace with a real API call (e.g. fetch / axios).
- * Resolves after ~2 s with incremental progress ticks.
- */
-const mockUploader: Uploader = (file, onProgress) =>
-  new Promise<void>((resolve, reject) => {
-    // Simulate occasional failures for demo purposes
-    if (file.name.startsWith('fail_')) {
-      setTimeout(() => reject(new Error('Server rejected the file')), 800);
-      return;
-    }
-    let pct = 0;
-    const interval = setInterval(() => {
-      pct = Math.min(100, pct + Math.floor(Math.random() * 20) + 10);
-      onProgress(pct);
-      if (pct >= 100) {
-        clearInterval(interval);
-        resolve();
-      }
-    }, 200);
+export const DistributionDashboard: React.FC = () => {
+  const [isClaimModalOpen, setIsClaimModalOpen] = useState(true);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const [filterState, setFilterState] = useState<DistributionFilterState>(() => {
+    return {
+      searchQuery: searchParams.get('search') || '',
+      dateRange: (searchParams.get('date') as any) || 'all',
+      issuer: searchParams.get('issuer') || 'all',
+      region: searchParams.get('region') || 'all',
+      status: searchParams.get('status') || 'all',
+      segmentBy: (searchParams.get('segment') as any) || 'none',
+      compareMode: searchParams.get('compare') === 'true',
+    };
   });
 
 export const DistributionDashboard: React.FC = () => {
@@ -239,29 +238,123 @@ export const DistributionDashboard: React.FC = () => {
         </a>
       </div>
 
-      {/* Document upload queue */}
-      <section aria-labelledby="upload-section-heading">
-        <h2
-          id="upload-section-heading"
-          className="text-xl font-semibold mb-4"
-          style={{ fontSize: 'var(--font-size-xl)', fontWeight: 'var(--font-weight-semibold)', marginBottom: 'var(--spacing-md)' }}
-        >
-          Upload Documents
-        </h2>
-        <UploadQueue
-          queue={queue}
-          onAddFiles={addFiles}
-          onRemove={removeFile}
-          onRetry={handleRetry}
-          onUploadAll={handleUploadAll}
-          onClearComplete={clearComplete}
-          totalCount={totalCount}
-          successCount={successCount}
-          errorCount={errorCount}
-          uploadingCount={uploadingCount}
-          overallProgress={overallProgress}
-          uploader={mockUploader}
-          accept=".pdf,.doc,.docx,.xls,.xlsx,.csv"
+      {/* Filter Toolbar */}
+      <DistributionFilterToolbar
+        filters={filterState}
+        onFilterChange={updateFiltersAndUrl}
+        onResetFilters={handleResetFilters}
+      />
+
+      {/* Token Supply Configuration */}
+      <div className="mt-8">
+        <TokenSupplyBlock />
+      </div>
+
+      {/* KPI Summary Cards */}
+      <div
+        className="grid grid-cols-2 md:grid-cols-4 gap-4"
+        role="list"
+        aria-label="Distribution key metrics"
+      >
+        <div role="listitem" data-testid="kpi-total-distributed">
+          <div className="glass-card p-5 flex flex-col gap-2">
+            <span className="text-muted text-xs font-medium uppercase tracking-wide">Total Distributed</span>
+            <span className="text-2xl font-bold tracking-tight">
+              ${totalDistributed.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
+          </div>
+        </div>
+        <div role="listitem" data-testid="kpi-active-payouts">
+          <div className="glass-card p-5 flex flex-col gap-2">
+            <span className="text-muted text-xs font-medium uppercase tracking-wide">Active Payouts</span>
+            <span className="text-2xl font-bold tracking-tight">{activePayouts}</span>
+          </div>
+        </div>
+        <div role="listitem" data-testid="kpi-gas-spent">
+          <div className="glass-card p-5 flex flex-col gap-2">
+            <span className="text-muted text-xs font-medium uppercase tracking-wide">Gas Spent</span>
+            <span className="text-2xl font-bold tracking-tight">
+              ${totalGasSpent.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
+          </div>
+        </div>
+        <div role="listitem" data-testid="kpi-pending-retries">
+          <div className="glass-card p-5 flex flex-col gap-2">
+            <span className="text-muted text-xs font-medium uppercase tracking-wide">Pending Retries</span>
+            <span className="text-2xl font-bold tracking-tight">{pendingRetries}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-8">
+        <h2 className="text-xl font-semibold mb-4">Uploaded Documents</h2>
+        <ThumbnailGrid
+          files={uploadedFiles}
+          onView={handleViewFile}
+          onReplace={handleReplaceFile}
+          onRemove={handleRemoveFile}
+          onReorder={handleReorderFiles}
+        />
+      </div>
+
+      <section className="grid gap-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm lg:grid-cols-[1.3fr_0.7fr] dark:border-slate-700 dark:bg-slate-900">
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">Partial unlock ready</p>
+          <h2 className="mt-2 text-2xl font-semibold text-slate-900 dark:text-white">
+            A portion of your lockup has unlocked.
+          </h2>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300">
+            Investors can claim immediately, defer the action, or turn on auto-claim for the next unlock so the experience remains simple and predictable.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Button type="button" onClick={() => setIsClaimModalOpen(true)}>
+              Review claim options
+            </Button>
+            <Link to="/investor/portal" className="inline-flex items-center rounded-full border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800">
+              Back to discovery
+            </Link>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 dark:border-slate-700 dark:bg-slate-800/70">
+          <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Next action</p>
+          <p className="mt-2 text-3xl font-semibold text-slate-900 dark:text-white">$12,480.00</p>
+          <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Available to claim with a low gas estimate and clear options for later or automatic claiming.</p>
+        </div>
+      </section>
+
+      <EmptyState
+        variant="distribution-dashboard"
+        title="No distributions yet"
+        description="When revenue is reported and payouts are processed, your distribution history will appear here."
+        primaryAction={{
+          label: 'Report Revenue',
+          href: '/startup/report-revenue',
+        }}
+        secondaryAction={{
+          label: 'Back to Discovery',
+          href: '/investor/portal',
+        }}
+      {/* Governance Proposal Detail */}
+      <section aria-label="Governance proposal detail">
+        <GovernanceProposalDetail
+          proposal={{
+            id: 'prop-1',
+            title: 'Increase Developer Grant Fund',
+            description:
+              'A proposal to allocate an additional 500,000 tokens to the developer grant program to support ecosystem growth.',
+            proposer: '0x1234...abcd',
+            status: 'active',
+            endTime: Date.now() + 86400000 * 3,
+            quorumRequired: 4_000_000,
+            quorumReached: 2_500_000,
+            results: { for: 2000000, against: 450000, abstain: 50000 },
+            participation: { turnout: 68.4, uniqueVoters: 142, delegates: 12 },
+            userVote: null,
+          }}
+          onVote={(choice) => {
+            console.log(`Vote cast: ${choice}`);
+          }}
         />
       </section>
 
@@ -291,6 +384,13 @@ export const DistributionDashboard: React.FC = () => {
         onClose={handleClosePanel}
         onRetryBatch={handleRetryBatch}
         onExportCsv={handleExportCsv}
+      />
+
+      <LockupClaimModal
+        isOpen={isClaimModalOpen}
+        onClose={() => setIsClaimModalOpen(false)}
+        unlockedAmount="$12,480.00"
+        gasEstimate={22}
       />
     </div>
   );

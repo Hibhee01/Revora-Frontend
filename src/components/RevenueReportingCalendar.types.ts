@@ -104,6 +104,8 @@ export interface RevenueReportingCalendarProps {
   onSubmitReport?: (date: string) => void;
   /** Callback when a report action is triggered */
   onReportAction?: (reportId: string, action: string) => void;
+  /** Callback to open keyboard shortcuts overlay */
+  onOpenShortcuts?: () => void;
   /** Additional CSS class on root */
   className?: string;
 }
@@ -167,4 +169,6 @@ export interface CalendarGridProps {
   onKeyboardNavigate: (direction: string) => void;
   /** Grid aria-label */
   ariaLabel: string;
+  /** Callback when user presses T to jump to today */
+  onJumpToToday?: () => void;
 }

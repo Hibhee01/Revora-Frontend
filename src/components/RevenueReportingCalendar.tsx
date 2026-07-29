@@ -332,6 +332,7 @@ interface CalendarGridComponentProps {
   weekStartsOn: number;
   onDateSelect: (date: string) => void;
   onFocusDate: (date: string) => void;
+  onJumpToToday?: () => void;
   locale: string;
   ariaLabel: string;
 }
@@ -343,6 +344,7 @@ const CalendarGridComponent: React.FC<CalendarGridComponentProps> = ({
   weekStartsOn,
   onDateSelect,
   onFocusDate,
+  onJumpToToday,
   locale,
   ariaLabel,
 }) => {
@@ -474,6 +476,12 @@ const CalendarGridComponent: React.FC<CalendarGridComponentProps> = ({
           newIndex = tIndex;
         }
         break;
+      }
+      case 't':
+      case 'T': {
+        e.preventDefault();
+        onJumpToToday?.();
+        return;
       }
       default:
         return;
@@ -813,6 +821,7 @@ export const RevenueReportingCalendar: React.FC<
   onMonthChange,
   onSubmitReport,
   onReportAction,
+  onOpenShortcuts,
   className = "",
 }) => {
   // Determine current month from reports or use today
@@ -893,6 +902,23 @@ export const RevenueReportingCalendar: React.FC<
   const handleFocusDate = useCallback((date: string) => {
     setFocusedDate(date);
   }, []);
+
+  const handleJumpToToday = useCallback(() => {
+    const today = new Date();
+    const todayStr = toISODate(today.getFullYear(), today.getMonth(), today.getDate());
+    const targetMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+
+    // Navigate to today's month if not already viewing it
+    if (targetMonth !== viewMonth) {
+      setInternalViewMonth(targetMonth);
+      onMonthChange?.(targetMonth);
+    }
+
+    // Focus and select today's date
+    setFocusedDate(todayStr);
+    setInternalSelectedDate(todayStr);
+    onDateSelect?.(todayStr);
+  }, [viewMonth, onMonthChange, onDateSelect]);
 
   const handleSubmitReport = useCallback(
     (date: string) => {
@@ -987,11 +1013,30 @@ export const RevenueReportingCalendar: React.FC<
             </button>
           </div>
           
-          <div className="rc-actions" style={{ display: 'flex', justifyContent: 'flex-end', padding: '0 var(--spacing-6) var(--spacing-4)' }}>
-            <Button variant="secondary" onClick={() => setShowImportWizard(true)} aria-label="Import historical revenue from CSV">
-              <Upload size={16} aria-hidden="true" />
-              Import CSV
-            </Button>
+          <div className="rc-actions" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 var(--spacing-6) var(--spacing-4)' }}>
+            <div className="rc-shortcuts-hint" aria-label="Keyboard shortcuts hint">
+              <span className="rc-shortcuts-hint-text">
+                Press <kbd className="rc-shortcut-key">T</kbd> for today&ensp;·&ensp;
+                <kbd className="rc-shortcut-key">?</kbd> for shortcuts
+              </span>
+            </div>
+            <div style={{ display: 'flex', gap: 'var(--spacing-2)' }}>
+              {onOpenShortcuts && (
+                <button
+                  type="button"
+                  className="rc-shortcuts-btn"
+                  onClick={onOpenShortcuts}
+                  aria-label="Keyboard shortcuts"
+                  title="Keyboard shortcuts"
+                >
+                  <span aria-hidden="true">?</span>
+                </button>
+              )}
+              <Button variant="secondary" onClick={() => setShowImportWizard(true)} aria-label="Import historical revenue from CSV">
+                <Upload size={16} aria-hidden="true" />
+                Import CSV
+              </Button>
+            </div>
           </div>
 
           {/* Mobile view toggle (calendar/agenda */}
@@ -1078,8 +1123,9 @@ export const RevenueReportingCalendar: React.FC<
               weekStartsOn={weekStartsOn}
               onDateSelect={handleDateSelect}
               onFocusDate={handleFocusDate}
+              onJumpToToday={handleJumpToToday}
               locale={locale}
-              ariaLabel={`Revenue reporting calendar for ${monthName}. Use arrow keys to navigate, Home and End for row edges, Page Up and Page Down for month navigation, Enter or Space to select.`}
+              ariaLabel={`Revenue reporting calendar for ${monthName}. Use arrow keys to navigate, Home and End for row edges, Page Up and Page Down for month navigation, Enter or Space to select, T for today.`}
             />
           </div>
 
@@ -1132,6 +1178,179 @@ export const RevenueReportingCalendar: React.FC<
           />
         </div>
       )}
+    </div>
+  );
+};
+
+/* ─── Agenda View (Mobile) ─────────────────────────────────────────── */
+
+interface AgendaViewProps {
+  reports: RevenueReport[];
+  selectedDate: string | undefined;
+  locale: string;
+  onSelect: (date: string) => void;
+  onSubmitReport?: (date: string) => void;
+  viewMonth: string;
+}
+
+const AgendaView: React.FC<AgendaViewProps> = ({
+  reports,
+  selectedDate,
+  locale,
+  onSelect,
+  onSubmitReport,
+  viewMonth,
+}) => {
+  const [viewYear, viewMonthNum] = useMemo(() => {
+    const [y, m] = viewMonth.split('-').map(Number);
+    return [y, m - 1];
+  }, [viewMonth]);
+
+  const monthReports = useMemo(
+    () => getMonthReports(reports, viewYear, viewMonthNum),
+    [reports, viewYear, viewMonthNum],
+  );
+
+  const groupedReports = useMemo(() => {
+    const groups: { status: ReportStatus; label: string; reports: RevenueReport[] }[] = [];
+    const statusOrder: ReportStatus[] = ['overdue', 'due', 'submitted', 'accepted'];
+
+    const statusMap: Record<ReportStatus, RevenueReport[]> = {
+      overdue: [],
+      due: [],
+      submitted: [],
+      accepted: [],
+      none: [],
+    };
+
+    monthReports.forEach((r) => {
+      const isOverdueStatus = r.status === 'overdue' || (r.status === 'due' && isOverdue(r));
+      const effectiveStatus: ReportStatus = isOverdueStatus ? 'overdue' : r.status;
+      if (statusMap[effectiveStatus]) {
+        statusMap[effectiveStatus].push(r);
+      }
+    });
+
+    statusOrder.forEach((status) => {
+      if (statusMap[status].length > 0) {
+        groups.push({
+          status,
+          label: REPORT_STATUS_LABELS[status],
+          reports: statusMap[status],
+        });
+      }
+    });
+
+    return groups;
+  }, [monthReports]);
+
+  const formatDay = (iso: string) => {
+    const d = parseISODate(iso);
+    return d.day;
+  };
+
+  const formatWeekday = (iso: string) => {
+    const d = parseISODate(iso);
+    const date = new Date(d.year, d.month, d.day);
+    return date.toLocaleDateString(locale as SupportedLocale, { weekday: 'short' });
+  };
+
+  const formatShortDate = (iso: string) =>
+    formatDate(iso, locale as SupportedLocale, { month: 'short', day: 'numeric' });
+
+  if (monthReports.length === 0) {
+    return (
+      <div className="rc-agenda-view" data-testid="agenda-view">
+        <div className="rc-agenda-empty">
+          <Calendar size={24} aria-hidden="true" />
+          <p className="rc-agenda-empty-text">No reports scheduled for this month.</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rc-agenda-view" data-testid="agenda-view">
+      {groupedReports.map((group) => (
+        <div
+          key={group.status}
+          className={`rc-agenda-group rc-agenda-group--${group.status}`}
+        >
+          <h3 className="rc-agenda-group-title">
+            {group.label}
+            <span className="rc-agenda-group-count" aria-hidden="true">
+              {group.reports.length}
+            </span>
+          </h3>
+          <ul className="rc-agenda-list">
+            {group.reports.map((report) => {
+              const isSelected = report.date === selectedDate;
+              return (
+                <li key={report.id} className="rc-agenda-listitem">
+                  <button
+                    type="button"
+                    className={`rc-agenda-row rc-agenda-row--${group.status} ${isSelected ? 'rc-agenda-row--selected' : ''}`}
+                    onClick={() => onSelect(report.date)}
+                    aria-label={`${formatDate(report.date, locale as SupportedLocale, { weekday: 'long', month: 'long', day: 'numeric' })} — ${group.label}`}
+                  >
+                    <div className="rc-agenda-row-date" aria-hidden="true">
+                      <span className="rc-agenda-row-weekday">{formatWeekday(report.date)}</span>
+                      <span className="rc-agenda-row-day">{formatDay(report.date)}</span>
+                    </div>
+                    <div className="rc-agenda-row-body">
+                      <div className="rc-agenda-row-header">
+                        <span className={`rc-status-pill rc-status-pill--${group.status}`}>
+                          {group.label}
+                        </span>
+                        <span className="rc-agenda-row-duedate">
+                          <Clock size={10} aria-hidden="true" />
+                          Due: {formatShortDate(report.dueDate)}
+                        </span>
+                      </div>
+                      <div className="rc-agenda-row-meta">
+                        {report.grossRevenue !== undefined && (
+                          <span className="rc-agenda-row-revenue">
+                            {formatCurrency(report.grossRevenue, report.currency || 'USD', locale as SupportedLocale)}
+                          </span>
+                        )}
+                        {report.submittedAt && (
+                          <span className="rc-agenda-row-submitted">
+                            <CheckCircle2 size={10} aria-hidden="true" />
+                            Submitted {formatShortDate(report.submittedAt)}
+                          </span>
+                        )}
+                        {report.acceptedAt && (
+                          <span className="rc-agenda-row-accepted">
+                            <CheckCircle2 size={10} aria-hidden="true" />
+                            Accepted {formatShortDate(report.acceptedAt)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <ChevronRight size={16} className="rc-agenda-row-chevron" aria-hidden="true" />
+                  </button>
+                  {onSubmitReport && (group.status === 'due' || group.status === 'overdue') && (
+                    <div className="rc-agenda-row-cta">
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={(e: React.MouseEvent) => {
+                          e.stopPropagation();
+                          onSubmitReport(report.date);
+                        }}
+                        aria-label={`Submit report for ${formatDate(report.date, locale as SupportedLocale, { month: 'long', day: 'numeric' })}`}
+                      >
+                        <Send size={12} aria-hidden="true" />
+                        Submit
+                      </Button>
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ))}
     </div>
   );
 };

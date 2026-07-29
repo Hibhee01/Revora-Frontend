@@ -840,6 +840,70 @@
 
 /* ─── Print Styles ─────────────────────────────────────────────────── */
 
+/* ─── Keyboard Shortcuts Hint ──────────────────────────────────────────── */
+
+.rc-shortcuts-hint {
+  display: flex;
+  align-items: center;
+}
+
+.rc-shortcuts-hint-text {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.rc-shortcut-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.25rem;
+  font-family: inherit;
+  font-size: 0.6875rem;
+  font-weight: var(--font-weight-medium);
+  color: var(--text-muted);
+  background: var(--glass-bg-accent);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xs);
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.rc-shortcuts-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-full);
+  background: var(--glass-bg-accent);
+  border: 1px solid var(--glass-border);
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.rc-shortcuts-btn:hover {
+  background: rgba(148, 163, 184, 0.15);
+  border-color: var(--glass-border-bright);
+  color: var(--text-main);
+}
+
+.rc-shortcuts-btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+@media (max-width: 767px) {
+  .rc-shortcuts-hint {
+    display: none;
+  }
+}
+
 @media print {
   .rc-container {
     padding: 0;

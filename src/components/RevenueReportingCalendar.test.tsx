@@ -442,6 +442,54 @@ describe('RevenueReportingCalendar', () => {
       await user.keyboard('{PageDown}');
       expect(onMonthChange).toHaveBeenCalledWith('2026-07');
     });
+
+    it('supports T key to jump to today', async () => {
+      const onDateSelect = vi.fn();
+      const user = userEvent.setup();
+      render(
+        <RevenueReportingCalendar
+          reports={baseReports}
+          locale="en-US"
+          weekStartsOn={0}
+          onDateSelect={onDateSelect}
+        />,
+      );
+      const grid = screen.getByRole('grid');
+      grid.focus();
+
+      // Press T to jump to today
+      await user.keyboard('t');
+
+      // Should have selected today's date
+      const today = new Date();
+      const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+      expect(onDateSelect).toHaveBeenCalledWith(todayStr);
+    });
+
+    it('renders the keyboard shortcuts hint', () => {
+      render(
+        <RevenueReportingCalendar
+          reports={baseReports}
+          locale="en-US"
+          weekStartsOn={0}
+        />,
+      );
+      expect(screen.getByText(/T/)).toBeInTheDocument();
+      expect(screen.getByText(/\?/)).toBeInTheDocument();
+    });
+
+    it('renders the shortcuts button when onOpenShortcuts is provided', () => {
+      const onOpenShortcuts = vi.fn();
+      render(
+        <RevenueReportingCalendar
+          reports={baseReports}
+          locale="en-US"
+          weekStartsOn={0}
+          onOpenShortcuts={onOpenShortcuts}
+        />,
+      );
+      expect(screen.getByLabelText('Keyboard shortcuts')).toBeInTheDocument();
+    });
   });
 
   /* ─── Details Panel ────────────────────────────────────────────── */

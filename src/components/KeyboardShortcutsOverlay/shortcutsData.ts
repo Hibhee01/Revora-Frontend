@@ -25,4 +25,20 @@ export const KEYBOARD_SHORTCUT_GROUPS: ShortcutGroup[] = [
       { label: 'Toggle notifications', keys: ['n'] },
     ],
   },
+  {
+    title: 'Revenue Calendar',
+    shortcuts: [
+      { label: 'Move focus right', keys: ['ArrowRight'] },
+      { label: 'Move focus left', keys: ['ArrowLeft'] },
+      { label: 'Move focus up', keys: ['ArrowUp'] },
+      { label: 'Move focus down', keys: ['ArrowDown'] },
+      { label: 'Go to start of week row', keys: ['Home'] },
+      { label: 'Go to end of week row', keys: ['End'] },
+      { label: 'Previous month', keys: ['PageUp'] },
+      { label: 'Next month', keys: ['PageDown'] },
+      { label: 'Select focused day', keys: ['Enter'] },
+      { label: 'Jump to today', keys: ['T'] },
+      { label: 'Show/hide shortcuts', keys: ['?'] },
+    ],
+  },
 ];

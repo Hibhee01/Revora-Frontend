@@ -10,7 +10,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { PayoutSettingsTab } from "./PayoutSettingsTab";
-import { ComplianceSettingsTab } from "./ComplianceSettingsTab";
+import { OfferingSettingsGeneralTab } from "./OfferingSettingsGeneralTab";
 
 interface OfferingData {
   id: string;
@@ -54,40 +54,24 @@ export const OfferingDetail: React.FC = () => {
   const { id = "1" } = useParams<{ id: string }>();
   const offering = mockOfferings[id] || mockOfferings["1"];
   const [isInvesting, setIsInvesting] = useState(false);
-  const [activeTab, setActiveTab] = useState<'overview' | 'payouts' | 'compliance'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'payouts' | 'general'>('overview');
+
+  const handleSaveGeneral = (data: any) => {
+    console.log('Saving general settings:', data);
+  };
+  
+  const handleInvest = () => {};
+  const handleBack = () => {};
 
   const fundingPercentage = (offering.fundedAmount / offering.targetAmount) * 100;
   const fundingRemaining = offering.targetAmount - offering.fundedAmount;
 
-  const handleInvest = () => {
-    setIsInvesting(true);
-    // TODO: Route to investment flow or open modal
-    setTimeout(() => setIsInvesting(false), 500);
-  };
-
-  const handleBack = () => {
-    navigate("/investor/portal");
-  };
-
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-8 animate-fade-in">
-      {/* Header Navigation */}
-      <div className="flex items-center gap-3 mb-6">
-        <button
-          onClick={handleBack}
-          className="p-2 hover:bg-slate-800 rounded-lg transition-colors"
-          aria-label="Back to offerings"
-        >
-          <ArrowLeft size={20} className="icon-rtl" />
-        </button>
-        <div>
-          <p className="text-xs text-muted uppercase tracking-wide">
-            Offering Settings
-          </p>
-          <h1 className="text-3xl font-bold tracking-tight">{offering.name}</h1>
-        </div>
-      </div>
-
+    <div className="p-6">
+      <button onClick={handleBack} className="flex items-center gap-2 text-muted hover:text-white mb-6">
+        <ArrowLeft size={16} /> Back
+      </button>
+      
       {/* Tabs */}
       <div className="flex gap-6 border-b border-slate-800 mb-6">
         <button 
@@ -105,11 +89,11 @@ export const OfferingDetail: React.FC = () => {
           {activeTab === 'payouts' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full" />}
         </button>
         <button 
-          onClick={() => setActiveTab('compliance')}
-          className={`pb-3 text-sm font-medium transition-colors relative ${activeTab === 'compliance' ? 'text-primary' : 'text-muted hover:text-main'}`}
+          onClick={() => setActiveTab('general')}
+          className={`pb-3 text-sm font-medium transition-colors relative ${activeTab === 'general' ? 'text-primary' : 'text-muted hover:text-main'}`}
         >
-          Compliance
-          {activeTab === 'compliance' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full" />}
+          General
+          {activeTab === 'general' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full" />}
         </button>
       </div>
 
@@ -117,12 +101,15 @@ export const OfferingDetail: React.FC = () => {
         <ComplianceSettingsTab />
       ) : activeTab === 'payouts' ? (
         <PayoutSettingsTab />
+      ) : activeTab === 'general' ? (
+        <OfferingSettingsGeneralTab 
+          initialData={{ name: offering.name, description: offering.description }}
+          onSave={handleSaveGeneral}
+        />
       ) : (
-      <>
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column: Offering Overview */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Column: Offering Overview */}
+          <div className="lg:col-span-2 space-y-6">
           {/* Offering Header Card */}
           <div className="glass-card p-8 space-y-6">
             <div className="flex items-start gap-4">

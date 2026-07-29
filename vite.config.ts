@@ -57,6 +57,9 @@ export default defineConfig({
         'src/components/UploadQueue/UploadQueue.tsx': {
           branches: 95, functions: 95, lines: 95, statements: 95,
         },
+        'src/components/DocumentUploader/DocumentUploader.tsx': {
+          branches: 95, functions: 95, lines: 95, statements: 95,
+        },
         'src/components/DensityProvider/DensityProvider.tsx': {
           branches: 95, functions: 95, lines: 95, statements: 95,
         },

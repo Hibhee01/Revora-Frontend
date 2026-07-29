@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 /**
  * Audit Trail page with saved-filter and pinned-search UX (Issue #235).
  *
@@ -339,3 +340,169 @@ export const AuditTrail: React.FC<AuditTrailProps> = ({ entries = MOCK_AUDIT_ENT
     </div>
   );
 };
+=======
+import React, { useState } from 'react';
+import ActorDetailPopover from '../components/ActorDetailPopover';
+
+export interface AuditAction {
+  id: string;
+  type: string;
+  description: string;
+  timestamp: string;
+}
+
+export interface Actor {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  lastLogin: string;
+  avatar?: string;
+}
+
+const AuditTrail: React.FC = () => {
+  const [selectedActor, setSelectedActor] = useState<Actor | null>(null);
+  const [popoverAnchor, setPopoverAnchor] = useState<HTMLElement | null>(null);
+
+  // Mock data - in production this would come from an API
+  const actors: Actor[] = [
+    {
+      id: '1',
+      name: 'Sarah Johnson',
+      email: 'sarah.johnson@revora.org',
+      role: 'Administrator',
+      lastLogin: '2024-01-15T09:30:00Z',
+    },
+    {
+      id: '2',
+      name: 'Michael Chen',
+      email: 'michael.chen@revora.org',
+      role: 'Auditor',
+      lastLogin: '2024-01-14T16:45:00Z',
+    },
+    {
+      id: '3',
+      name: 'Emily Rodriguez',
+      email: 'emily.rodriguez@revora.org',
+      role: 'Manager',
+      lastLogin: '2024-01-15T08:15:00Z',
+    },
+  ];
+
+  const mockActions: Record<string, AuditAction[]> = {
+    '1': [
+      { id: 'a1', type: 'user_created', description: 'Created new user account', timestamp: '2024-01-15T10:00:00Z' },
+      { id: 'a2', type: 'permission_updated', description: 'Updated user permissions', timestamp: '2024-01-15T09:45:00Z' },
+      { id: 'a3', type: 'settings_changed', description: 'Modified system settings', timestamp: '2024-01-15T09:30:00Z' },
+      { id: 'a4', type: 'export_generated', description: 'Generated audit report', timestamp: '2024-01-14T14:20:00Z' },
+      { id: 'a5', type: 'user_deleted', description: 'Deleted inactive user', timestamp: '2024-01-14T11:30:00Z' },
+    ],
+    '2': [
+      { id: 'b1', type: 'audit_reviewed', description: 'Reviewed compliance logs', timestamp: '2024-01-14T17:00:00Z' },
+      { id: 'b2', type: 'flag_raised', description: 'Raised security flag', timestamp: '2024-01-14T16:45:00Z' },
+      { id: 'b3', type: 'report_viewed', description: 'Viewed monthly report', timestamp: '2024-01-14T15:30:00Z' },
+      { id: 'b4', type: 'filter_applied', description: 'Applied date filter', timestamp: '2024-01-14T14:00:00Z' },
+      { id: 'b5', type: 'export_downloaded', description: 'Downloaded CSV export', timestamp: '2024-01-13T18:45:00Z' },
+    ],
+    '3': [
+      { id: 'c1', type: 'team_updated', description: 'Updated team assignments', timestamp: '2024-01-15T08:30:00Z' },
+      { id: 'c2', type: 'project_created', description: 'Created new project', timestamp: '2024-01-15T08:15:00Z' },
+      { id: 'c3', type: 'milestone_completed', description: 'Marked milestone complete', timestamp: '2024-01-14T10:00:00Z' },
+      { id: 'c4', type: 'budget_approved', description: 'Approved budget request', timestamp: '2024-01-13T14:30:00Z' },
+      { id: 'c5', type: 'comment_added', description: 'Added project comment', timestamp: '2024-01-12T09:15:00Z' },
+    ],
+  };
+
+  const handleActorClick = (actor: Actor, event: React.MouseEvent<HTMLElement>) => {
+    setSelectedActor(actor);
+    setPopoverAnchor(event.currentTarget);
+  };
+
+  const closePopover = () => {
+    setSelectedActor(null);
+    setPopoverAnchor(null);
+  };
+
+  const getRecentActions = (actorId: string): AuditAction[] => {
+    return mockActions[actorId] || [];
+  };
+
+  return (
+    <div className="audit-trail-page">
+      <div className="glass-card" style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
+        <h1 className="text-main" style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '1.5rem' }}>
+          Audit Trail
+        </h1>
+        <p className="text-muted" style={{ marginBottom: '2rem' }}>
+          Track and review all system actions performed by users. Click on an actor to view their details and recent activity.
+        </p>
+
+        <section aria-label="Actor list">
+          <h2 className="text-main" style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '1rem' }}>
+            Active Actors
+          </h2>
+          <div className="actor-grid" style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
+            {actors.map((actor) => (
+              <button
+                key={actor.id}
+                className="glass-card-interactive actor-card"
+                onClick={(e) => handleActorClick(actor, e)}
+                style={{
+                  padding: '1.25rem',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  border: '1px solid var(--glass-border)',
+                  borderRadius: '1rem',
+                  background: 'var(--glass-bg)',
+                  backdropFilter: 'var(--glass-blur)',
+                  transition: 'all 0.2s ease',
+                }}
+                aria-label={`View details for ${actor.name}`}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <div
+                    style={{
+                      width: '48px',
+                      height: '48px',
+                      borderRadius: '50%',
+                      background: 'var(--primary)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '1.25rem',
+                      fontWeight: '600',
+                      color: 'white',
+                    }}
+                  >
+                    {actor.name.charAt(0)}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <h3 className="text-main" style={{ fontSize: '1rem', fontWeight: '600', margin: 0 }}>
+                      {actor.name}
+                    </h3>
+                    <p className="text-muted" style={{ fontSize: '0.875rem', margin: '0.25rem 0 0' }}>
+                      {actor.role}
+                    </p>
+                  </div>
+                  <span className="text-muted" style={{ fontSize: '0.875rem' }}>→</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {selectedActor && popoverAnchor && (
+          <ActorDetailPopover
+            actor={selectedActor}
+            recentActions={getRecentActions(selectedActor.id)}
+            anchorEl={popoverAnchor}
+            onClose={closePopover}
+          />
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default AuditTrail;
+>>>>>>> Stashed changes

@@ -1,0 +1,252 @@
+/* ─── Status Glyph ─────────────────────────────────────────── */
+
+.sg-glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.sg-glyph--healthy {
+  background: rgba(16, 185, 129, 0.12);
+  border: 2px solid var(--success);
+  color: var(--success);
+}
+
+.sg-glyph--degraded {
+  background: rgba(245, 158, 11, 0.12);
+  border: 2px solid #f59e0b;
+  color: #f59e0b;
+}
+
+.sg-glyph--outage {
+  background: rgba(239, 68, 68, 0.12);
+  border: 2px solid var(--error);
+  color: var(--error);
+}
+
+.sg-glyph--unknown {
+  background: rgba(148, 163, 184, 0.08);
+  border: 2px dashed rgba(148, 163, 184, 0.4);
+  color: var(--text-muted);
+}
+
+/* ─── Incident Banner ─────────────────────────────────────── */
+
+.ah-incident {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  border-radius: var(--radius-lg);
+  border: 1px solid;
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.ah-incident--critical {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.25);
+  color: #f87171;
+}
+
+.ah-incident--warning {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.25);
+  color: #fbbf24;
+}
+
+.ah-incident--info {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.25);
+  color: #60a5fa;
+}
+
+.ah-incident-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.ah-incident-title {
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--spacing-3xs);
+}
+
+.ah-incident-message {
+  font-size: var(--font-size-xs);
+  opacity: 0.9;
+}
+
+.ah-incident-dismiss {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: background 0.2s ease;
+}
+
+.ah-incident-dismiss:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.ah-incident-dismiss:focus-visible {
+  outline: 2px solid var(--text-main);
+  outline-offset: 2px;
+}
+
+/* ─── Root Section ────────────────────────────────────────── */
+
+.ah-root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
+.ah-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3xs);
+}
+
+.ah-title {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  letter-spacing: -0.025em;
+  color: var(--text-main);
+}
+
+.ah-subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  line-height: var(--line-height-normal);
+}
+
+/* ─── Tiles Grid ──────────────────────────────────────────── */
+
+.ah-tiles {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-md);
+}
+
+@media (min-width: 640px) {
+  .ah-tiles {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ─── Tile ────────────────────────────────────────────────── */
+
+.ah-tile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-lg);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.ah-tile:hover {
+  border-color: var(--glass-border-bright);
+  transform: translateY(-1px);
+}
+
+.ah-tile-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.ah-tile-label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.ah-tile-value {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-main);
+  line-height: var(--line-height-tight);
+}
+
+.ah-tile-detail {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  line-height: var(--line-height-normal);
+}
+
+.ah-tile-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-3xs);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--primary);
+  text-decoration: none;
+  margin-top: var(--spacing-2xs);
+  transition: color 0.2s ease;
+}
+
+.ah-tile-link:hover {
+  color: var(--primary-hover);
+  text-decoration: underline;
+}
+
+.ah-tile-link:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
+}
+
+/* ─── Responsive: stacked on very narrow screens ──────────── */
+
+@media (max-width: 480px) {
+  .ah-tile {
+    padding: var(--spacing-md);
+  }
+
+  .ah-tile-value {
+    font-size: var(--font-size-xl);
+  }
+}
+
+/* ─── Reduced Motion ──────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .ah-tile,
+  .ah-incident {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* ─── High Contrast Mode ──────────────────────────────────── */
+
+@media (prefers-contrast: high) {
+  .sg-glyph {
+    border-width: 3px;
+  }
+
+  .ah-tile {
+    border-width: 2px;
+  }
+}

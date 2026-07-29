@@ -1533,3 +1533,120 @@
     display: none;
   }
 }
+
+/* ─── Bulk Select Range Styling ────────────────────────────────────── */
+
+.rc-day-cell--in-range {
+  background-color: var(--color-background-muted, #f1f5f9);
+}
+
+.rc-day-cell--in-range:not(.rc-day-cell--selected) {
+  background-color: var(--color-background-muted-hover, #e2e8f0);
+}
+
+/* Connect the backgrounds for adjacent selected cells */
+.rc-day-cell--range-start {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.rc-day-cell--range-end {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.rc-day-cell--in-range:not(.rc-day-cell--range-start):not(.rc-day-cell--range-end) {
+  border-radius: 0;
+}
+
+/* ─── Bulk Action Bar ──────────────────────────────────────────────── */
+
+.rc-bulk-action-bar {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background-color: var(--color-background-surface, #ffffff);
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 8px;
+  padding: 12px 24px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translate(-50%, 100%);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+}
+
+.rc-bulk-info {
+  font-weight: 500;
+  color: var(--color-text-primary, #1e293b);
+  border-right: 1px solid var(--color-border, #e2e8f0);
+  padding-right: 16px;
+}
+
+.rc-bulk-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rc-bulk-close {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary, #64748b);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  margin-left: 8px;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.rc-bulk-close:hover {
+  background-color: var(--color-background-muted, #f1f5f9);
+  color: var(--color-text-primary, #1e293b);
+}
+
+@media (max-width: 600px) {
+  .rc-bulk-action-bar {
+    width: 90%;
+    flex-direction: column;
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .rc-bulk-info {
+    border-right: none;
+    border-bottom: 1px solid var(--color-border, #e2e8f0);
+    padding-right: 0;
+    padding-bottom: 12px;
+    width: 100%;
+    text-align: center;
+  }
+
+  .rc-bulk-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .rc-bulk-close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    margin: 0;
+  }
+}

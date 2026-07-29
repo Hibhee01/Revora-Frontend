@@ -1,0 +1,220 @@
+.blacklist-bulk-remove-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(2, 6, 23, 0.7); /* slate-950/70 */
+  padding: 1rem;
+}
+
+.blacklist-bulk-remove-dialog {
+  width: 100%;
+  max-width: 32rem; /* max-w-lg */
+  border-radius: 1rem; /* rounded-2xl */
+  border: 1px solid var(--border-color, #e2e8f0);
+  background-color: var(--bg-color, #ffffff);
+  padding: 1.5rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  outline: none;
+}
+
+:root[data-theme='dark'] .blacklist-bulk-remove-dialog,
+.dark .blacklist-bulk-remove-dialog {
+  border-color: #334155; /* slate-700 */
+  background-color: #0f172a; /* slate-900 */
+  color: #ffffff;
+}
+
+.blacklist-bulk-remove-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.blacklist-bulk-remove-title {
+  margin-top: 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-color, #0f172a);
+}
+
+:root[data-theme='dark'] .blacklist-bulk-remove-title,
+.dark .blacklist-bulk-remove-title {
+  color: #ffffff;
+}
+
+.blacklist-bulk-remove-close {
+  border-radius: 9999px;
+  padding: 0.5rem;
+  color: #64748b; /* slate-500 */
+  transition: all 0.2s;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.blacklist-bulk-remove-close:hover {
+  background-color: #f1f5f9; /* slate-100 */
+  color: #334155; /* slate-700 */
+}
+
+:root[data-theme='dark'] .blacklist-bulk-remove-close:hover,
+.dark .blacklist-bulk-remove-close:hover {
+  background-color: #1e293b; /* slate-800 */
+}
+
+.blacklist-bulk-remove-description {
+  margin-top: 1rem;
+  font-size: 0.875rem;
+  line-height: 1.5rem;
+  color: #475569; /* slate-600 */
+}
+
+:root[data-theme='dark'] .blacklist-bulk-remove-description,
+.dark .blacklist-bulk-remove-description {
+  color: #cbd5e1; /* slate-300 */
+}
+
+.blacklist-bulk-remove-entries {
+  margin-top: 1.5rem;
+  max-height: 12rem;
+  overflow-y: auto;
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
+  background-color: #f8fafc;
+}
+
+:root[data-theme='dark'] .blacklist-bulk-remove-entries,
+.dark .blacklist-bulk-remove-entries {
+  border-color: #334155;
+  background-color: #1e293b;
+}
+
+.blacklist-bulk-remove-entry {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+}
+
+:root[data-theme='dark'] .blacklist-bulk-remove-entry,
+.dark .blacklist-bulk-remove-entry {
+  border-bottom-color: #334155;
+}
+
+.blacklist-bulk-remove-entry:last-child {
+  border-bottom: none;
+}
+
+.blacklist-bulk-remove-form {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.blacklist-bulk-remove-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.blacklist-bulk-remove-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.blacklist-bulk-remove-preset-btn {
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  border: 1px solid #cbd5e1;
+  background: white;
+  cursor: pointer;
+  color: #0f172a;
+}
+
+:root[data-theme='dark'] .blacklist-bulk-remove-preset-btn,
+.dark .blacklist-bulk-remove-preset-btn {
+  border-color: #475569;
+  background: #1e293b;
+  color: #cbd5e1;
+}
+
+.blacklist-bulk-remove-preset-btn[data-selected="true"] {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+
+.blacklist-bulk-remove-textarea {
+  width: 100%;
+  border-radius: 0.375rem;
+  border: 1px solid #cbd5e1;
+  padding: 0.5rem;
+  font-size: 0.875rem;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  resize: vertical;
+}
+
+:root[data-theme='dark'] .blacklist-bulk-remove-textarea,
+.dark .blacklist-bulk-remove-textarea {
+  border-color: #475569;
+}
+
+.blacklist-bulk-remove-input {
+  width: 100%;
+  border-radius: 0.375rem;
+  border: 1px solid #cbd5e1;
+  padding: 0.5rem;
+  font-size: 0.875rem;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+}
+
+:root[data-theme='dark'] .blacklist-bulk-remove-input,
+.dark .blacklist-bulk-remove-input {
+  border-color: #475569;
+}
+
+.blacklist-bulk-remove-actions {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.blacklist-bulk-remove-btn-danger {
+  background-color: #ef4444;
+  color: white;
+  transition: opacity 0.2s;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.blacklist-bulk-remove-btn-danger:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.blacklist-bulk-remove-btn-danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.blacklist-bulk-remove-error {
+  color: #ef4444;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}

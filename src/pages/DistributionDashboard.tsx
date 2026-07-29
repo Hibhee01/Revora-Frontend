@@ -16,6 +16,7 @@ import { ErrorRateSparklineTile } from '../components/ErrorRateSparklineTile/Err
 import type { ErrorRateDataPoint } from '../components/ErrorRateSparklineTile/ErrorRateSparklineTile';
 import { GovernanceDelegation } from '../components/GovernanceDelegation/GovernanceDelegation';
 import { RevenuePayoutChart, RevenuePayoutDataPoint } from '../components/RevenuePayoutChart/RevenuePayoutChart';
+import { BlacklistBulkRemoveConfirm, BlacklistEntry } from '../components/BlacklistBulkRemoveConfirm/BlacklistBulkRemoveConfirm';
 
 interface ExtendedPayoutDetail extends PayoutDetail {
   region: string;
@@ -178,6 +179,7 @@ const SAMPLE_INCIDENT: IncidentData | null = null;
 
 export const DistributionDashboard: React.FC = () => {
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(true);
+  const [isBulkRemoveModalOpen, setIsBulkRemoveModalOpen] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [bannerDismissed, setBannerDismissed] = useState(false);
@@ -435,6 +437,12 @@ export const DistributionDashboard: React.FC = () => {
             <span className="text-xs text-muted uppercase">Delegated Power</span>
             <span className="text-sm font-bold text-white">0 VP</span>
           </div>
+          <button 
+            onClick={() => setIsBulkRemoveModalOpen(true)}
+            className="rounded px-4 py-2 text-sm font-semibold bg-rose-600 text-white hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-500"
+          >
+            Bulk Remove Test
+          </button>
           <a href="/startup/report-revenue" className="payout-btn-primary">
             + Report Monthly Revenue
           </a>
@@ -606,6 +614,21 @@ export const DistributionDashboard: React.FC = () => {
         onClose={() => setIsClaimModalOpen(false)}
         unlockedAmount="$12,480.00"
         gasEstimate={22}
+      />
+
+      <BlacklistBulkRemoveConfirm
+        isOpen={isBulkRemoveModalOpen}
+        onClose={() => setIsBulkRemoveModalOpen(false)}
+        entries={[
+          { id: '1', value: '0x1234567890abcdef1234567890abcdef12345678', type: 'Wallet' },
+          { id: '2', value: '192.168.1.100', type: 'IP' },
+          { id: '3', value: 'bad-actor@example.com', type: 'Email' }
+        ]}
+        onConfirm={async (reason, initials) => {
+          console.log('Confirmed bulk remove:', { reason, initials });
+          // Mock API call
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+        }}
       />
     </div>
   );

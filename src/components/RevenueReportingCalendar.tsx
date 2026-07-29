@@ -21,6 +21,7 @@ import React, {
   useRef,
   useEffect,
   KeyboardEvent,
+  MouseEvent,
 } from "react";
 import {
   ChevronLeft,
@@ -39,6 +40,8 @@ import {
   TrendingUp,
   TrendingDown,
   Minus,
+  Download,
+  Bell,
 } from "lucide-react";
 import {
   formatDate,
@@ -139,12 +142,22 @@ function buildDayCells(
   year: number,
   month: number,
   reports: RevenueReport[],
-  selectedDate: string | undefined,
+  selectedDates: string[],
   weekStartsOn: number,
 ): DayCellData[] {
   const daysInMonth = getDaysInMonth(year, month);
   const firstDay = getFirstDayOfMonth(year, month, weekStartsOn);
   const cells: DayCellData[] = [];
+
+  const sortedDates = [...selectedDates].sort();
+  const getSelectionProps = (date: string) => {
+    const isSelected = selectedDates.includes(date);
+    if (!isSelected || sortedDates.length < 2) return { isSelected };
+    const isRangeStart = date === sortedDates[0];
+    const isRangeEnd = date === sortedDates[sortedDates.length - 1];
+    const isInRange = isSelected && !isRangeStart && !isRangeEnd;
+    return { isSelected, isRangeStart, isRangeEnd, isInRange };
+  };
 
   // Previous month padding
   const prevMonth = month === 0 ? 11 : month - 1;
@@ -160,7 +173,7 @@ function buildDayCells(
       day,
       inMonth: false,
       isToday: isToday(date),
-      isSelected: selectedDate === date,
+      ...getSelectionProps(date),
       reports: dayReports,
       primaryStatus: getPrimaryStatus(dayReports),
     });
@@ -175,7 +188,7 @@ function buildDayCells(
       day,
       inMonth: true,
       isToday: isToday(date),
-      isSelected: selectedDate === date,
+      ...getSelectionProps(date),
       reports: dayReports,
       primaryStatus: getPrimaryStatus(dayReports),
     });
@@ -193,7 +206,7 @@ function buildDayCells(
       day,
       inMonth: false,
       isToday: isToday(date),
-      isSelected: selectedDate === date,
+      ...getSelectionProps(date),
       reports: dayReports,
       primaryStatus: getPrimaryStatus(dayReports),
     });
@@ -499,7 +512,7 @@ interface CalendarDayCellProps {
   cell: DayCellData;
   isFocused: boolean;
   weekStartsOn: number;
-  onSelect: (date: string) => void;
+  onSelect: (date: string, e: MouseEvent | KeyboardEvent) => void;
   onFocus: (date: string) => void;
   locale: string;
   /** Reports from the prior period (same day prev month) for variance KPI */
@@ -527,9 +540,9 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
     open();
   }, [open]);
 
-  const handleClick = () => {
+  const handleClick = (e: MouseEvent<HTMLDivElement>) => {
     closeImmediate();
-    onSelect(cell.date);
+    onSelect(cell.date, e);
   };
   const handleFocus = () => {
     onFocus(cell.date);
@@ -548,7 +561,7 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       closeImmediate();
-      onSelect(cell.date);
+      onSelect(cell.date, e);
     }
   };
 
@@ -583,6 +596,9 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
     !cell.inMonth && "rc-day-cell--outside",
     cell.isToday && "rc-day-cell--today",
     cell.isSelected && "rc-day-cell--selected",
+    cell.isRangeStart && "rc-day-cell--range-start",
+    cell.isRangeEnd && "rc-day-cell--range-end",
+    cell.isInRange && "rc-day-cell--in-range",
     cell.primaryStatus !== "none" && `rc-day-cell--${cell.primaryStatus}`,
   ]
     .filter(Boolean)
@@ -635,10 +651,10 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
 
 interface CalendarGridComponentProps {
   days: DayCellData[];
-  selectedDate: string | undefined;
+  selectedDates: string[];
   focusedDate: string | undefined;
   weekStartsOn: number;
-  onDateSelect: (date: string) => void;
+  onDateSelect: (date: string, e: MouseEvent | KeyboardEvent) => void;
   onFocusDate: (date: string) => void;
   locale: string;
   ariaLabel: string;
@@ -648,7 +664,7 @@ interface CalendarGridComponentProps {
 
 const CalendarGridComponent: React.FC<CalendarGridComponentProps> = ({
   days,
-  selectedDate,
+  selectedDates,
   focusedDate,
   weekStartsOn,
   onDateSelect,
@@ -684,10 +700,10 @@ const CalendarGridComponent: React.FC<CalendarGridComponentProps> = ({
   // Roving tabindex: only the focused/selected day is tabbable
   const getTabIndex = useCallback(
     (cell: DayCellData) => {
-      if (cell.date === focusedDate || cell.date === selectedDate) return 0;
+      if (cell.date === focusedDate || selectedDates.includes(cell.date)) return 0;
       return -1;
     },
-    [focusedDate, selectedDate],
+    [focusedDate, selectedDates],
   );
 
   // Focus the active cell when focusedDate changes
@@ -1117,6 +1133,54 @@ const DetailsPanel: React.FC<DetailsPanelProps> = ({
   );
 };
 
+/* ─── Bulk Action Bar ──────────────────────────────────────────────── */
+
+interface BulkActionBarProps {
+  selectedDates: string[];
+  reports: RevenueReport[];
+  onClose: () => void;
+  onExport: () => void;
+  onNudge: () => void;
+}
+
+const BulkActionBar: React.FC<BulkActionBarProps> = ({
+  selectedDates,
+  reports,
+  onClose,
+  onExport,
+  onNudge,
+}) => {
+  if (selectedDates.length <= 1) return null;
+
+  const selectedReports = reports.filter(r => selectedDates.includes(r.date));
+  const canNudge = selectedReports.some(r => r.status === 'due' || r.status === 'overdue');
+
+  return (
+    <div className="rc-bulk-action-bar" role="toolbar" aria-label="Bulk actions">
+      <div className="rc-bulk-info">
+        <span className="rc-bulk-count">{selectedDates.length} period{selectedDates.length > 1 ? 's' : ''} selected</span>
+      </div>
+      <div className="rc-bulk-actions">
+        <Button variant="secondary" size="sm" onClick={onExport} aria-label="Export selected reports">
+          <Download size={16} aria-hidden="true" /> Export
+        </Button>
+        <Button 
+          variant="primary" 
+          size="sm" 
+          onClick={onNudge} 
+          disabled={!canNudge}
+          aria-label={canNudge ? "Nudge owners for due/overdue reports" : "No due/overdue reports to nudge"}
+        >
+          <Bell size={16} aria-hidden="true" /> Nudge Owners
+        </Button>
+        <button type="button" className="rc-bulk-close" onClick={onClose} aria-label="Clear selection">
+          <X size={16} aria-hidden="true" />
+        </button>
+      </div>
+    </div>
+  );
+};
+
 /* ─── Main Component ───────────────────────────────────────────────── */
 
 export const RevenueReportingCalendar: React.FC<
@@ -1124,12 +1188,14 @@ export const RevenueReportingCalendar: React.FC<
 > = ({
   reports,
   selectedDate: controlledSelectedDate,
+  selectedDates: controlledSelectedDates,
   viewMonth: controlledViewMonth,
   isLoading = false,
   error = null,
   locale = "en-US",
   weekStartsOn = 0, // Sunday by default
   onDateSelect,
+  onDatesSelect,
   onMonthChange,
   onSubmitReport,
   onReportAction,
@@ -1140,16 +1206,28 @@ export const RevenueReportingCalendar: React.FC<
   const defaultMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
 
   const [internalViewMonth, setInternalViewMonth] = useState(defaultMonth);
-  const [internalSelectedDate, setInternalSelectedDate] = useState<
-    string | undefined
-  >(controlledSelectedDate);
+  
+  // Initialize from controlled props, favoring the array prop if present
+  const defaultSelectedDates = controlledSelectedDates 
+    ? controlledSelectedDates 
+    : controlledSelectedDate 
+      ? [controlledSelectedDate] 
+      : [];
+      
+  const [internalSelectedDates, setInternalSelectedDates] = useState<string[]>(defaultSelectedDates);
+  const [lastSelectedDate, setLastSelectedDate] = useState<string | undefined>(
+    defaultSelectedDates[defaultSelectedDates.length - 1]
+  );
   const [focusedDate, setFocusedDate] = useState<string | undefined>(undefined);
   const [panelOpen, setPanelOpen] = useState(true);
   const [mobileView, setMobileView] = useState<"calendar" | "agenda">("agenda");
   const [showImportWizard, setShowImportWizard] = useState(false);
 
   const viewMonth = controlledViewMonth ?? internalViewMonth;
-  const selectedDate = controlledSelectedDate ?? internalSelectedDate;
+  const selectedDates = controlledSelectedDates ?? internalSelectedDates;
+  
+  // For backwards compatibility and single-date details panel
+  const selectedDate = selectedDates.length === 1 ? selectedDates[0] : undefined;
 
   const [viewYear, viewMonthNum] = useMemo(() => {
     const [y, m] = viewMonth.split("-").map(Number);
@@ -1163,10 +1241,10 @@ export const RevenueReportingCalendar: React.FC<
         viewYear,
         viewMonthNum,
         reports,
-        selectedDate,
+        selectedDates,
         weekStartsOn,
       ),
-    [viewYear, viewMonthNum, reports, selectedDate, weekStartsOn],
+    [viewYear, viewMonthNum, reports, selectedDates, weekStartsOn],
   );
 
   // Month reports
@@ -1201,13 +1279,54 @@ export const RevenueReportingCalendar: React.FC<
   }, [viewMonthNum, viewYear, onMonthChange]);
 
   const handleDateSelect = useCallback(
-    (date: string) => {
-      setInternalSelectedDate(date);
+    (date: string, e?: MouseEvent | KeyboardEvent) => {
+      let newSelection: string[] = [];
+      
+      if (e?.shiftKey && lastSelectedDate) {
+        // Range selection
+        const start = new Date(lastSelectedDate).getTime();
+        const end = new Date(date).getTime();
+        const minDate = new Date(Math.min(start, end));
+        const maxDate = new Date(Math.max(start, end));
+        
+        // Include all dates in the range
+        const range: string[] = [];
+        let curr = new Date(minDate);
+        while (curr <= maxDate) {
+          range.push(curr.toISOString().split('T')[0]);
+          curr.setDate(curr.getDate() + 1);
+        }
+        
+        // Merge with existing if ctrl/cmd is held, otherwise replace
+        if (e.ctrlKey || e.metaKey) {
+          newSelection = Array.from(new Set([...selectedDates, ...range]));
+        } else {
+          newSelection = range;
+        }
+      } else if (e?.ctrlKey || e?.metaKey) {
+        // Toggle selection
+        if (selectedDates.includes(date)) {
+          newSelection = selectedDates.filter(d => d !== date);
+        } else {
+          newSelection = [...selectedDates, date];
+        }
+      } else {
+        // Single selection
+        newSelection = [date];
+      }
+
+      setInternalSelectedDates(newSelection);
+      setLastSelectedDate(date);
+      
       onDateSelect?.(date);
-      // Open panel on mobile when date is selected
-      setPanelOpen(true);
+      onDatesSelect?.(newSelection);
+      
+      // Open panel on mobile when date is selected and it's a single selection
+      if (newSelection.length === 1) {
+        setPanelOpen(true);
+      }
     },
-    [onDateSelect],
+    [onDateSelect, onDatesSelect, selectedDates, lastSelectedDate],
   );
 
   const handleFocusDate = useCallback((date: string) => {
@@ -1393,7 +1512,7 @@ export const RevenueReportingCalendar: React.FC<
           >
             <CalendarGridComponent
               days={dayCells}
-              selectedDate={selectedDate}
+              selectedDates={selectedDates}
               focusedDate={focusedDate}
               weekStartsOn={weekStartsOn}
               onDateSelect={handleDateSelect}
@@ -1453,6 +1572,25 @@ export const RevenueReportingCalendar: React.FC<
           />
         </div>
       )}
+
+      {/* Bulk Action Bar */}
+      <BulkActionBar
+        selectedDates={selectedDates}
+        reports={reports}
+        onClose={() => {
+          setInternalSelectedDates([]);
+          setLastSelectedDate(undefined);
+          onDatesSelect?.([]);
+        }}
+        onExport={() => {
+          console.log('Export selected:', selectedDates);
+          // Trigger actual export
+        }}
+        onNudge={() => {
+          console.log('Nudging owners for:', selectedDates);
+          // Trigger actual nudge
+        }}
+      />
     </div>
   );
 };

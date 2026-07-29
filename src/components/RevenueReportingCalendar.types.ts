@@ -86,6 +86,8 @@ export interface RevenueReportingCalendarProps {
   reports: RevenueReport[];
   /** Currently selected date (ISO string YYYY-MM-DD) */
   selectedDate?: string;
+  /** Currently selected dates for bulk selection (ISO strings) */
+  selectedDates?: string[];
   /** Currently viewed month (YYYY-MM) */
   viewMonth?: string;
   /** Loading state */
@@ -98,6 +100,8 @@ export interface RevenueReportingCalendarProps {
   weekStartsOn?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   /** Callback when a date is selected */
   onDateSelect?: (date: string) => void;
+  /** Callback when multiple dates are selected */
+  onDatesSelect?: (dates: string[]) => void;
   /** Callback when month changes (via navigation) */
   onMonthChange?: (month: string) => void;
   /** Callback when "Submit Report" is clicked for a date */
@@ -123,6 +127,12 @@ export interface DayCellData {
   isToday: boolean;
   /** Whether this day is selected */
   isSelected: boolean;
+  /** Whether this day is the start of a selection range */
+  isRangeStart?: boolean;
+  /** Whether this day is the end of a selection range */
+  isRangeEnd?: boolean;
+  /** Whether this day is within a selection range */
+  isInRange?: boolean;
   /** Reports for this day */
   reports: RevenueReport[];
   /** Primary status for the day */

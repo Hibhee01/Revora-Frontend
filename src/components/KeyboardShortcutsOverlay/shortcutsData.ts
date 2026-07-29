@@ -23,6 +23,7 @@ export const KEYBOARD_SHORTCUT_GROUPS: ShortcutGroup[] = [
     shortcuts: [
       { label: 'Toggle keyboard shortcuts', keys: ['?'] },
       { label: 'Toggle notifications', keys: ['n'] },
+      { label: 'Undo last action (when undo banner is visible)', keys: ['mod', 'z'] },
     ],
   },
   {

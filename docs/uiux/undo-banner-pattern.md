@@ -7,6 +7,7 @@ a short window to **Undo** before it becomes permanent.
 
 > Implementation: [`UndoBanner`](../../src/components/UndoBanner/UndoBanner.tsx),
 > [`useUndoBanners`](../../src/hooks/useUndoBanners.ts),
+> [`useUndoKeyboard`](../../src/hooks/useUndoKeyboard.ts),
 > [`useReducedMotion`](../../src/hooks/useReducedMotion.ts).
 
 ## Why this over a confirm dialog
@@ -115,6 +116,58 @@ To prevent rapid action bursts from overwhelming users before they can react, au
 - The layout is a single flex row; the message truncates (`truncate`) so the
   Undo and dismiss controls always remain reachable.
 
+## Keyboard shortcut: Cmd/Ctrl+Z (Issue #279)
+
+When at least one undo banner is visible, pressing **`Cmd+Z`** (macOS) or
+**`Ctrl+Z`** (Windows/Linux) undoes the **newest (topmost) banner** and
+removes it from the stack — equivalent to clicking the "Undo" button on that
+banner.
+
+### Activation rules
+
+| Condition | Behaviour |
+| --- | --- |
+| Focus is on the page (not in an editable element) + ≥1 banner visible | Triggers undo on the newest banner |
+| Focus is in an `input`, `textarea`, `select`, or `contentEditable` element | Shortcut is **suppressed** — browser native undo takes priority |
+| Modal / overlay is open and `disabled` is set | Shortcut is suppressed entirely |
+| No banners visible | No-op |
+
+### Focus-return behaviour
+
+After the undo completes, focus is restored to the **origin element** — the
+element that was focused immediately before the first banner appeared. This
+lets power users undo actions and continue working without manually tabbing
+back. If the origin element is no longer in the DOM (e.g. it was removed by
+the undo), focus falls back to `document.body`.
+
+### Implementation
+
+The keyboard model lives in the [`useUndoKeyboard`](../../src/hooks/useUndoKeyboard.ts)
+hook, which is integrated into `<UndoBanner />` automatically. Consumers do not
+need additional wiring unless they want to customise the shortcut (e.g. disable
+it when a modal is open).
+
+The `UndoBanner` accepts an optional `onKeyboardUndo` prop that overrides the
+default undo callback specifically for keyboard-initiated undos, in case the
+focus-return behaviour should differ from click-initiated undos.
+
+The shortcut is registered in the [Keyboard Shortcuts Overlay](../../src/components/KeyboardShortcutsOverlay/shortcutsData.ts)
+under **General** as "Undo last action (when undo banner is visible)" with the
+`mod+z` key combination.
+
+### Example: using with a modal
+
+```tsx
+const [isModalOpen, setIsModalOpen] = useState(false);
+
+<UndoBanner
+  banners={banners}
+  onUndo={undo}
+  onDismiss={dismiss}
+  onKeyboardUndo={isModalOpen ? undefined : undo}
+/>
+```
+
 ## Accessibility (WCAG 2.1 AA)
 
 - **Polite live region** — the container is `role="status"` `aria-live="polite"`
@@ -128,9 +181,10 @@ To prevent rapid action bursts from overwhelming users before they can react, au
   sweeping ring is replaced by a **static whole-second count** (no animation).
   See [reduced-motion-guidelines.md](./reduced-motion-guidelines.md).
 - **Keyboard & focus** — Undo and dismiss are native `<button>`s with visible
-  `focus:ring` styles and are reachable in DOM order. Triggering an action from
-  the originating control keeps the user's focus context; the transient banner
-  does not steal focus.
+  `focus:ring` styles and are reachable in DOM order. The global
+  **`Cmd/Ctrl+Z`** shortcut provides a power-user path to undo the newest
+  banner without reaching for the mouse. After undo, focus returns to the
+  element that initiated the action.
 - **Dismiss labelling** — the ✕ control has an explicit
   `aria-label="Dismiss: <message>"` so its purpose is unambiguous out of context.
 
@@ -150,7 +204,11 @@ To prevent rapid action bursts from overwhelming users before they can react, au
 
 - [`UndoBanner.test.tsx`](../../src/components/UndoBanner/UndoBanner.test.tsx) —
   rendering, Undo/dismiss callbacks, `onUndoAll`/`onDismissAll` aggregate actions, custom labels, newest-on-top stacking,
-  `+N more` overflow (max 4 default), decorative ring, reduced-motion fallback, and axe assertions.
+  `+N more` overflow (max 4 default), decorative ring, reduced-motion fallback, keyboard shortcut integration, and axe assertions.
 - [`useUndoBanners.test.tsx`](../../src/hooks/useUndoBanners.test.tsx) —
   registration, countdown→commit, undo (with no late commit), dismiss→commit,
   `undoAll()`, `dismissAll()`, dynamic auto-dismiss scaling by stack size, and independent stacked lifecycles.
+- [`useUndoKeyboard.test.tsx`](../../src/hooks/useUndoKeyboard.test.tsx) —
+  Cmd/Ctrl+Z triggers undo on newest banner, suppressed in editable elements,
+  focus-return to origin element, no-op when no banners are visible, and
+  cleanup on unmount.

@@ -1,6 +1,7 @@
 import React from "react";
 import { Undo2, X } from "lucide-react";
 import { useReducedMotion } from "../../hooks/useReducedMotion";
+import { useUndoKeyboard } from "../../hooks/useUndoKeyboard";
 import type { UndoBannerItem } from "../../hooks/useUndoBanners";
 
 export interface UndoBannerProps {
@@ -23,6 +24,11 @@ export interface UndoBannerProps {
   /** Optional id for the live-region container. */
   id?: string;
   className?: string;
+  /**
+   * Callback invoked when Cmd/Ctrl+Z is pressed and an undo banner is visible.
+   * Receives the id of the newest banner to undo.
+   */
+  onKeyboardUndo?: (id: string) => void;
 }
 
 const RING_RADIUS = 11;
@@ -105,8 +111,23 @@ export const UndoBanner: React.FC<UndoBannerProps> = ({
   maxVisible = 4,
   id = "undo-banner-region",
   className = "",
+  onKeyboardUndo,
 }) => {
   const reducedMotion = useReducedMotion();
+  const { captureOrigin } = useUndoKeyboard({
+    banners,
+    onUndo: onKeyboardUndo ?? onUndo,
+  });
+
+  // Capture the origin element when the first banner appears, so focus
+  // can be restored there after a keyboard undo.
+  const prevLenRef = React.useRef(0);
+  React.useEffect(() => {
+    if (banners.length > 0 && prevLenRef.current === 0) {
+      captureOrigin();
+    }
+    prevLenRef.current = banners.length;
+  }, [banners.length, captureOrigin]);
 
   // Newest banners are most relevant — show them on top.
   const ordered = [...banners].reverse();

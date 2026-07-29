@@ -1,0 +1,503 @@
+/* ─── Command Palette ─────────────────────────────────────────────────────────
+   WCAG 2.1 AA modal dialog.
+   Reuses glass-card and design tokens from index.css.
+   Z-index layer: 400 (above KeyboardShortcutsOverlay at 300)
+
+   Anatomy
+   ├── .cp-overlay          fixed backdrop
+   │   └── .cp-dialog       glass-card container
+   │       ├── .cp-header   search input + optional Esc hint
+   │       └── .cp-body     scrollable results area
+   │           ├── .cp-group-section   section per group (Navigate/Actions/…)
+   │           │   ├── .cp-group-header
+   │           │   └── .cp-result-list
+   │           │       └── .cp-result-item  (button)
+   │           └── .cp-empty-query   shown when input is empty & no recents
+   ──────────────────────────────────────────────────────────────────────────── */
+
+/* ── Overlay backdrop ──────────────────────────────────────────────────────── */
+.cp-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  /* Offset from viewport top so the palette feels "launched from header" */
+  padding-top: clamp(3.5rem, 10vh, 8rem);
+  padding-inline: var(--spacing-md);
+  background: rgba(0, 0, 0, 0.55);
+  animation: cpFadeIn 0.15s ease-out;
+}
+
+/* ── Dialog container ──────────────────────────────────────────────────────── */
+.cp-dialog {
+  width: 100%;
+  max-width: 640px;
+  max-height: min(72vh, 560px);
+  display: flex;
+  flex-direction: column;
+  /* Glass card look — matches .glass-card token system */
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-xl);
+  overflow: hidden;
+  /* Slide + fade in */
+  animation: cpSlideIn 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ── Header (search input row) ─────────────────────────────────────────────── */
+.cp-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-bottom: 1px solid var(--glass-border);
+  flex-shrink: 0;
+}
+
+.cp-search-icon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.cp-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-main);
+  font-size: var(--font-size-base);
+  font-family: inherit;
+  line-height: var(--line-height-normal);
+  /* Accessible: keep caret visible */
+  caret-color: var(--primary);
+}
+
+.cp-input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+/* The Esc key badge in the header */
+.cp-esc-hint {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2xs);
+  flex-shrink: 0;
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.cp-esc-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 1.375rem;
+  padding: 0 var(--spacing-2xs);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-muted);
+  background: var(--glass-bg-accent);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xs);
+  font-family: inherit;
+}
+
+/* ── Scrollable body ───────────────────────────────────────────────────────── */
+.cp-body {
+  overflow-y: auto;
+  /* Smooth scrolling for keyboard nav */
+  scroll-behavior: smooth;
+  flex: 1;
+  /* Firefox custom scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: var(--glass-border) transparent;
+}
+
+.cp-body::-webkit-scrollbar {
+  width: 4px;
+}
+
+.cp-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.cp-body::-webkit-scrollbar-thumb {
+  background: var(--glass-border);
+  border-radius: var(--radius-full);
+}
+
+/* ── Group section ─────────────────────────────────────────────────────────── */
+.cp-group-section {
+  /* Each section is its own scrollable target */
+}
+
+.cp-group-section + .cp-group-section {
+  border-top: 1px solid var(--glass-border);
+}
+
+/* Group header row */
+.cp-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-xs) var(--spacing-lg);
+  padding-top: var(--spacing-sm);
+  gap: var(--spacing-sm);
+  position: sticky;
+  top: 0;
+  /* Keeps the label readable while scrolling through a long section */
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  z-index: 1;
+}
+
+.cp-group-label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  /* Clip group header stays aligned even in RTL */
+  margin: 0;
+}
+
+/* "Clear history" button inside the Recent group header */
+.cp-clear-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2xs);
+  padding: var(--spacing-3xs) var(--spacing-xs);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.cp-clear-btn:hover {
+  color: var(--text-main);
+  background: var(--glass-bg-accent);
+  border-color: var(--glass-border);
+}
+
+.cp-clear-btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* ── Result list ───────────────────────────────────────────────────────────── */
+.cp-result-list {
+  list-style: none;
+  margin: 0;
+  padding: var(--spacing-2xs) 0 var(--spacing-sm);
+}
+
+/* ── Result item ───────────────────────────────────────────────────────────── */
+.cp-result-item {
+  /* Full-width button resets */
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  width: 100%;
+  padding: var(--spacing-xs) var(--spacing-lg);
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+  text-align: start;
+  transition: background 0.1s;
+  /* Ensure minimum 44px touch target */
+  min-height: 2.75rem;
+}
+
+.cp-result-item:hover,
+.cp-result-item[aria-selected="true"] {
+  background: var(--glass-bg-accent);
+}
+
+/* Keyboard-focused item: visible ring scoped inside the dialog */
+.cp-result-item:focus-visible {
+  outline: none;
+  background: var(--glass-bg-accent);
+  box-shadow: inset 3px 0 0 var(--primary);
+}
+
+.cp-result-item[aria-selected="true"] {
+  box-shadow: inset 3px 0 0 var(--primary);
+}
+
+/* Icon wrapper */
+.cp-result-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--text-muted);
+  /* Inherit parent hover state */
+  transition: color 0.1s;
+}
+
+.cp-result-item:hover .cp-result-icon,
+.cp-result-item[aria-selected="true"] .cp-result-icon {
+  color: var(--text-accent);
+}
+
+/* Text container */
+.cp-result-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3xs);
+}
+
+.cp-result-label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cp-result-desc {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Trailing shortcut badge(s) */
+.cp-result-shortcut {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3xs);
+  flex-shrink: 0;
+  margin-inline-start: var(--spacing-sm);
+}
+
+.cp-shortcut-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 1.375rem;
+  padding: 0 var(--spacing-2xs);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-muted);
+  background: var(--glass-bg-accent);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xs);
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+/* ── Empty states ──────────────────────────────────────────────────────────── */
+
+/* Shown when there are no recents AND query is empty */
+.cp-empty-query {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: var(--spacing-3xl) var(--spacing-xl);
+  gap: var(--spacing-md);
+}
+
+.cp-empty-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background: rgba(59, 130, 246, 0.08);
+  color: var(--text-muted);
+  border: 1px solid rgba(59, 130, 246, 0.15);
+}
+
+.cp-empty-title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-main);
+  margin: 0;
+}
+
+.cp-empty-hint {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  margin: 0;
+  max-width: 22rem;
+  line-height: var(--line-height-relaxed);
+}
+
+/* Shown when query has text but no results match */
+.cp-no-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: var(--spacing-2xl) var(--spacing-xl);
+  gap: var(--spacing-sm);
+  color: var(--text-muted);
+}
+
+.cp-no-results-title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-main);
+  margin: 0;
+}
+
+.cp-no-results-hint {
+  font-size: var(--font-size-xs);
+  margin: 0;
+}
+
+/* Query echo inside no-results (highlighted term) */
+.cp-no-results-query {
+  color: var(--text-accent);
+  font-weight: var(--font-weight-medium);
+}
+
+/* ── Footer ────────────────────────────────────────────────────────────────── */
+.cp-footer {
+  padding: var(--spacing-xs) var(--spacing-lg);
+  border-top: 1px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  flex-shrink: 0;
+}
+
+.cp-footer-hint {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  flex-wrap: wrap;
+  row-gap: var(--spacing-2xs);
+}
+
+.cp-footer-hint-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2xs);
+}
+
+/* ── Visually hidden (sr-only) ─────────────────────────────────────────────── */
+.cp-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── Animations ────────────────────────────────────────────────────────────── */
+@keyframes cpFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes cpSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ── Reduced motion ────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .cp-overlay,
+  .cp-dialog {
+    animation: none;
+  }
+
+  .cp-body {
+    scroll-behavior: auto;
+  }
+}
+
+/* ── High contrast ─────────────────────────────────────────────────────────── */
+@media (prefers-contrast: high) {
+  .cp-overlay {
+    background: rgba(0, 0, 0, 0.85);
+  }
+
+  .cp-dialog {
+    border: 2px solid var(--text-main);
+  }
+
+  .cp-result-item[aria-selected="true"],
+  .cp-result-item:focus-visible {
+    box-shadow: inset 4px 0 0 var(--primary);
+    background: rgba(59, 130, 246, 0.15);
+  }
+
+  .cp-shortcut-key,
+  .cp-esc-key {
+    border: 1px solid var(--text-muted);
+  }
+}
+
+/* ── Responsive ────────────────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .cp-overlay {
+    padding-top: var(--spacing-xl);
+    padding-inline: 0;
+    align-items: flex-start;
+  }
+
+  .cp-dialog {
+    max-width: 100%;
+    border-radius: 0 0 var(--radius-2xl) var(--radius-2xl);
+    max-height: 85svh;
+  }
+
+  /* Hide shortcut key hints on very small screens to save space */
+  .cp-result-shortcut {
+    display: none;
+  }
+
+  .cp-esc-hint {
+    display: none;
+  }
+
+  .cp-footer-hint {
+    display: none;
+  }
+}
+
+/* ── RTL ───────────────────────────────────────────────────────────────────── */
+[dir="rtl"] .cp-result-item:focus-visible,
+[dir="rtl"] .cp-result-item[aria-selected="true"] {
+  box-shadow: inset -3px 0 0 var(--primary);
+}
+
+[dir="rtl"] .cp-result-shortcut {
+  margin-inline-start: 0;
+  margin-inline-end: var(--spacing-sm);
+}

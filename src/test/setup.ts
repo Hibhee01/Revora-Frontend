@@ -13,18 +13,7 @@ global.ResizeObserver = class ResizeObserver {
   disconnect() {}
 };
 
-// window.matchMedia stub — jsdom does not implement it.
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: (query: string) => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: () => {},
-    removeListener: () => {},
-    addEventListener: () => {},
-    removeEventListener: () => {},
-    dispatchEvent: () => false,
-  }),
-});
-
+// jsdom does not implement scrollIntoView — provide a minimal stub
+if (!Element.prototype.scrollIntoView) {
+  Element.prototype.scrollIntoView = function () {};
+}

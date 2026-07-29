@@ -3,6 +3,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import './AppShell.css';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import { KeyboardShortcutsOverlay } from '../KeyboardShortcutsOverlay/KeyboardShortcutsOverlay';
+import { useCommandPalette } from '../../hooks/useCommandPalette';
+import { CommandPalette } from '../CommandPalette/CommandPalette';
+import type { CommandItem } from '../CommandPalette/commandPaletteData';
 import { DensityToggle } from '../DensityToggle';
 import { NetworkSwitcher } from '../NetworkSwitcher';
 import {
@@ -28,6 +31,19 @@ const AppShellContent: React.FC<AppShellProps> = ({ children }) => {
     open: openShortcuts,
     close: closeShortcuts,
   } = useKeyboardShortcuts();
+
+  const {
+    isOpen: paletteOpen,
+    isMac: paletteMac,
+    close: closePalette,
+    recentCommands,
+    addRecent,
+    clearRecent,
+  } = useCommandPalette();
+
+  const handleCommandExecute = (item: CommandItem) => {
+    addRecent(item);
+  };
 
   // Check if mobile viewport
   useEffect(() => {
@@ -189,6 +205,16 @@ const AppShellContent: React.FC<AppShellProps> = ({ children }) => {
         onClose={closeShortcuts}
         isMac={isMac}
         isMobile={isMobile}
+      />
+
+      {/* Command Palette */}
+      <CommandPalette
+        isOpen={paletteOpen}
+        onClose={closePalette}
+        isMac={paletteMac}
+        recentCommands={recentCommands}
+        onCommandExecute={handleCommandExecute}
+        onClearRecent={clearRecent}
       />
 
       {/* Error Recovery Panel */}

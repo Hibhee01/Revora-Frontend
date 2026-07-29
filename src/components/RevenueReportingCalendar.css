@@ -1259,224 +1259,277 @@
   transform: scaleX(-1);
 }
 
-/* ─── View Switcher (Month / Year segmented control) ─────────────────── */
+/* ─── Day Cell Hover / Focus Preview ────────────────────────────────── */
 
-.rc-view-switcher {
-  display: inline-flex;
-  gap: var(--spacing-2xs);
-  background: rgba(15, 23, 42, 0.5);
-  border-radius: var(--rc-radius-sm);
-  padding: var(--spacing-2xs);
-  margin-bottom: var(--spacing-md);
-  align-self: flex-start;
+/*
+ * The preview card is positioned absolutely relative to the day cell
+ * (rc-day-cell has position: relative set inline by the component).
+ * Placement variants: top, bottom, top-start, bottom-start.
+ *
+ * z-index 100 keeps it above all sibling cells and the grid.
+ * The card is 220px wide; on narrow viewports the component falls back
+ * to bottom / bottom-start placement automatically.
+ */
+
+.rc-day-preview {
+  position: absolute;
+  z-index: 100;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 220px;
+  background: var(--glass-bg, rgba(15, 23, 42, 0.95));
+  border: 1px solid var(--glass-border-bright, rgba(148, 163, 184, 0.25));
+  border-radius: var(--radius-lg, 0.75rem);
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.35),
+    0 2px 8px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(12px);
+  padding: var(--spacing-sm, 0.5rem) var(--spacing-md, 0.75rem);
+  pointer-events: none;        /* never steals hover from the cell */
+  animation: rc-preview-in 0.12s ease forwards;
+  /* Keep text left-aligned regardless of cell text-align */
+  text-align: start;
 }
 
-.rc-view-switcher-btn {
-  display: inline-flex;
+/* Placement: above the cell */
+.rc-day-preview--top,
+.rc-day-preview--top-start {
+  bottom: calc(100% + 8px);
+  top: auto;
+}
+
+/* Placement: below the cell */
+.rc-day-preview--bottom,
+.rc-day-preview--bottom-start {
+  top: calc(100% + 8px);
+  bottom: auto;
+}
+
+/* Right-edge: anchor to left instead of centering */
+.rc-day-preview--top-start,
+.rc-day-preview--bottom-start {
+  left: 0;
+  transform: none;
+}
+
+/* Entrance animation */
+@keyframes rc-preview-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.rc-day-preview--top-start,
+.rc-day-preview--bottom-start {
+  animation-name: rc-preview-in-start;
+}
+
+@keyframes rc-preview-in-start {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ─── Preview Header ─────────────────────────────────────────────────── */
+
+.rc-preview-header {
+  display: flex;
   align-items: center;
-  gap: var(--spacing-2xs);
-  padding: var(--spacing-2xs) var(--spacing-sm);
-  border: none;
-  border-radius: calc(var(--rc-radius-sm) - 2px);
-  background: transparent;
-  color: var(--text-muted);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  cursor: pointer;
-  transition: all 0.2s ease;
+  justify-content: space-between;
+  gap: var(--spacing-xs, 0.375rem);
+  margin-bottom: var(--spacing-xs, 0.375rem);
+  flex-wrap: wrap;
+}
+
+.rc-preview-date {
+  font-size: var(--font-size-xs, 0.75rem);
+  font-weight: var(--font-weight-semibold, 600);
+  color: var(--text-muted, #94a3b8);
   white-space: nowrap;
 }
 
-.rc-view-switcher-btn:hover {
-  color: var(--text-main);
-  background: rgba(148, 163, 184, 0.08);
+.rc-preview-status-pill {
+  font-size: 0.625rem;
+  font-weight: var(--font-weight-bold, 700);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 1px 6px;
+  border-radius: var(--radius-full, 9999px);
+  border: 1px solid currentColor;
+  line-height: 1.6;
+  white-space: nowrap;
 }
 
-.rc-view-switcher-btn--active {
-  background: rgba(59, 130, 246, 0.15);
-  color: var(--primary);
-  font-weight: var(--font-weight-semibold);
+/* ─── Preview KPIs ───────────────────────────────────────────────────── */
+
+.rc-preview-kpis {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-xs, 0.375rem);
+  margin-bottom: var(--spacing-xs, 0.375rem);
 }
 
-.rc-view-switcher-btn:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: -2px;
+.rc-preview-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
 }
 
-/* ─── Year Grid ──────────────────────────────────────────────────────── */
-
-.rc-year-grid {
-  display: table;
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: var(--spacing-sm);
-  outline: none;
-  margin-bottom: var(--spacing-md);
+.rc-preview-kpi-label {
+  font-size: 0.5625rem;
+  font-weight: var(--font-weight-medium, 500);
+  color: var(--text-muted, #94a3b8);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  line-height: 1.3;
+  white-space: nowrap;
 }
 
-.rc-year-grid:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
-  border-radius: var(--rc-radius);
+.rc-preview-kpi-value {
+  font-size: var(--font-size-xs, 0.75rem);
+  font-weight: var(--font-weight-semibold, 600);
+  color: var(--text-main, #f1f5f9);
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.rc-year-grid-row {
-  display: table-row;
+/* ─── Variance KPI ───────────────────────────────────────────────────── */
+
+.rc-preview-variance-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
 }
 
-/* ─── Month Tile ─────────────────────────────────────────────────────── */
-
-.rc-year-month-tile {
-  display: table-cell;
-  width: calc(100% / 3);
-  vertical-align: middle;
-  position: relative;
-  padding: var(--spacing-sm) var(--spacing-xs);
-  border-radius: var(--rc-radius-sm);
-  border: 1px solid var(--glass-border);
-  background: transparent;
-  cursor: pointer;
-  text-align: center;
-  color: var(--text-main);
-  font: inherit;
-  transition:
-    background 0.15s ease,
-    border-color 0.15s ease,
-    box-shadow 0.15s ease;
-  min-height: 4.5rem;
+.rc-preview-variance--up .rc-preview-kpi-value {
+  color: var(--rc-status-accepted, #10b981);
 }
 
-.rc-year-month-tile:hover {
-  background: rgba(148, 163, 184, 0.08);
-  border-color: var(--glass-border-bright);
+.rc-preview-variance--down .rc-preview-kpi-value {
+  color: var(--rc-status-overdue, #ef4444);
 }
 
-.rc-year-month-tile:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: -2px;
-  z-index: 2;
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+.rc-preview-variance--flat .rc-preview-kpi-value {
+  color: var(--text-muted, #94a3b8);
 }
 
-/* Current month ring */
-.rc-year-month-tile--current {
-  font-weight: var(--font-weight-bold);
-  border-color: var(--primary);
-  box-shadow: 0 0 0 1px var(--primary);
+/* ─── Spark Trend ────────────────────────────────────────────────────── */
+
+.rc-preview-spark-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs, 0.375rem);
+  padding-top: var(--spacing-2xs, 0.25rem);
+  border-top: 1px solid var(--glass-border, rgba(148, 163, 184, 0.12));
 }
 
-/* Selected tile */
-.rc-year-month-tile--selected {
-  background: rgba(59, 130, 246, 0.15);
-  border-color: var(--primary);
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+.rc-preview-spark {
+  color: var(--primary, #3b82f6);
+  flex-shrink: 0;
 }
 
-/* Status-tinted backgrounds */
-.rc-year-month-tile--due      { background: rgba(245, 158, 11, 0.07); }
-.rc-year-month-tile--submitted { background: rgba(59, 130, 246, 0.07); }
-.rc-year-month-tile--accepted  { background: rgba(16, 185, 129, 0.07); }
-.rc-year-month-tile--overdue   { background: rgba(239, 68, 68, 0.07); }
-
-.rc-year-month-tile--due:hover       { background: rgba(245, 158, 11, 0.13); }
-.rc-year-month-tile--submitted:hover { background: rgba(59, 130, 246, 0.13); }
-.rc-year-month-tile--accepted:hover  { background: rgba(16, 185, 129, 0.13); }
-.rc-year-month-tile--overdue:hover   { background: rgba(239, 68, 68, 0.13); }
-
-/* Month name label */
-.rc-year-month-name {
-  display: block;
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  line-height: 1.2;
-  margin-bottom: var(--spacing-2xs);
+.rc-preview-spark-label {
+  font-size: 0.5625rem;
+  font-weight: var(--font-weight-medium, 500);
+  color: var(--text-muted, #94a3b8);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-/* Status glyph dot */
-.rc-year-month-glyph {
-  display: block;
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: var(--radius-full);
-  margin: 0 auto var(--spacing-2xs);
-}
+/* ─── Caret Arrow ────────────────────────────────────────────────────── */
 
-.rc-year-month-glyph--empty {
-  background: rgba(148, 163, 184, 0.2);
-}
-
-/* Report count badge */
-.rc-year-month-count {
+.rc-preview-arrow {
   position: absolute;
-  top: 4px;
-  right: 5px;
-  font-size: 0.6rem;
-  font-weight: var(--font-weight-bold);
-  color: var(--text-accent);
-  background: rgba(56, 189, 248, 0.15);
-  border-radius: var(--radius-full);
-  padding: 0 0.2rem;
-  line-height: 1.4;
-  min-width: 0.875rem;
-  text-align: center;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
 }
 
-/* Mobile: 2-column grid to keep tiles readable */
-@media (max-width: 479px) {
-  .rc-year-grid {
-    border-spacing: var(--spacing-xs);
-  }
+.rc-day-preview--top .rc-preview-arrow,
+.rc-day-preview--top-start .rc-preview-arrow {
+  bottom: -5px;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid var(--glass-border-bright, rgba(148, 163, 184, 0.25));
+}
 
-  .rc-year-month-tile {
-    min-height: 3.5rem;
-    padding: var(--spacing-xs) 2px;
-  }
+.rc-day-preview--bottom .rc-preview-arrow,
+.rc-day-preview--bottom-start .rc-preview-arrow {
+  top: -5px;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 5px solid var(--glass-border-bright, rgba(148, 163, 184, 0.25));
+}
 
-  .rc-year-month-name {
-    font-size: var(--font-size-xs);
+.rc-day-preview--top-start .rc-preview-arrow,
+.rc-day-preview--bottom-start .rc-preview-arrow {
+  left: 1rem;
+  transform: none;
+}
+
+/* ─── Touch / mobile: suppress preview on touch-only ─────────────────── */
+/*
+ * On hover-incapable devices (phones) the preview would flash on tap.
+ * pointer: coarse + hover: none targets touch-only devices; we hide
+ * the preview there since the side panel provides the same info on tap.
+ */
+@media (hover: none) and (pointer: coarse) {
+  .rc-day-preview {
+    display: none;
   }
 }
 
-/* RTL */
-[dir="rtl"] .rc-year-month-count {
-  right: auto;
-  left: 5px;
+/* ─── Reduced motion: no animation ──────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .rc-day-preview {
+    animation: none;
+  }
 }
 
-/* High Contrast */
+/* ─── High Contrast ──────────────────────────────────────────────────── */
 @media (forced-colors: active) {
-  .rc-year-month-tile {
-    border: 1px solid ButtonText;
+  .rc-day-preview {
+    border: 2px solid ButtonText;
+    background: Canvas;
+    color: CanvasText;
+    forced-color-adjust: none;
   }
 
-  .rc-year-month-tile--selected {
-    border: 2px solid Highlight;
-  }
-
-  .rc-year-month-glyph {
+  .rc-preview-spark {
     forced-color-adjust: none;
   }
 }
 
-/* Reduced Motion */
-@media (prefers-reduced-motion: reduce) {
-  .rc-year-month-tile,
-  .rc-view-switcher-btn {
-    transition: none;
-  }
+/* ─── RTL ────────────────────────────────────────────────────────────── */
+[dir="rtl"] .rc-day-preview--top-start,
+[dir="rtl"] .rc-day-preview--bottom-start {
+  left: auto;
+  right: 0;
+  transform: none;
 }
 
-/* Print */
+[dir="rtl"] .rc-day-preview--top-start .rc-preview-arrow,
+[dir="rtl"] .rc-day-preview--bottom-start .rc-preview-arrow {
+  left: auto;
+  right: 1rem;
+}
+
+/* ─── Print: never print tooltips ───────────────────────────────────── */
 @media print {
-  .rc-view-switcher {
+  .rc-day-preview {
     display: none;
-  }
-
-  .rc-year-grid {
-    break-inside: avoid;
-  }
-
-  .rc-year-month-tile {
-    border: 1px solid #ccc;
   }
 }

@@ -36,6 +36,9 @@ import {
   List,
   Upload,
   LayoutGrid,
+  TrendingUp,
+  TrendingDown,
+  Minus,
 } from "lucide-react";
 import {
   formatDate,
@@ -236,6 +239,260 @@ function OverdueBadge({ dueDate }: { dueDate: string }) {
   );
 }
 
+/* ─── Preview Hook ─────────────────────────────────────────────────── */
+
+/** Returns true if user prefers reduced motion */
+function usePrefersReducedMotion(): boolean {
+  const [reduced, setReduced] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  });
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const handler = (e: MediaQueryListEvent) => setReduced(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+  return reduced;
+}
+
+/**
+ * Manages show/hide timing for the cell hover preview.
+ * - Opens after 300ms hover/focus (instant if reduced-motion)
+ * - Closes after 120ms blur/mouseleave (instant if reduced-motion)
+ */
+function usePreviewTimer(reducedMotion: boolean) {
+  const [visible, setVisible] = useState(false);
+  const openTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const open = useCallback(() => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    if (visible) return;
+    if (reducedMotion) {
+      setVisible(true);
+      return;
+    }
+    openTimer.current = setTimeout(() => setVisible(true), 300);
+  }, [visible, reducedMotion]);
+
+  const close = useCallback(() => {
+    if (openTimer.current) clearTimeout(openTimer.current);
+    if (reducedMotion) {
+      setVisible(false);
+      return;
+    }
+    closeTimer.current = setTimeout(() => setVisible(false), 120);
+  }, [reducedMotion]);
+
+  const closeImmediate = useCallback(() => {
+    if (openTimer.current) clearTimeout(openTimer.current);
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    setVisible(false);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (openTimer.current) clearTimeout(openTimer.current);
+      if (closeTimer.current) clearTimeout(closeTimer.current);
+    };
+  }, []);
+
+  return { visible, open, close, closeImmediate };
+}
+
+/* ─── Preview Position ─────────────────────────────────────────────── */
+
+type PreviewPlacement = 'top' | 'bottom' | 'top-start' | 'bottom-start';
+
+/** Computes placement to keep preview inside viewport */
+function getPreviewPlacement(
+  anchorEl: HTMLElement | null,
+  previewWidth = 220,
+  previewHeight = 160,
+): PreviewPlacement {
+  if (!anchorEl) return 'top';
+  const rect = anchorEl.getBoundingClientRect();
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const spaceAbove = rect.top;
+  const spaceBelow = vh - rect.bottom;
+  const spaceRight = vw - rect.left;
+  const vertical: 'top' | 'bottom' = spaceAbove >= previewHeight + 8 || spaceAbove > spaceBelow
+    ? 'top'
+    : 'bottom';
+  const horizontal = spaceRight >= previewWidth ? '' : '-start';
+  return `${vertical}${horizontal}` as PreviewPlacement;
+}
+
+/* ─── Variance Helper ──────────────────────────────────────────────── */
+
+/** Compute variance of current report vs prior-period report */
+function getVariance(
+  current: RevenueReport[],
+  prior: RevenueReport[],
+): { pct: number | null; direction: 'up' | 'down' | 'flat' } {
+  const curRev = current.reduce((s, r) => s + (r.grossRevenue ?? 0), 0);
+  const priorRev = prior.reduce((s, r) => s + (r.grossRevenue ?? 0), 0);
+  if (priorRev === 0 && curRev === 0) return { pct: null, direction: 'flat' };
+  if (priorRev === 0) return { pct: null, direction: 'up' };
+  const pct = ((curRev - priorRev) / priorRev) * 100;
+  return {
+    pct,
+    direction: pct > 0.5 ? 'up' : pct < -0.5 ? 'down' : 'flat',
+  };
+}
+
+/* ─── Spark Trend ──────────────────────────────────────────────────── */
+
+/** Mini 5-point sparkline using an inline SVG path */
+function SparkTrend({ values }: { values: number[] }) {
+  if (values.length < 2) return null;
+  const w = 48;
+  const h = 18;
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min || 1;
+  const pts = values.map((v, i) => {
+    const x = (i / (values.length - 1)) * w;
+    const y = h - ((v - min) / range) * (h - 4) - 2;
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  });
+  return (
+    <svg
+      width={w}
+      height={h}
+      viewBox={`0 0 ${w} ${h}`}
+      aria-hidden="true"
+      className="rc-preview-spark"
+      focusable="false"
+    >
+      <polyline
+        points={pts.join(' ')}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/* ─── Day Cell Preview ─────────────────────────────────────────────── */
+
+interface DayCellPreviewProps {
+  cell: DayCellData;
+  priorReports: RevenueReport[];
+  locale: string;
+  placement: PreviewPlacement;
+  id: string;
+}
+
+const DayCellPreview: React.FC<DayCellPreviewProps> = ({
+  cell,
+  priorReports,
+  locale,
+  placement,
+  id,
+}) => {
+  const reports = cell.reports;
+  const totalRevenue = reports.reduce((s, r) => s + (r.grossRevenue ?? 0), 0);
+  const currency = reports[0]?.currency ?? 'USD';
+  const variance = getVariance(reports, priorReports);
+  const primaryStatus = cell.primaryStatus;
+  const statusColor = primaryStatus !== 'none' ? REPORT_STATUS_COLORS[primaryStatus] : undefined;
+  const statusLabel = REPORT_STATUS_LABELS[primaryStatus];
+
+  // Spark values: revenue of each report in the cell (padded to 5 points with prior)
+  const sparkValues = [
+    ...priorReports.map((r) => r.grossRevenue ?? 0),
+    ...reports.map((r) => r.grossRevenue ?? 0),
+  ].slice(-5);
+
+  const hasRevenue = reports.some((r) => r.grossRevenue !== undefined);
+
+  const VarianceIcon =
+    variance.direction === 'up' ? TrendingUp
+    : variance.direction === 'down' ? TrendingDown
+    : Minus;
+
+  const varianceClass =
+    variance.direction === 'up' ? 'rc-preview-variance--up'
+    : variance.direction === 'down' ? 'rc-preview-variance--down'
+    : 'rc-preview-variance--flat';
+
+  return (
+    <div
+      id={id}
+      role="tooltip"
+      className={`rc-day-preview rc-day-preview--${placement}`}
+      aria-live="polite"
+    >
+      {/* Header row: date + status pill */}
+      <div className="rc-preview-header">
+        <span className="rc-preview-date">
+          {formatDate(cell.date, locale as SupportedLocale, {
+            month: 'short',
+            day: 'numeric',
+          })}
+        </span>
+        {primaryStatus !== 'none' && (
+          <span
+            className="rc-preview-status-pill"
+            style={{ color: statusColor, borderColor: statusColor }}
+          >
+            {statusLabel}
+          </span>
+        )}
+      </div>
+
+      {/* KPI row */}
+      <div className="rc-preview-kpis">
+        {/* KPI 1: Revenue */}
+        <div className="rc-preview-kpi">
+          <span className="rc-preview-kpi-label">Revenue</span>
+          <span className="rc-preview-kpi-value">
+            {hasRevenue
+              ? formatCurrency(totalRevenue, currency, locale as SupportedLocale)
+              : '—'}
+          </span>
+        </div>
+
+        {/* KPI 2: Payout status */}
+        <div className="rc-preview-kpi">
+          <span className="rc-preview-kpi-label">Reports</span>
+          <span className="rc-preview-kpi-value">
+            {reports.length > 0 ? reports.length : '0'}
+          </span>
+        </div>
+
+        {/* KPI 3: Variance vs prior period */}
+        <div className={`rc-preview-kpi rc-preview-variance ${varianceClass}`}>
+          <span className="rc-preview-kpi-label">vs Prior</span>
+          <span className="rc-preview-kpi-value rc-preview-variance-value">
+            <VarianceIcon size={11} aria-hidden="true" />
+            {variance.pct !== null
+              ? `${variance.pct > 0 ? '+' : ''}${variance.pct.toFixed(1)}%`
+              : '—'}
+          </span>
+        </div>
+      </div>
+
+      {/* Spark trend (hidden if only 1 data point or no revenue) */}
+      {sparkValues.length >= 2 && hasRevenue && (
+        <div className="rc-preview-spark-row">
+          <SparkTrend values={sparkValues} />
+          <span className="rc-preview-spark-label">trend</span>
+        </div>
+      )}
+
+      {/* Arrow caret */}
+      <span className="rc-preview-arrow" aria-hidden="true" />
+    </div>
+  );
+};
+
 /* ─── Calendar Day Cell ────────────────────────────────────────────── */
 
 interface CalendarDayCellProps {
@@ -245,6 +502,8 @@ interface CalendarDayCellProps {
   onSelect: (date: string) => void;
   onFocus: (date: string) => void;
   locale: string;
+  /** Reports from the prior period (same day prev month) for variance KPI */
+  priorReports: RevenueReport[];
 }
 
 const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
@@ -254,9 +513,44 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
   onSelect,
   onFocus,
   locale,
+  priorReports,
 }) => {
-  const handleClick = () => onSelect(cell.date);
-  const handleFocus = () => onFocus(cell.date);
+  const reducedMotion = usePrefersReducedMotion();
+  const { visible, open, close, closeImmediate } = usePreviewTimer(reducedMotion);
+  const anchorRef = useRef<HTMLDivElement>(null);
+  const [placement, setPlacement] = useState<PreviewPlacement>('top');
+
+  const previewId = `rc-preview-${cell.date}`;
+
+  const handleOpen = useCallback(() => {
+    setPlacement(getPreviewPlacement(anchorRef.current));
+    open();
+  }, [open]);
+
+  const handleClick = () => {
+    closeImmediate();
+    onSelect(cell.date);
+  };
+  const handleFocus = () => {
+    onFocus(cell.date);
+    handleOpen();
+  };
+  const handleBlur = () => close();
+  const handleMouseEnter = () => handleOpen();
+  const handleMouseLeave = () => close();
+
+  // Dismiss on Escape
+  const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Escape') {
+      closeImmediate();
+      return;
+    }
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      closeImmediate();
+      onSelect(cell.date);
+    }
+  };
 
   const statusLabel = REPORT_STATUS_LABELS[cell.primaryStatus];
   const dateFormatted = formatDate(cell.date, locale as SupportedLocale, {
@@ -296,19 +590,21 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
 
   return (
     <div
+      ref={anchorRef}
       role="gridcell"
       className={cellClass}
       tabIndex={isFocused ? 0 : -1}
       aria-selected={cell.isSelected}
       aria-label={ariaLabel}
+      aria-describedby={visible && cell.reports.length > 0 ? previewId : undefined}
       onClick={handleClick}
       onFocus={handleFocus}
-      onKeyDown={(e: KeyboardEvent<HTMLDivElement>) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onSelect(cell.date);
-        }
-      }}
+      onBlur={handleBlur}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onKeyDown={handleKeyDown}
+      data-date={cell.date}
+      style={{ position: 'relative' }}
     >
       <span className="rc-day-number">{cell.day}</span>
       <StatusDot status={cell.primaryStatus} />
@@ -319,6 +615,17 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
         <span className="rc-day-count" aria-hidden="true">
           {cell.reports.length}
         </span>
+      )}
+
+      {/* Hover / focus preview — only rendered when there are reports */}
+      {visible && cell.reports.length > 0 && (
+        <DayCellPreview
+          id={previewId}
+          cell={cell}
+          priorReports={priorReports}
+          locale={locale}
+          placement={placement}
+        />
       )}
     </div>
   );
@@ -335,6 +642,8 @@ interface CalendarGridComponentProps {
   onFocusDate: (date: string) => void;
   locale: string;
   ariaLabel: string;
+  /** All reports — used to look up prior-period data for hover previews */
+  allReports: RevenueReport[];
 }
 
 const CalendarGridComponent: React.FC<CalendarGridComponentProps> = ({
@@ -346,6 +655,7 @@ const CalendarGridComponent: React.FC<CalendarGridComponentProps> = ({
   onFocusDate,
   locale,
   ariaLabel,
+  allReports,
 }) => {
   const gridRef = useRef<HTMLDivElement>(null);
   const dayNames = useMemo(() => {
@@ -510,258 +820,24 @@ const CalendarGridComponent: React.FC<CalendarGridComponentProps> = ({
       {/* Week rows */}
       {rows.map((row, rowIndex) => (
         <div key={rowIndex} className="rc-grid-row" role="row">
-          {row.map((cell) => (
-            <CalendarDayCell
-              key={cell.date}
-              cell={cell}
-              isFocused={cell.date === focusedDate}
-              weekStartsOn={weekStartsOn}
-              onSelect={onDateSelect}
-              onFocus={onFocusDate}
-              locale={locale}
-            />
-          ))}
-        </div>
-      ))}
-    </div>
-  );
-};
-
-/* ─── Year Grid View ───────────────────────────────────────────────── */
-
-/** Returns aggregate status for all reports in a given year+month */
-function getMonthStatus(
-  reports: RevenueReport[],
-  year: number,
-  month: number,
-): ReportStatus {
-  const monthReports = reports.filter((r) => {
-    const d = parseISODate(r.date);
-    return d.year === year && d.month === month;
-  });
-  if (monthReports.length === 0) return 'none';
-  // Re-use priority order: overdue > due > submitted > accepted
-  if (monthReports.some((r) => r.status === 'overdue')) return 'overdue';
-  if (monthReports.some((r) => r.status === 'due')) return 'due';
-  if (monthReports.some((r) => r.status === 'submitted')) return 'submitted';
-  return 'accepted';
-}
-
-interface MonthTileProps {
-  year: number;
-  month: number; // 0-based
-  status: ReportStatus;
-  isCurrentMonth: boolean;
-  isSelected: boolean;
-  isFocused: boolean;
-  locale: string;
-  onClick: (year: number, month: number) => void;
-  onFocus: (month: number) => void;
-  reportCount: number;
-}
-
-const MonthTile: React.FC<MonthTileProps> = ({
-  year,
-  month,
-  status,
-  isCurrentMonth,
-  isSelected,
-  isFocused,
-  locale,
-  onClick,
-  onFocus,
-  reportCount,
-}) => {
-  const monthName = new Date(year, month).toLocaleDateString(
-    locale as SupportedLocale,
-    { month: 'short' },
-  );
-  const fullMonthName = new Date(year, month).toLocaleDateString(
-    locale as SupportedLocale,
-    { month: 'long', year: 'numeric' },
-  );
-
-  const statusColor = status !== 'none' ? REPORT_STATUS_COLORS[status] : undefined;
-  const statusLabel = REPORT_STATUS_LABELS[status];
-
-  const ariaLabel = [
-    fullMonthName,
-    statusLabel !== 'No report' ? `Status: ${statusLabel}.` : 'No reports.',
-    reportCount > 0 ? `${reportCount} report${reportCount !== 1 ? 's' : ''}.` : '',
-    isCurrentMonth ? 'Current month.' : '',
-    isSelected ? 'Selected.' : '',
-  ]
-    .filter(Boolean)
-    .join(' ');
-
-  const tileClass = [
-    'rc-year-month-tile',
-    isCurrentMonth && 'rc-year-month-tile--current',
-    isSelected && 'rc-year-month-tile--selected',
-    status !== 'none' && `rc-year-month-tile--${status}`,
-  ]
-    .filter(Boolean)
-    .join(' ');
-
-  return (
-    <button
-      type="button"
-      className={tileClass}
-      tabIndex={isFocused ? 0 : -1}
-      aria-label={ariaLabel}
-      aria-pressed={isSelected}
-      data-month={month}
-      onClick={() => onClick(year, month)}
-      onFocus={() => onFocus(month)}
-    >
-      <span className="rc-year-month-name">{monthName}</span>
-      {status !== 'none' ? (
-        <span
-          className="rc-year-month-glyph"
-          style={{ backgroundColor: statusColor }}
-          aria-hidden="true"
-        />
-      ) : (
-        <span className="rc-year-month-glyph rc-year-month-glyph--empty" aria-hidden="true" />
-      )}
-      {reportCount > 0 && (
-        <span className="rc-year-month-count" aria-hidden="true">
-          {reportCount}
-        </span>
-      )}
-    </button>
-  );
-};
-
-interface YearGridViewProps {
-  year: number;
-  reports: RevenueReport[];
-  selectedDate: string | undefined;
-  locale: string;
-  /** Called when user drills down to a month */
-  onMonthSelect: (year: number, month: number) => void;
-}
-
-const YearGridView: React.FC<YearGridViewProps> = ({
-  year,
-  reports,
-  selectedDate,
-  locale,
-  onMonthSelect,
-}) => {
-  const today = new Date();
-  const selectedMonth = selectedDate ? parseISODate(selectedDate).month : undefined;
-  const selectedYear = selectedDate ? parseISODate(selectedDate).year : undefined;
-
-  // Roving focus within the grid
-  const [focusedMonth, setFocusedMonth] = useState<number>(() => {
-    if (selectedYear === year && selectedMonth !== undefined) return selectedMonth;
-    if (today.getFullYear() === year) return today.getMonth();
-    return 0;
-  });
-
-  const gridRef = useRef<HTMLDivElement>(null);
-
-  // When focusedMonth changes, move DOM focus
-  useEffect(() => {
-    if (gridRef.current) {
-      const tile = gridRef.current.querySelector(
-        `[data-month="${focusedMonth}"]`,
-      ) as HTMLElement | null;
-      if (tile && document.activeElement !== tile) {
-        tile.focus({ preventScroll: true });
-      }
-    }
-  }, [focusedMonth]);
-
-  const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
-    const cols = 3; // 3 columns × 4 rows
-    switch (e.key) {
-      case 'ArrowRight':
-        e.preventDefault();
-        setFocusedMonth((m) => Math.min(m + 1, 11));
-        break;
-      case 'ArrowLeft':
-        e.preventDefault();
-        setFocusedMonth((m) => Math.max(m - 1, 0));
-        break;
-      case 'ArrowDown':
-        e.preventDefault();
-        setFocusedMonth((m) => Math.min(m + cols, 11));
-        break;
-      case 'ArrowUp':
-        e.preventDefault();
-        setFocusedMonth((m) => Math.max(m - cols, 0));
-        break;
-      case 'Home':
-        e.preventDefault();
-        // First month in current row
-        setFocusedMonth((m) => Math.floor(m / cols) * cols);
-        break;
-      case 'End':
-        e.preventDefault();
-        // Last month in current row
-        setFocusedMonth((m) => Math.min(Math.floor(m / cols) * cols + cols - 1, 11));
-        break;
-      case 'Enter':
-      case ' ':
-        e.preventDefault();
-        onMonthSelect(year, focusedMonth);
-        break;
-      default:
-        break;
-    }
-  };
-
-  const months = useMemo(
-    () =>
-      Array.from({ length: 12 }, (_, i) => {
-        const monthReports = reports.filter((r) => {
-          const d = parseISODate(r.date);
-          return d.year === year && d.month === i;
-        });
-        return {
-          month: i,
-          status: getMonthStatus(reports, year, i),
-          reportCount: monthReports.length,
-        };
-      }),
-    [reports, year],
-  );
-
-  return (
-    <div
-      ref={gridRef}
-      className="rc-year-grid"
-      role="grid"
-      aria-label={`Year overview for ${year}. Use arrow keys to navigate months, Enter or Space to drill down.`}
-      onKeyDown={handleKeyDown}
-    >
-      {/* 4 rows × 3 columns */}
-      {[0, 1, 2, 3].map((rowIdx) => (
-        <div key={rowIdx} className="rc-year-grid-row" role="row">
-          {[0, 1, 2].map((colIdx) => {
-            const m = rowIdx * 3 + colIdx;
-            const item = months[m];
-            const isCurrentMonth =
-              today.getFullYear() === year && today.getMonth() === m;
-            const isSelected =
-              selectedYear === year && selectedMonth === m;
+          {row.map((cell) => {
+            // Prior period: same day number one month back
+            const { year: cy, month: cm, day: cd } = parseISODate(cell.date);
+            const priorMonth = cm === 0 ? 11 : cm - 1;
+            const priorYear = cm === 0 ? cy - 1 : cy;
+            const priorDate = toISODate(priorYear, priorMonth, cd);
+            const priorReports = allReports.filter((r) => r.date === priorDate);
             return (
-              <div key={m} role="gridcell">
-                <MonthTile
-                  year={year}
-                  month={item.month}
-                  status={item.status}
-                  isCurrentMonth={isCurrentMonth}
-                  isSelected={isSelected}
-                  isFocused={focusedMonth === m}
-                  locale={locale}
-                  onClick={onMonthSelect}
-                  onFocus={setFocusedMonth}
-                  reportCount={item.reportCount}
-                />
-              </div>
+              <CalendarDayCell
+                key={cell.date}
+                cell={cell}
+                isFocused={cell.date === focusedDate}
+                weekStartsOn={weekStartsOn}
+                onSelect={onDateSelect}
+                onFocus={onFocusDate}
+                locale={locale}
+                priorReports={priorReports}
+              />
             );
           })}
         </div>
@@ -1071,8 +1147,6 @@ export const RevenueReportingCalendar: React.FC<
   const [panelOpen, setPanelOpen] = useState(true);
   const [mobileView, setMobileView] = useState<"calendar" | "agenda">("agenda");
   const [showImportWizard, setShowImportWizard] = useState(false);
-  // Calendar view mode: month or year
-  const [calendarView, setCalendarView] = useState<'month' | 'year'>('month');
 
   const viewMonth = controlledViewMonth ?? internalViewMonth;
   const selectedDate = controlledSelectedDate ?? internalSelectedDate;
@@ -1125,29 +1199,6 @@ export const RevenueReportingCalendar: React.FC<
     setInternalViewMonth(newMonthStr);
     onMonthChange?.(newMonthStr);
   }, [viewMonthNum, viewYear, onMonthChange]);
-
-  const goToPrevYear = useCallback(() => {
-    const newMonthStr = `${viewYear - 1}-${String(viewMonthNum + 1).padStart(2, "0")}`;
-    setInternalViewMonth(newMonthStr);
-    onMonthChange?.(newMonthStr);
-  }, [viewYear, viewMonthNum, onMonthChange]);
-
-  const goToNextYear = useCallback(() => {
-    const newMonthStr = `${viewYear + 1}-${String(viewMonthNum + 1).padStart(2, "0")}`;
-    setInternalViewMonth(newMonthStr);
-    onMonthChange?.(newMonthStr);
-  }, [viewYear, viewMonthNum, onMonthChange]);
-
-  /** Drill down from year grid: select the month and switch back to month view */
-  const handleYearMonthSelect = useCallback(
-    (year: number, month: number) => {
-      const newMonthStr = `${year}-${String(month + 1).padStart(2, "0")}`;
-      setInternalViewMonth(newMonthStr);
-      onMonthChange?.(newMonthStr);
-      setCalendarView('month');
-    },
-    [onMonthChange],
-  );
 
   const handleDateSelect = useCallback(
     (date: string) => {
@@ -1240,57 +1291,19 @@ export const RevenueReportingCalendar: React.FC<
             <button
               type="button"
               className="rc-nav-btn"
-              onClick={calendarView === 'year' ? goToPrevYear : goToPrevMonth}
-              aria-label={
-                calendarView === 'year'
-                  ? `Previous year: ${viewYear - 1}`
-                  : `Previous month: ${new Date(viewYear, viewMonthNum - 1).toLocaleDateString(locale as SupportedLocale, { month: "long", year: "numeric" })}`
-              }
+              onClick={goToPrevMonth}
+              aria-label={`Previous month: ${new Date(viewYear, viewMonthNum - 1).toLocaleDateString(locale as SupportedLocale, { month: "long", year: "numeric" })}`}
             >
               <ChevronLeft size={20} aria-hidden="true" />
             </button>
-            <h2 className="rc-month-title">
-              {calendarView === 'year' ? String(viewYear) : monthName}
-            </h2>
+            <h2 className="rc-month-title">{monthName}</h2>
             <button
               type="button"
               className="rc-nav-btn"
-              onClick={calendarView === 'year' ? goToNextYear : goToNextMonth}
-              aria-label={
-                calendarView === 'year'
-                  ? `Next year: ${viewYear + 1}`
-                  : `Next month: ${new Date(viewYear, viewMonthNum + 1).toLocaleDateString(locale as SupportedLocale, { month: "long", year: "numeric" })}`
-              }
+              onClick={goToNextMonth}
+              aria-label={`Next month: ${new Date(viewYear, viewMonthNum + 1).toLocaleDateString(locale as SupportedLocale, { month: "long", year: "numeric" })}`}
             >
               <ChevronRight size={20} aria-hidden="true" />
-            </button>
-          </div>
-
-          {/* View switcher: Month / Year segmented control */}
-          <div
-            className="rc-view-switcher"
-            role="tablist"
-            aria-label="Calendar view"
-          >
-            <button
-              type="button"
-              role="tab"
-              aria-selected={calendarView === 'month'}
-              className={`rc-view-switcher-btn${calendarView === 'month' ? ' rc-view-switcher-btn--active' : ''}`}
-              onClick={() => setCalendarView('month')}
-            >
-              <Calendar size={14} aria-hidden="true" />
-              Month
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={calendarView === 'year'}
-              className={`rc-view-switcher-btn${calendarView === 'year' ? ' rc-view-switcher-btn--active' : ''}`}
-              onClick={() => setCalendarView('year')}
-            >
-              <LayoutGrid size={14} aria-hidden="true" />
-              Year
             </button>
           </div>
           
@@ -1301,8 +1314,7 @@ export const RevenueReportingCalendar: React.FC<
             </Button>
           </div>
 
-          {/* Mobile view toggle (calendar/agenda) — only relevant in month view */}
-          {calendarView === 'month' && (
+          {/* Mobile view toggle (calendar/agenda */}
           <div
             className="rc-view-toggle"
             role="tablist"
@@ -1331,7 +1343,6 @@ export const RevenueReportingCalendar: React.FC<
               <span>Agenda</span>
             </button>
           </div>
-          )}
 
           {/* Legend */}
           <div
@@ -1376,19 +1387,7 @@ export const RevenueReportingCalendar: React.FC<
             </span>
           </div>
 
-          {/* Year overview grid */}
-          {calendarView === 'year' && (
-            <YearGridView
-              year={viewYear}
-              reports={reports}
-              selectedDate={selectedDate}
-              locale={locale}
-              onMonthSelect={handleYearMonthSelect}
-            />
-          )}
-
-          {/* Calendar grid (shown on desktop, or when mobile view is calendar — month view only */}
-          {calendarView === 'month' && (
+          {/* Calendar grid (shown on desktop, or when mobile view is calendar */}
           <div
             className={`rc-calendar-wrapper ${mobileView === "agenda" ? "rc-calendar-wrapper--hidden-on-agenda" : ""}`}
           >
@@ -1400,13 +1399,12 @@ export const RevenueReportingCalendar: React.FC<
               onDateSelect={handleDateSelect}
               onFocusDate={handleFocusDate}
               locale={locale}
+              allReports={reports}
               ariaLabel={`Revenue reporting calendar for ${monthName}. Use arrow keys to navigate, Home and End for row edges, Page Up and Page Down for month navigation, Enter or Space to select.`}
             />
           </div>
-          )}
 
-          {/* Agenda view (shown when mobile view is agenda — month view only) */}
-          {calendarView === 'month' && (
+          {/* Agenda view (shown when mobile view is agenda) */}
           <div
             className={`rc-agenda-wrapper ${mobileView === "calendar" ? "rc-agenda-wrapper--hidden-on-calendar" : ""}`}
           >
@@ -1419,7 +1417,6 @@ export const RevenueReportingCalendar: React.FC<
               viewMonth={viewMonth}
             />
           </div>
-          )}
         </section>
 
         {/* Details panel */}

@@ -10,6 +10,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { PayoutSettingsTab } from "./PayoutSettingsTab";
+import { ComplianceSettingsTab } from "./ComplianceSettingsTab";
 
 interface OfferingData {
   id: string;
@@ -53,7 +54,7 @@ export const OfferingDetail: React.FC = () => {
   const { id = "1" } = useParams<{ id: string }>();
   const offering = mockOfferings[id] || mockOfferings["1"];
   const [isInvesting, setIsInvesting] = useState(false);
-  const [activeTab, setActiveTab] = useState<'overview' | 'payouts'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'payouts' | 'compliance'>('overview');
 
   const fundingPercentage = (offering.fundedAmount / offering.targetAmount) * 100;
   const fundingRemaining = offering.targetAmount - offering.fundedAmount;
@@ -103,13 +104,21 @@ export const OfferingDetail: React.FC = () => {
           Payouts
           {activeTab === 'payouts' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full" />}
         </button>
+        <button 
+          onClick={() => setActiveTab('compliance')}
+          className={`pb-3 text-sm font-medium transition-colors relative ${activeTab === 'compliance' ? 'text-primary' : 'text-muted hover:text-main'}`}
+        >
+          Compliance
+          {activeTab === 'compliance' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full" />}
+        </button>
       </div>
 
-      {activeTab === 'payouts' ? (
+      {activeTab === 'compliance' ? (
+        <ComplianceSettingsTab />
+      ) : activeTab === 'payouts' ? (
         <PayoutSettingsTab />
       ) : (
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">{/* Main Content Grid */}
         {/* Left Column: Offering Overview */}
         <div className="lg:col-span-2 space-y-6">
           {/* Offering Header Card */}

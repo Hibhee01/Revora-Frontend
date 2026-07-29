@@ -258,6 +258,12 @@
   --chart-cat-8: var(--chart-cat-8-dark);
 }
 
+[data-theme="light"] {
+  --lt-focus-ring-color: var(--lt-focus-ring-color-light);
+  --lt-focus-ring-outline: var(--lt-focus-ring-outline-light);
+}
+
+
 /* ─── Density mode overrides ─────────────────────────────────────
  * Applied to <html data-density="..."> so every component can
  * inherit the tokens via CSS cascade without extra wrapper elements.
@@ -1180,4 +1186,4 @@ input:focus-visible,
   font-size: 0.8125rem;
   border-radius: var(--radius-md);
   width: auto;
-}
+}

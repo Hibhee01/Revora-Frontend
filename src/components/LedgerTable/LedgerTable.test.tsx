@@ -216,4 +216,134 @@ describe('LedgerTable', () => {
 
     expect(screen.queryByTestId('detail-content')).not.toBeInTheDocument();
   });
+
+  describe('Virtualized Cell Focus Outlines', () => {
+    it('renders floating focus ring overlay on row navigation', () => {
+      render(
+        <LedgerTable
+          data={data}
+          columns={columns}
+          rowKey={(r) => r.id}
+        />,
+      );
+
+      const grid = screen.getByRole('grid');
+      expect(screen.queryByTestId('focus-ring-overlay')).not.toBeInTheDocument();
+
+      fireEvent.keyDown(grid, { key: 'ArrowDown' });
+
+      const focusOverlay = screen.getByTestId('focus-ring-overlay');
+      expect(focusOverlay).toBeInTheDocument();
+      expect(focusOverlay).toHaveClass('lt-focus-ring-overlay--row');
+      expect(focusOverlay).toHaveAttribute('aria-hidden', 'true');
+      expect(focusOverlay).toHaveAttribute('role', 'presentation');
+    });
+
+    it('navigates cell focus with ArrowRight and ArrowLeft keys', () => {
+      render(
+        <LedgerTable
+          data={data}
+          columns={columns}
+          rowKey={(r) => r.id}
+        />,
+      );
+
+      const grid = screen.getByRole('grid');
+      fireEvent.keyDown(grid, { key: 'ArrowDown' });
+      fireEvent.keyDown(grid, { key: 'ArrowRight' });
+
+      const focusOverlay = screen.getByTestId('focus-ring-overlay');
+      expect(focusOverlay).toHaveClass('lt-focus-ring-overlay--cell');
+
+      fireEvent.keyDown(grid, { key: 'ArrowLeft' });
+      fireEvent.keyDown(grid, { key: 'ArrowLeft' }); // back to row focus (-1)
+      expect(focusOverlay).toHaveClass('lt-focus-ring-overlay--row');
+    });
+
+    it('supports Home and End key navigation for cells', () => {
+      render(
+        <LedgerTable
+          data={data}
+          columns={columns}
+          rowKey={(r) => r.id}
+        />,
+      );
+
+      const grid = screen.getByRole('grid');
+      fireEvent.keyDown(grid, { key: 'ArrowDown' });
+      fireEvent.keyDown(grid, { key: 'End' });
+
+      const focusOverlay = screen.getByTestId('focus-ring-overlay');
+      expect(focusOverlay).toHaveClass('lt-focus-ring-overlay--cell');
+
+      fireEvent.keyDown(grid, { key: 'Home' });
+      expect(focusOverlay).toHaveClass('lt-focus-ring-overlay--cell');
+    });
+
+    it('focuses cell on cell click', async () => {
+      render(
+        <LedgerTable
+          data={data}
+          columns={columns}
+          rowKey={(r) => r.id}
+        />,
+      );
+
+      const cell = screen.getByText('Beta');
+      fireEvent.click(cell);
+
+      const focusOverlay = screen.getByTestId('focus-ring-overlay');
+      expect(focusOverlay).toBeInTheDocument();
+      expect(focusOverlay).toHaveClass('lt-focus-ring-overlay--cell');
+    });
+
+    it('maintains focus overlay positioning during container scroll', () => {
+      const manyRows = Array.from({ length: 100 }, (_, i) => ({
+        id: i + 1,
+        name: `Item ${i + 1}`,
+        value: i * 5,
+      }));
+
+      render(
+        <LedgerTable
+          data={manyRows}
+          columns={columns}
+          rowKey={(r) => r.id}
+          pageSize={100}
+        />,
+      );
+
+      const grid = screen.getByRole('grid');
+      fireEvent.keyDown(grid, { key: 'ArrowDown' }); // focus row 0
+      fireEvent.keyDown(grid, { key: 'ArrowDown' }); // focus row 1
+
+      const focusOverlay = screen.getByTestId('focus-ring-overlay');
+      expect(focusOverlay).toBeInTheDocument();
+
+      // Trigger scroll event on container wrapper
+      fireEvent.scroll(grid, { target: { scrollTop: 120 } });
+      expect(screen.getByTestId('focus-ring-overlay')).toBeInTheDocument();
+    });
+
+    it('handles RTL direction key navigation', () => {
+      // Mock RTL direction on container
+      const { container } = render(
+        <div dir="rtl">
+          <LedgerTable
+            data={data}
+            columns={columns}
+            rowKey={(r) => r.id}
+          />
+        </div>,
+      );
+
+      const grid = screen.getByRole('grid');
+      fireEvent.keyDown(grid, { key: 'ArrowDown' });
+      
+      // In RTL, ArrowLeft increases column index (moves right to next column)
+      fireEvent.keyDown(grid, { key: 'ArrowLeft' });
+      const focusOverlay = screen.getByTestId('focus-ring-overlay');
+      expect(focusOverlay).toHaveClass('lt-focus-ring-overlay--cell');
+    });
+  });
 });

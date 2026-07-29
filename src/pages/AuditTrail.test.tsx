@@ -295,3 +295,67 @@ describe('AuditTrail page', () => {
     expect(await axe(container)).toHaveNoViolations();
   });
 });
+
+/* ─── export scope dialog integration ─────────────────────────────── */
+
+describe('export integration', () => {
+  it('renders the Export button in the filter bar', () => {
+    renderPage();
+    expect(screen.getByRole('button', { name: 'Export' })).toBeInTheDocument();
+  });
+
+  it('opens the export scope dialog when Export is clicked', async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.click(screen.getByRole('button', { name: 'Export' }));
+
+    expect(screen.getByRole('dialog', { name: /export audit trail/i })).toBeInTheDocument();
+  });
+
+  it('shows the correct estimate in the export dialog based on filtered results', async () => {
+    const user = userEvent.setup();
+    renderPage('/investor/audit-trail?action=payout');
+
+    await user.click(screen.getByRole('button', { name: 'Export' }));
+
+    const dialog = screen.getByRole('dialog', { name: /export audit trail/i });
+    expect(within(dialog).getByTestId('export-estimate')).toHaveTextContent(/2/);
+  });
+
+  it('shows toast on export completion', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    renderPage();
+
+    await user.click(screen.getByRole('button', { name: 'Export' }));
+
+    const dialog = await screen.findByRole('dialog', { name: /export audit trail/i });
+    await user.click(within(dialog).getByRole('button', { name: /^export$/i }));
+
+    vi.advanceTimersByTime(2000);
+
+    const toast = await screen.findByTestId('export-toast');
+    expect(toast).toHaveTextContent(/export complete/i);
+
+    vi.useRealTimers();
+  });
+
+  it('closes the export dialog after export completes', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    renderPage();
+
+    await user.click(screen.getByRole('button', { name: 'Export' }));
+    expect(screen.getByRole('dialog', { name: /export audit trail/i })).toBeInTheDocument();
+
+    const dialog = screen.getByRole('dialog', { name: /export audit trail/i });
+    await user.click(within(dialog).getByRole('button', { name: /^export$/i }));
+
+    vi.advanceTimersByTime(2000);
+
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: /export audit trail/i })).not.toBeInTheDocument());
+
+    vi.useRealTimers();
+  });
+});

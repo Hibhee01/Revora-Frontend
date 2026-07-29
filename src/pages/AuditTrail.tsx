@@ -14,9 +14,9 @@
  * accessibility notes, and axe results.
  */
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Link2, Save } from 'lucide-react';
+import { Download, Link2, Save } from 'lucide-react';
 import { EmptyState } from '../components/designSystem/EmptyState';
 import { SaveFilterDialog } from '../components/AuditTrailFilters/SaveFilterDialog';
 import { PinnedSearchSidebar } from '../components/AuditTrailFilters/PinnedSearchSidebar';
@@ -35,7 +35,12 @@ import {
   removeSavedFilter,
   togglePinned,
 } from '../components/AuditTrailFilters/savedFilters';
+import {
+  ExportScopeDialog,
+  type ExportParams,
+} from '../components/ExportScopeDialog/ExportScopeDialog';
 import '../components/AuditTrailFilters/AuditTrailFilters.css';
+import '../components/ExportScopeDialog/ExportScopeDialog.css';
 
 /* ─── Mock audit data (until the audit API lands) ────────────────────────── */
 
@@ -91,6 +96,9 @@ export const AuditTrail: React.FC<AuditTrailProps> = ({ entries = MOCK_AUDIT_ENT
   const [activeFilterId, setActiveFilterId] = useState<string | null>(null);
   const [shareStatus, setShareStatus] = useState('');
   const [activeTab, setActiveTab] = useState<'audit' | 'export'>('audit');
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  const [exportToast, setExportToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const exportToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Persist per-user whenever the saved list changes.
   useEffect(() => {
@@ -135,6 +143,24 @@ export const AuditTrail: React.FC<AuditTrailProps> = ({ entries = MOCK_AUDIT_ENT
 
   const results = filterEntries(entries, filters);
   const filtersActive = hasActiveFilters(filters);
+
+  const showToast = useCallback((message: string, type: 'success' | 'error') => {
+    if (exportToastTimer.current) clearTimeout(exportToastTimer.current);
+    setExportToast({ message, type });
+    exportToastTimer.current = setTimeout(() => setExportToast(null), 4000);
+  }, []);
+
+  const handleExport = useCallback(
+    (params: ExportParams) => {
+      const label = `${results.length} row${results.length === 1 ? '' : 's'}`;
+      const msg = `Export complete — ${label} exported as ${params.format}.`;
+      setTimeout(() => {
+        setExportDialogOpen(false);
+        showToast(msg, 'success');
+      }, 1500);
+    },
+    [results.length, showToast]
+  );
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-10 animate-fade-in">
@@ -261,6 +287,13 @@ export const AuditTrail: React.FC<AuditTrailProps> = ({ entries = MOCK_AUDIT_ENT
               >
                 <Link2 size={14} aria-hidden="true" /> Copy link
               </button>
+              <button
+                type="button"
+                className="btn btn--secondary btn--sm"
+                onClick={() => setExportDialogOpen(true)}
+              >
+                <Download size={14} aria-hidden="true" /> Export
+              </button>
               {filtersActive && (
                 <button
                   type="button"
@@ -337,6 +370,26 @@ export const AuditTrail: React.FC<AuditTrailProps> = ({ entries = MOCK_AUDIT_ENT
         onSave={handleSave}
         onClose={() => setDialogOpen(false)}
       />
+
+      <ExportScopeDialog
+        open={exportDialogOpen}
+        filters={filters}
+        totalEntries={entries.length}
+        filteredEntries={results.length}
+        onExport={handleExport}
+        onClose={() => setExportDialogOpen(false)}
+      />
+
+      {exportToast && (
+        <div
+          className={`esd-toast esd-toast--${exportToast.type}`}
+          role="status"
+          aria-live="polite"
+          data-testid="export-toast"
+        >
+          {exportToast.message}
+        </div>
+      )}
     </div>
   );
 };

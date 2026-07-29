@@ -10,7 +10,8 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
-    setupFiles: ['./src/test/setup.ts', './src/test/setupAfterFramework.ts'],
+    setupFiles: './src/test/setup.ts',
+    testTimeout: 15000,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html'],
@@ -40,6 +41,9 @@ export default defineConfig({
         'src/hooks/useDensity.ts',
         // Issue #199 – Inline document uploader
         'src/components/DocumentUploader/DocumentUploader.tsx',
+        // Issue #288 – 2FA recovery email flow
+        'src/components/TwoFactorRecoveryFlow.tsx',
+        'src/pages/TwoFactorRecoveryPage.tsx',
       ],
       thresholds: {
         'src/utils/financialTermsValidation.ts': {

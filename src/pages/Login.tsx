@@ -83,13 +83,22 @@ export const Login: React.FC = () => {
         <div className="input-group">
           <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-2 mb-2">
             <label className="input-label" style={{ marginBottom: 0 }} htmlFor="password">Password</label>
-            <Link
-              to="/forgot-password"
-              aria-label="Forgot your password? Go to account recovery"
-              className="link-styled text-sm py-1 px-1"
-            >
-              Forgot password?
-            </Link>
+            <div className="flex gap-3">
+              <Link
+                to="/forgot-password"
+                aria-label="Forgot your password? Go to account recovery"
+                className="link-styled text-sm py-1 px-1"
+              >
+                Forgot password?
+              </Link>
+              <Link
+                to="/recover-2fa"
+                aria-label="Lost your two-factor authentication device? Recover your account"
+                className="link-styled text-sm py-1 px-1"
+              >
+                Lost your device?
+              </Link>
+            </div>
           </div>
           <div className="relative">
             <Lock className="absolute left-3 top-3 text-muted" size={18} />

@@ -27,8 +27,9 @@ describe('PayoutSchedule', () => {
     renderPage();
     expect(screen.getByRole('heading', { name: /payout schedule/i, level: 1 })).toBeInTheDocument();
     expect(screen.getByTestId('payout-schedule-table')).toBeInTheDocument();
+    // Two legends (top + bottom) × PAYOUT_STATUS_ORDER.length + DEMO_PAYOUTS.length table pills
     expect(screen.getAllByTestId('payout-status-pill')).toHaveLength(
-      DEMO_PAYOUTS.length + PAYOUT_STATUS_ORDER.length
+      DEMO_PAYOUTS.length + PAYOUT_STATUS_ORDER.length * 2
     );
   });
 

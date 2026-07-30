@@ -19,6 +19,7 @@
 import React, {
   useState,
   useCallback,
+  useEffect,
   useId,
   useRef,
 } from 'react';
@@ -291,12 +292,17 @@ export const EventDiffViewer: React.FC<EventDiffViewerProps> = ({
 
   const toggleOpen = useCallback(() => setOpen((o) => !o), []);
 
+  useEffect(() => {
+    if (copyState !== 'copied') return;
+    const timeoutId = window.setTimeout(() => setCopyState('idle'), 2000);
+    return () => window.clearTimeout(timeoutId);
+  }, [copyState]);
+
   const handleCopy = useCallback(async () => {
     const text = buildPlainText(diff.fields, diff.eventType);
     try {
       await navigator.clipboard.writeText(text);
       setCopyState('copied');
-      setTimeout(() => setCopyState('idle'), 2000);
     } catch {
       // Fallback: nothing we can do without clipboard access
     }
@@ -349,6 +355,9 @@ export const EventDiffViewer: React.FC<EventDiffViewerProps> = ({
               {diff.eventType ? ` · ${diff.eventType}` : ''}
             </span>
             <div className="edv-toolbar-actions">
+              <span className="sr-only" aria-live="polite">
+                {copyState === 'copied' ? 'Diff copied to clipboard.' : ''}
+              </span>
               <button
                 type="button"
                 className={`edv-action-btn${copyState === 'copied' ? ' edv-action-btn--copied' : ''}`}

@@ -6,8 +6,16 @@ export type UploadStatus = 'scanning' | 'validating' | 'clean' | 'quarantined' |
 export interface DocumentUploadStatusProps {
   fileName: string;
   status: UploadStatus;
+
   remediationUrl?: string;
   auditNote?: string;
+
+  uploadProgress?: number;
+  fileSize?: string;
+  onReplace?: () => void;
+  onRemove?: () => void;
+  isUploading?: boolean;
+  errorMessage?: string;
 }
 
 export const DocumentUploadStatus: React.FC<DocumentUploadStatusProps> = ({

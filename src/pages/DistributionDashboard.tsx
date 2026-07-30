@@ -242,19 +242,7 @@ export const DistributionDashboard: React.FC = () => {
     };
   });
 
-  const {
-    queue,
-    addFiles,
-    removeFile,
-    retryFile,
-    uploadFiles,
-    clearComplete,
-    totalCount,
-    successCount,
-    errorCount,
-    uploadingCount,
-    overallProgress,
-  } = useUploadQueue();
+
 
   const handleUploadAll = useCallback(() => {
     uploadFiles(mockUploader);

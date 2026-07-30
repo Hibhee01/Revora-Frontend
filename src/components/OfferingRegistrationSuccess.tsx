@@ -273,3 +273,4 @@ export const OfferingRegistrationSuccess: React.FC<OfferingRegistrationSuccessPr
 };
 
 export default OfferingRegistrationSuccess;
+

@@ -664,6 +664,15 @@ export const DistributionDashboard: React.FC = () => {
         <GovernanceDelegation />
       </div>
 
+      {/* Governance Results Breakdown */}
+      <div className="mt-12">
+        <GovernanceResults
+          results={{ for: 124, against: 58, abstain: 18 }}
+          participation={{ turnout: 63.5, uniqueVoters: 200, delegates: 12 }}
+          status="passed"
+        />
+      </div>
+
       {/* Financial terms wizard step */}
       <section aria-labelledby="financial-terms-heading">
         <h2

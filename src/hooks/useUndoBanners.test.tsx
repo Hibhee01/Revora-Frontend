@@ -175,4 +175,40 @@ describe("useUndoBanners", () => {
     });
     expect(result.current.banners[2].durationMs).toBe(7000); // 5000 + 2000
   });
+
+  it("undo is a no-op when the id is not found", () => {
+    // Covers the early-return guard in undo() (line 151)
+    const { result } = renderHook(() => useUndoBanners());
+
+    act(() => {
+      result.current.registerUndo({ message: "Action", onUndo: vi.fn() });
+    });
+
+    expect(result.current.banners).toHaveLength(1);
+
+    // Calling undo with an unknown id should not throw and not change state
+    act(() => {
+      result.current.undo("non-existent-id");
+    });
+
+    expect(result.current.banners).toHaveLength(1);
+  });
+
+  it("dismiss is a no-op when the id is not found", () => {
+    // Covers the early-return guard in dismiss() (line 162)
+    const { result } = renderHook(() => useUndoBanners());
+
+    act(() => {
+      result.current.registerUndo({ message: "Action", onUndo: vi.fn() });
+    });
+
+    expect(result.current.banners).toHaveLength(1);
+
+    // Calling dismiss with an unknown id should not throw and not change state
+    act(() => {
+      result.current.dismiss("non-existent-id");
+    });
+
+    expect(result.current.banners).toHaveLength(1);
+  });
 });

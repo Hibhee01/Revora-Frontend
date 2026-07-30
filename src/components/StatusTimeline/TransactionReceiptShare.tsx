@@ -7,6 +7,8 @@ export interface TransactionReceiptShareProps {
   issuerName?: string;
   issuerLogoUrl?: string;
   transactionId: string;
+  explorerUrl?: string;
+  transactionHash?: string;
   date: string;
   amount: number | string;
   currency: string;
@@ -19,6 +21,8 @@ export const TransactionReceiptShare: React.FC<TransactionReceiptShareProps> = (
   issuerName = 'Revora',
   issuerLogoUrl,
   transactionId,
+  transactionHash,
+  explorerUrl,
   date,
   amount,
   currency,
@@ -162,6 +166,12 @@ export const TransactionReceiptShare: React.FC<TransactionReceiptShareProps> = (
             <span className="tx-detail-label">Transaction ID</span>
             <span className="tx-detail-value">{transactionId}</span>
           </div>
+          {transactionHash && (
+            <div className="tx-detail-row">
+              <span className="tx-detail-label">Transaction Hash</span>
+              <span className="tx-detail-value">{transactionHash}</span>
+            </div>
+          )}
           <div className="tx-detail-row sensitive-field">
             <span className="tx-detail-label">From</span>
             <span className="tx-detail-value unselectable" aria-label="Sender Wallet (Copy disabled)">{senderWallet}</span>
@@ -171,9 +181,27 @@ export const TransactionReceiptShare: React.FC<TransactionReceiptShareProps> = (
             <span className="tx-detail-value unselectable" aria-label="Recipient Wallet (Copy disabled)">{recipientWallet}</span>
           </div>
         </div>
-        
         <div className="tx-receipt-footer">
-          Generated securely by {issuerName}
+          <div>Generated securely by {issuerName}</div>
+      
+          {explorerUrl && (
+              <div className="tx-explorer-link">
+                  Explorer:
+                  <a
+                      href={explorerUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                  >
+                      {explorerUrl}
+                  </a>
+              </div>
+          )}
+      
+          {transactionHash && (
+              <div className="tx-footer-hash">
+                  Hash: {transactionHash}
+              </div>
+          )}
         </div>
       </div>
     </div>

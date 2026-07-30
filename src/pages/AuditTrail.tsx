@@ -362,8 +362,23 @@ export const AuditTrail: React.FC<AuditTrailProps> = ({ entries = MOCK_AUDIT_ENT
             </div>
           </form>
 
-          {/* Results */}
-          {results.length === 0 ? (
+          </form>
+
+<div
+  className="flex items-center justify-between mt-4 mb-3"
+  aria-live="polite"
+>
+  <h2 className="text-lg font-semibold">
+    Audit Results
+  </h2>
+
+  <p className="text-sm text-muted">
+    Showing <strong>{results.length}</strong> {results.length === 1 ? 'entry' : 'entries'}
+  </p>
+</div>
+
+/* Results */
+{results.length === 0 ? (
             filtersActive ? (
               <EmptyState
                 variant="audit-trail"

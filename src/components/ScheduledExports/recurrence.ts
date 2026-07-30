@@ -1,4 +1,4 @@
-import type { RecurrenceRule, RecurrenceFrequency } from './types';
+import type { RecurrenceRule } from './types';
 import { DAY_LABELS } from './types';
 
 export function describeSchedule(rule: RecurrenceRule): string {
@@ -37,38 +37,162 @@ function ordinalSuffix(n: number): string {
   }
 }
 
+/**
+ * Returns the timezone offset (in ms) between UTC and `timezone` at the
+ * given UTC `date`.  Positive means the target timezone is behind UTC.
+ */
+function getTzOffsetMs(date: Date, timezone: string): number {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: timezone,
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+    second: 'numeric',
+    hour12: false,
+  }).formatToParts(date);
+
+  const getInt = (type: string): number =>
+    parseInt(parts.find((p) => p.type === type)?.value ?? '0', 10);
+
+  return (
+    Date.UTC(
+      getInt('year'),
+      getInt('month') - 1,
+      getInt('day'),
+      getInt('hour'),
+      getInt('minute'),
+      getInt('second'),
+    ) - date.getTime()
+  );
+}
+
+/**
+ * Converts a local-time-in-timezone (expressed as Date.UTC components) to
+ * the equivalent UTC `Date`, using the timezone offset at `refDate`.
+ *
+ * @param localComponents  Year, month (0-indexed), day, hours, minutes
+ *                         expressing the desired *local* time in `timezone`.
+ * @param timezone       IANA timezone string.
+ * @param refDate        Date whose timezone offset is used for conversion.
+ */
+function localToUtc(
+  localComponents: [number, number, number, number, number],
+  timezone: string,
+  refDate: Date,
+): Date {
+  const [y, m, d, h, min] = localComponents;
+  const localTs = Date.UTC(y, m, d, h, min, 0, 0);
+  return new Date(localTs - getTzOffsetMs(refDate, timezone));
+}
+
+/**
+ * Computes the next run time for a recurring schedule.
+ *
+ * Algorithm:
+ * 1. Resolve the current date in the target timezone via Intl.DateTimeFormat.
+ * 2. For weekly / monthly schedules, FIRST snap to the correct day-of-week
+ *    or day-of-month (clamped to month length).
+ * 3. THEN check whether that time is still in the future; if not, advance
+ *    by the appropriate period and snap again.
+ *
+ * The timezone offset is re-computed at each relevant date so DST transitions
+ * (spring-forward / fall-back) are handled correctly.
+ *
+ * @returns ISO-8601 string of the next occurrence.
+ */
 export function computeNextRun(rule: RecurrenceRule, after?: Date): string {
   const now = after ?? new Date();
   const [hours, minutes] = rule.time.split(':').map(Number);
-  const tzDate = new Date(now.toLocaleString('en-US', { timeZone: rule.timezone }));
-  tzDate.setHours(hours, minutes, 0, 0);
-  const candidate = new Date(tzDate.toLocaleString('en-US', { timeZone: 'UTC' }));
+
+  // ── Step 1: Get the current date in the target timezone ─────────────
+  const tzParts = new Intl.DateTimeFormat('en-US', {
+    timeZone: rule.timezone,
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    hour12: false,
+  }).formatToParts(now);
+
+  const getInt = (type: string): number =>
+    parseInt(tzParts.find((p) => p.type === type)?.value ?? '0', 10);
+
+  const tzYear = getInt('year');
+  const tzMonth = getInt('month');
+  const tzDay = getInt('day');
+
+  // ── Step 2: Build initial candidate ─────────────────────────────────
+  let candidate = localToUtc(
+    [tzYear, tzMonth - 1, tzDay, hours, minutes],
+    rule.timezone,
+    now,
+  );
+
+  // ── Step 3: Snap to the correct day-of-week / day-of-month ──────────
+  if (rule.frequency === 'weekly' && rule.dayOfWeek !== undefined) {
+    const targetDay = rule.dayOfWeek;
+    let currentDay = candidate.getUTCDay();
+    let diff = targetDay - currentDay;
+    if (diff < 0) diff += 7;
+    if (diff > 0) {
+      candidate = new Date(candidate.getTime() + diff * 24 * 60 * 60 * 1000);
+    }
+  }
+
+  if (rule.frequency === 'monthly' && rule.dayOfMonth !== undefined) {
+    const cY = candidate.getUTCFullYear();
+    const cM = candidate.getUTCMonth();
+    const lastDay = new Date(Date.UTC(cY, cM + 1, 0)).getUTCDate();
+    const clampedDay = Math.min(rule.dayOfMonth, lastDay);
+    const dayDiff = clampedDay - candidate.getUTCDate();
+    if (dayDiff !== 0) {
+      candidate = new Date(candidate.getTime() + dayDiff * 24 * 60 * 60 * 1000);
+    }
+  }
+
+  // ── Step 4: If candidate is in the past, advance ────────────────────
   if (candidate <= now) {
     switch (rule.frequency) {
       case 'daily':
-        candidate.setDate(candidate.getDate() + 1);
+        candidate = new Date(candidate.getTime() + 24 * 60 * 60 * 1000);
         break;
-      case 'weekly':
-        candidate.setDate(candidate.getDate() + 7);
+
+      case 'weekly': {
+        candidate = new Date(candidate.getTime() + 7 * 24 * 60 * 60 * 1000);
+        const targetDay = rule.dayOfWeek!;
+        let currentDay = candidate.getUTCDay();
+        let diff = targetDay - currentDay;
+        if (diff < 0) diff += 7;
+        if (diff > 0) {
+          candidate = new Date(candidate.getTime() + diff * 24 * 60 * 60 * 1000);
+        }
         break;
-      case 'monthly':
-        candidate.setMonth(candidate.getMonth() + 1);
+      }
+
+      case 'monthly': {
+        // Advance the month, then reconstruct using the rule's local
+        // time and the timezone offset at the advanced date.  This
+        // handles DST transitions correctly (e.g. EST → EDT).
+        const cY = candidate.getUTCFullYear();
+        const cM = candidate.getUTCMonth();
+        const nextMonth = cM + 1;
+        const nextYear = nextMonth > 11 ? cY + 1 : cY;
+        const nextMonthIdx = nextMonth > 11 ? 0 : nextMonth;
+        const tDay = rule.dayOfMonth ?? 1;
+        const lastDay = new Date(Date.UTC(nextYear, nextMonthIdx + 1, 0)).getUTCDate();
+        const clampedDay = Math.min(tDay, lastDay);
+        // Use the rule's local hours+minutes with the future date's offset.
+        candidate = localToUtc(
+          [nextYear, nextMonthIdx, clampedDay, hours, minutes],
+          rule.timezone,
+          new Date(Date.UTC(nextYear, nextMonthIdx, clampedDay, 12, 0, 0, 0)),
+        );
         break;
+      }
     }
   }
-  if (rule.frequency === 'weekly' && rule.dayOfWeek !== undefined) {
-    const targetDay = rule.dayOfWeek;
-    const currentDay = candidate.getDay();
-    let diff = targetDay - currentDay;
-    if (diff <= 0) diff += 7;
-    candidate.setDate(candidate.getDate() + diff);
-  }
-  if (rule.frequency === 'monthly' && rule.dayOfMonth !== undefined) {
-    candidate.setDate(rule.dayOfMonth);
-    if (candidate <= now) {
-      candidate.setMonth(candidate.getMonth() + 1);
-    }
-  }
+
   return candidate.toISOString();
 }
 

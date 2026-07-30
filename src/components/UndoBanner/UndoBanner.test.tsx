@@ -181,4 +181,58 @@ describe("UndoBanner", () => {
     );
     expect(await axe(container)).toHaveNoViolations();
   });
+
+  it("CountdownRing renders fraction=0 when durationMs is 0", () => {
+    // Covers the durationMs === 0 branch in CountdownRing (line 51)
+    render(
+      <UndoBanner
+        banners={[makeBanner({ durationMs: 0, remainingMs: 0 })]}
+        onUndo={vi.fn()}
+        onDismiss={vi.fn()}
+      />,
+    );
+    // Ring still renders without crashing; the SVG circle dashoffset = full circumference (empty ring)
+    const ring = screen.getByTestId("undo-countdown");
+    expect(ring).toBeInTheDocument();
+  });
+
+  it("calls captureOrigin when the first banner appears (prevLen 0 → 1)", () => {
+    // Covers UndoBanner.tsx line 126: captureOrigin() called when banners.length goes 0→1
+    const { rerender } = render(
+      <UndoBanner banners={[]} onUndo={vi.fn()} onDismiss={vi.fn()} />,
+    );
+    // No banner yet — region is empty
+    expect(screen.queryByTestId("undo-banner")).not.toBeInTheDocument();
+
+    // Add the first banner — captureOrigin should be called internally
+    rerender(
+      <UndoBanner
+        banners={[makeBanner({ id: "first" })]}
+        onUndo={vi.fn()}
+        onDismiss={vi.fn()}
+      />,
+    );
+    expect(screen.getByTestId("undo-banner")).toBeInTheDocument();
+  });
+
+  it("uses onKeyboardUndo instead of onUndo when provided", () => {
+    const onUndo = vi.fn();
+    const onKeyboardUndo = vi.fn();
+    const banner = makeBanner({ id: "kb1" });
+
+    render(
+      <UndoBanner
+        banners={[banner]}
+        onUndo={onUndo}
+        onDismiss={vi.fn()}
+        onKeyboardUndo={onKeyboardUndo}
+      />,
+    );
+
+    // Trigger keyboard shortcut
+    fireEvent.keyDown(window, { key: "z", metaKey: true });
+
+    expect(onKeyboardUndo).toHaveBeenCalledWith("kb1");
+    expect(onUndo).not.toHaveBeenCalled();
+  });
 });

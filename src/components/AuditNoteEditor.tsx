@@ -5,7 +5,7 @@
  * pre-filled templates, and character count validation.
  */
 
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
   Bold,
   Italic,
@@ -110,6 +110,31 @@ export const AuditNoteEditor: React.FC<AuditNoteEditorProps> = ({
     }
   }, [handleFormat]);
 
+  // Close template dropdown on Escape key
+  const handleTemplateKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      setShowTemplates(false);
+      // Focus back on the template button
+      const btn = dropdownRef.current?.querySelector('.ane-template-btn') as HTMLButtonElement | null;
+      btn?.focus();
+    }
+  }, []);
+
+  // Close template dropdown on click outside
+  useEffect(() => {
+    if (!showTemplates) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setShowTemplates(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showTemplates]);
+
   return (
     <div className={`ane-container ${className}`} role="group" aria-label="Audit note editor">
       {/* Header row: label + template dropdown */}
@@ -130,7 +155,7 @@ export const AuditNoteEditor: React.FC<AuditNoteEditorProps> = ({
               <ChevronDown size={12} aria-hidden="true" />
             </button>
             {showTemplates && (
-              <ul className="ane-template-list" role="listbox" aria-label="Note templates">
+              <ul className="ane-template-list" role="listbox" aria-label="Note templates" onKeyDown={handleTemplateKeyDown}>
                 {templates.map((t) => (
                   <li
                     key={t.id}
@@ -227,7 +252,14 @@ export const AuditNoteEditor: React.FC<AuditNoteEditorProps> = ({
           className="ane-preview"
         >
           {value ? (
-            <pre className="ane-preview-content">{value}</pre>
+            <pre className="ane-preview-content" data-testid="ane-preview-content">
+              {/*
+                XSS is prevented by React's JSX text interpolation, which
+                always uses textContent (not innerHTML). Even if value
+                contains <script> tags they render as literal text.
+              */}
+              {value}
+            </pre>
           ) : (
             <p className="ane-preview-empty">Nothing to preview.</p>
           )}

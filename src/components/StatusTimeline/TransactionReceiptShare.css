@@ -203,3 +203,89 @@
     justify-content: center;
   }
 }
+
+/* ===========================
+   Printable A4 Receipt Layout
+   =========================== */
+
+.tx-explorer-link,
+.tx-footer-hash {
+  margin-top: 6px;
+  font-size: 11px;
+  word-break: break-all;
+}
+
+.tx-explorer-link a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+/* A4 Print Styles */
+@page {
+  size: A4 portrait;
+  margin: 16mm;
+}
+
+@media print {
+
+  body {
+    background: #ffffff !important;
+  }
+
+  .tx-receipt-actions {
+    display: none !important;
+  }
+
+  .tx-receipt-container {
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  .tx-receipt-card {
+    width: 100%;
+    min-height: auto;
+    border: 1px solid #000;
+    border-radius: 0;
+    box-shadow: none;
+    page-break-inside: avoid;
+    break-inside: avoid;
+    overflow: visible;
+  }
+
+  .tx-detail-row {
+    break-inside: avoid;
+  }
+
+  .tx-receipt-header,
+  .tx-receipt-footer {
+    break-inside: avoid;
+  }
+
+  img {
+    max-width: 100%;
+  }
+
+  a {
+    color: #000;
+    text-decoration: none;
+  }
+}
+
+/* US Letter */
+@media print and (size: letter) {
+  .tx-receipt-card {
+    padding: 20mm;
+  }
+}
+
+/* Monochrome printer support */
+@media print {
+
+  .status-completed,
+  .status-pending,
+  .status-failed {
+    color: #000 !important;
+    font-weight: 700;
+  }
+}

@@ -16,6 +16,8 @@ import { GovernanceDelegation } from '../components/GovernanceDelegation/Governa
 import { RevenuePayoutChart, RevenuePayoutDataPoint } from '../components/RevenuePayoutChart/RevenuePayoutChart';
 import { BlacklistBulkRemoveConfirm, BlacklistEntry } from '../components/BlacklistBulkRemoveConfirm/BlacklistBulkRemoveConfirm';
 import { GovernanceProposalDetail, type ProposalData } from '../components/designSystem/GovernanceProposalDetail';
+import { UploadQueue } from '../components/UploadQueue/UploadQueue';
+import { useUploadQueue, type Uploader } from '../hooks/useUploadQueue';
 
 interface ExtendedPayoutDetail extends PayoutDetail {
   region: string;
@@ -191,6 +193,30 @@ const GOVERNANCE_PROPOSAL: ProposalData = {
   userVote: null,
 };
 
+const mockUploader: Uploader = (file, onProgress) => {
+  return new Promise((resolve, reject) => {
+    const total = 100;
+    const tick = () => {
+      const next = Math.min(total, progress + 20);
+      progress = next;
+      onProgress(next);
+      if (next >= total) {
+        resolve();
+      } else {
+        window.setTimeout(tick, 120);
+      }
+    };
+
+    let progress = 0;
+    if (file.name.toLowerCase().includes('fail')) {
+      reject(new Error('Network unavailable'));
+      return;
+    }
+
+    window.setTimeout(tick, 120);
+  });
+};
+
 export const DistributionDashboard: React.FC = () => {
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(true);
   const [isBulkRemoveModalOpen, setIsBulkRemoveModalOpen] = useState(false);
@@ -216,7 +242,6 @@ export const DistributionDashboard: React.FC = () => {
     };
   });
 
-export const DistributionDashboard: React.FC = () => {
   const {
     queue,
     addFiles,
@@ -483,6 +508,35 @@ export const DistributionDashboard: React.FC = () => {
           </p>
         </div>
         <GovernanceProposalDetail proposal={GOVERNANCE_PROPOSAL} />
+      </section>
+
+      <section aria-labelledby="upload-queue-heading" className="glass-card p-6 md:p-8">
+        <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between mb-6">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Documents</p>
+            <h2 id="upload-queue-heading" className="text-xl font-semibold text-white">
+              Batch Upload Queue
+            </h2>
+          </div>
+          <p className="text-sm text-muted max-w-2xl">
+            Track each document’s progress, retry failures, and remove completed or cancelled files.
+          </p>
+        </div>
+        <UploadQueue
+          queue={queue}
+          onAddFiles={addFiles}
+          onRemove={removeFile}
+          onRetry={handleRetry}
+          onUploadAll={handleUploadAll}
+          onClearComplete={clearComplete}
+          totalCount={totalCount}
+          successCount={successCount}
+          errorCount={errorCount}
+          uploadingCount={uploadingCount}
+          overallProgress={overallProgress}
+          uploader={undefined}
+          accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+        />
       </section>
 
       {/* Token Supply Configuration */}

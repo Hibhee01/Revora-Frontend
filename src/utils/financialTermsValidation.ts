@@ -151,6 +151,10 @@ export function parseLocaleNumber(raw: string): number | null {
   // Reject explicit negatives — all financial terms must be positive
   if (trimmed.startsWith('-')) return null;
 
+  // Check for invalid characters early (currency symbols, letters, %, etc)
+  // Allow: digits, comma, period, optional leading minus (already rejected above)
+  if (!/^[\d,.]*$/.test(trimmed)) return null;
+
   let normalised = trimmed;
 
   const dotCount = (trimmed.match(/\./g) ?? []).length;
@@ -175,11 +179,18 @@ export function parseLocaleNumber(raw: string): number | null {
       // Thousands separator (e.g. "1,000")
       normalised = trimmed.replace(/,/g, '');
     }
+  } else if (dotCount === 1) {
+    // Single dot — could be decimal or thousands separator
+    // If followed by exactly 3 digits at end, it's thousands separator (e.g., "1.000")
+    if (/\.\d{3}$/.test(trimmed)) {
+      normalised = trimmed.replace(/\./g, '');
+    }
+    // else: single dot as decimal — pass through as-is
   } else if (dotCount > 1) {
     // Multiple dots — thousands separators (e.g. "1.000.000")
     normalised = trimmed.replace(/\./g, '');
   }
-  // else: single dot or no separator — pass through as-is
+  // else: no separators — pass through as-is
 
   // Strip any remaining non-numeric characters except the decimal point
   normalised = normalised.replace(/[^\d.]/g, '');

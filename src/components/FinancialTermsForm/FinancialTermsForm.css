@@ -1,9 +1,15 @@
-/* ─── Financial Terms Form Styles (Issue #197) ─────────────────────────────
-   Design tokens consumed from src/index.css :root:
-   --glass-bg, --glass-border, --glass-border-bright, --glass-blur,
-   --shadow-md, --radius-*, --spacing-*, --font-size-*, --font-weight-*,
-   --text-main, --text-muted, --primary, --primary-hover, --error, --success
-   ─────────────────────────────────────────────────────────────────────────── */
+/* ─── Screen reader only (visually hidden) ────────────────────────────── */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
 
 /* ── Form container ────────────────────────────────────────────────────── */
 .ftf {

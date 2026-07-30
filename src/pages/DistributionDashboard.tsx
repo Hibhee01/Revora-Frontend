@@ -1,11 +1,9 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useMemo, useRef, useCallback } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { AdminHero } from '../components/AdminHero';
 import type { AdminTileData, IncidentData } from '../components/AdminHero';
 import { Button } from '../components/Button';
 import { LockupClaimModal } from '../components/LockupClaimModal';
-import React, { useState, useMemo, useRef, useCallback } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
 import { EmptyState } from '../components/designSystem/EmptyState';
 import { KycResubmissionTimeline } from '../components/KycResubmissionTimeline';
 import { GovernanceResults } from '../components/designSystem/GovernanceResults';
@@ -17,6 +15,7 @@ import type { ErrorRateDataPoint } from '../components/ErrorRateSparklineTile/Er
 import { GovernanceDelegation } from '../components/GovernanceDelegation/GovernanceDelegation';
 import { RevenuePayoutChart, RevenuePayoutDataPoint } from '../components/RevenuePayoutChart/RevenuePayoutChart';
 import { BlacklistBulkRemoveConfirm, BlacklistEntry } from '../components/BlacklistBulkRemoveConfirm/BlacklistBulkRemoveConfirm';
+import { GovernanceProposalDetail, type ProposalData } from '../components/designSystem/GovernanceProposalDetail';
 
 interface ExtendedPayoutDetail extends PayoutDetail {
   region: string;
@@ -176,6 +175,21 @@ const SAMPLE_TILES: AdminTileData[] = [
 ];
 
 const SAMPLE_INCIDENT: IncidentData | null = null;
+
+const GOVERNANCE_PROPOSAL: ProposalData = {
+  id: 'prop-1',
+  title: 'Increase Developer Grant Fund',
+  description:
+    'A proposal to allocate an additional 500,000 tokens to the developer grant program to support ecosystem growth and accelerate protocol contributor onboarding.',
+  proposer: '0x1234...abcd',
+  status: 'active',
+  endTime: Date.now() + 86_400_000 * 3,
+  quorumRequired: 4_000_000,
+  quorumReached: 2_500_000,
+  results: { for: 2_000_000, against: 450_000, abstain: 50_000 },
+  participation: { turnout: 68.4, uniqueVoters: 142, delegates: 12 },
+  userVote: null,
+};
 
 export const DistributionDashboard: React.FC = () => {
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(true);
@@ -455,6 +469,21 @@ export const DistributionDashboard: React.FC = () => {
         onFilterChange={updateFiltersAndUrl}
         onResetFilters={handleResetFilters}
       />
+
+      <section aria-labelledby="governance-proposal-heading" className="glass-card p-6 md:p-8">
+        <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between mb-6">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Governance</p>
+            <h2 id="governance-proposal-heading" className="text-xl font-semibold text-white">
+              Proposal Detail
+            </h2>
+          </div>
+          <p className="text-sm text-muted max-w-2xl">
+            Review quorum, support, and the latest vote distribution before casting your decision.
+          </p>
+        </div>
+        <GovernanceProposalDetail proposal={GOVERNANCE_PROPOSAL} />
+      </section>
 
       {/* Token Supply Configuration */}
       <div className="mt-8">

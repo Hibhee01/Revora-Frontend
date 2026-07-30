@@ -1,11 +1,36 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+iimport React, { useState, useMemo, useCallback } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+
 import { AdminHero } from '../components/AdminHero';
 import type { AdminTileData, IncidentData } from '../components/AdminHero';
 import { Button } from '../components/Button';
 import { LockupClaimModal } from '../components/LockupClaimModal';
-import React, { useState, useMemo, useRef, useCallback } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { EmptyState } from '../components/designSystem/EmptyState';
+import { KycResubmissionTimeline } from '../components/KycResubmissionTimeline';
+import { GovernanceResults } from '../components/designSystem/GovernanceResults';
+import { DocumentUploadStatus } from '../components/DocumentUploadStatus';
+import type { DistributionFilterState } from '../components/DistributionFilterToolbar/DistributionFilterToolbar.types';
+import type {
+  PayoutDetail,
+  RecipientItem,
+  RetryEvent,
+} from '../components/PayoutDrillDownPanel/PayoutDrillDownPanel.types';
+import {
+  ErrorRateSparklineTile,
+} from '../components/ErrorRateSparklineTile/ErrorRateSparklineTile';
+import type {
+  ErrorRateDataPoint,
+} from '../components/ErrorRateSparklineTile/ErrorRateSparklineTile';
+import { GovernanceDelegation } from '../components/GovernanceDelegation/GovernanceDelegation';
+import {
+  RevenuePayoutChart,
+} from '../components/RevenuePayoutChart/RevenuePayoutChart';
+import type {
+  RevenuePayoutDataPoint,
+} from '../components/RevenuePayoutChart/RevenuePayoutChart';
+import {
+  BlacklistBulkRemoveConfirm,
+} from '../components/BlacklistBulkRemoveConfirm/BlacklistBulkRemoveConfirm';
 import { EmptyState } from '../components/designSystem/EmptyState';
 import { KycResubmissionTimeline } from '../components/KycResubmissionTimeline';
 import { GovernanceResults } from '../components/designSystem/GovernanceResults';
@@ -202,20 +227,7 @@ export const DistributionDashboard: React.FC = () => {
     };
   });
 
-export const DistributionDashboard: React.FC = () => {
-  const {
-    queue,
-    addFiles,
-    removeFile,
-    retryFile,
-    uploadFiles,
-    clearComplete,
-    totalCount,
-    successCount,
-    errorCount,
-    uploadingCount,
-    overallProgress,
-  } = useUploadQueue();
+
 
   const handleUploadAll = useCallback(() => {
     uploadFiles(mockUploader);

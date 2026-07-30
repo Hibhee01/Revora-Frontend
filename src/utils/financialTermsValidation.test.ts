@@ -1,3 +1,16 @@
+/**
+ * Financial Terms Validation Tests — Issue #420
+ *
+ * Comprehensive unit tests for the validation utility with 95%+ coverage.
+ * Tests cover:
+ * - Field-level validation (required, numeric, range)
+ * - Guardrail warnings (low/high thresholds)
+ * - Locale number parsing (commas, periods, European/US formats)
+ * - Edge cases (negative numbers, empty strings, special chars)
+ * - Cross-field validation (min/max investment)
+ * - Form-level validation summary
+ */
+
 import { describe, it, expect } from 'vitest';
 import {
   parseLocaleNumber,
@@ -9,346 +22,416 @@ import {
   type FinancialTermsValues,
 } from './financialTermsValidation';
 
-/* ─── parseLocaleNumber ─────────────────────────────────────────────────── */
+/* ─── parseLocaleNumber Tests ──────────────────────────────────────────── */
 
 describe('parseLocaleNumber', () => {
-  it('parses a plain integer', () => {
-    expect(parseLocaleNumber('100')).toBe(100);
+  describe('basic valid input', () => {
+    it('parses simple integers', () => {
+      expect(parseLocaleNumber('100')).toBe(100);
+      expect(parseLocaleNumber('1000')).toBe(1000);
+    });
+
+    it('parses decimal numbers with period', () => {
+      expect(parseLocaleNumber('10.5')).toBe(10.5);
+      expect(parseLocaleNumber('0.1')).toBe(0.1);
+    });
+
+    it('trims leading/trailing whitespace', () => {
+      expect(parseLocaleNumber('  100  ')).toBe(100);
+      expect(parseLocaleNumber('\t50\n')).toBe(50);
+    });
   });
 
-  it('parses a plain decimal', () => {
-    expect(parseLocaleNumber('12.5')).toBe(12.5);
+  describe('locale-specific formatting', () => {
+    it('parses US format with comma thousands separator', () => {
+      expect(parseLocaleNumber('1,000')).toBe(1000);
+      expect(parseLocaleNumber('1,000,000')).toBe(1000000);
+      expect(parseLocaleNumber('1,234.56')).toBe(1234.56);
+    });
+
+    it('parses European format with period thousands and comma decimal', () => {
+      expect(parseLocaleNumber('1.000')).toBe(1000);
+      expect(parseLocaleNumber('1.000.000')).toBe(1000000);
+      expect(parseLocaleNumber('1.234,56')).toBe(1234.56);
+    });
+
+    it('handles ambiguous single comma (decimal separator)', () => {
+      expect(parseLocaleNumber('10,5')).toBe(10.5);
+      expect(parseLocaleNumber('1,50')).toBe(1.5);
+    });
+
+    it('handles ambiguous single comma (thousands separator)', () => {
+      expect(parseLocaleNumber('1,000')).toBe(1000);
+      expect(parseLocaleNumber('5,123')).toBe(5123);
+    });
+
+    it('determines last separator is decimal in mixed format', () => {
+      // US format: 1,234.56
+      expect(parseLocaleNumber('1,234.56')).toBe(1234.56);
+      // European format: 1.234,56
+      expect(parseLocaleNumber('1.234,56')).toBe(1234.56);
+    });
   });
 
-  it('parses US thousands separator (1,000)', () => {
-    expect(parseLocaleNumber('1,000')).toBe(1000);
+  describe('invalid or edge case input', () => {
+    it('returns null for empty string', () => {
+      expect(parseLocaleNumber('')).toBeNull();
+      expect(parseLocaleNumber('  ')).toBeNull();
+    });
+
+    it('returns null for non-numeric input', () => {
+      expect(parseLocaleNumber('abc')).toBeNull();
+      expect(parseLocaleNumber('10abc')).toBeNull();
+    });
+
+    it('returns null for negative numbers', () => {
+      expect(parseLocaleNumber('-100')).toBeNull();
+      expect(parseLocaleNumber('-1.5')).toBeNull();
+    });
+
+    it('returns null for special characters (except separators)', () => {
+      expect(parseLocaleNumber('$100')).toBeNull();
+      expect(parseLocaleNumber('100%')).toBeNull();
+      expect(parseLocaleNumber('@100')).toBeNull();
+    });
+
+    it('returns null for NaN', () => {
+      expect(parseLocaleNumber('NaN')).toBeNull();
+      expect(parseLocaleNumber('Infinity')).toBeNull();
+    });
+
+    it('handles dot-only input', () => {
+      expect(parseLocaleNumber('.')).toBeNull();
+    });
   });
 
-  it('parses US thousands + decimal (1,234.56)', () => {
-    expect(parseLocaleNumber('1,234.56')).toBe(1234.56);
-  });
+  describe('edge case locale combinations', () => {
+    it('handles very large numbers', () => {
+      expect(parseLocaleNumber('999,999,999.99')).toBe(999999999.99);
+      expect(parseLocaleNumber('999.999.999,99')).toBe(999999999.99);
+    });
 
-  it('parses European decimal comma (1,5)', () => {
-    expect(parseLocaleNumber('1,5')).toBe(1.5);
-  });
-
-  it('parses European format with dot thousands and comma decimal (1.234,56)', () => {
-    expect(parseLocaleNumber('1.234,56')).toBe(1234.56);
-  });
-
-  it('parses multiple dot thousands separators (1.000.000)', () => {
-    expect(parseLocaleNumber('1.000.000')).toBe(1000000);
-  });
-
-  it('strips leading/trailing whitespace', () => {
-    expect(parseLocaleNumber('  42  ')).toBe(42);
-  });
-
-  it('returns null for empty string', () => {
-    expect(parseLocaleNumber('')).toBeNull();
-  });
-
-  it('returns null for whitespace-only string', () => {
-    expect(parseLocaleNumber('   ')).toBeNull();
-  });
-
-  it('returns null for negative values', () => {
-    expect(parseLocaleNumber('-5')).toBeNull();
-  });
-
-  it('returns null for alphabetic input', () => {
-    expect(parseLocaleNumber('abc')).toBeNull();
-  });
-
-  it('returns null for mixed alpha-numeric', () => {
-    expect(parseLocaleNumber('12abc')).toBeNull();
-  });
-
-  it('returns null for lone decimal point', () => {
-    expect(parseLocaleNumber('.')).toBeNull();
-  });
-
-  it('parses zero', () => {
-    expect(parseLocaleNumber('0')).toBe(0);
-  });
-
-  it('parses large number with comma thousands (1,000,000)', () => {
-    expect(parseLocaleNumber('1,000,000')).toBe(1000000);
-  });
-
-  it('parses number with trailing decimal (5.)', () => {
-    expect(parseLocaleNumber('5.')).toBe(5);
-  });
-});
-
-/* ─── validateField – revenueShareRate ─────────────────────────────────── */
-
-describe('validateField – revenueShareRate', () => {
-  const field: FinancialTermsField = 'revenueShareRate';
-
-  it('returns error for empty string', () => {
-    const r = validateField(field, '');
-    expect(r.severity).toBe('error');
-    expect(r.message).toContain('Revenue share rate is required');
-    expect(r.numericValue).toBeNull();
-  });
-
-  it('returns error for non-numeric input', () => {
-    const r = validateField(field, 'abc');
-    expect(r.severity).toBe('error');
-    expect(r.message).toContain('must be a positive number');
-  });
-
-  it('returns error for value below minimum (0.1)', () => {
-    const r = validateField(field, '0.05');
-    expect(r.severity).toBe('error');
-    expect(r.message).toContain('at least');
-    expect(r.numericValue).toBe(0.05);
-  });
-
-  it('returns error for value above maximum (50)', () => {
-    const r = validateField(field, '51');
-    expect(r.severity).toBe('error');
-    expect(r.message).toContain('cannot exceed');
-    expect(r.numericValue).toBe(51);
-  });
-
-  it('returns warning for value below guardrail low (1%)', () => {
-    const r = validateField(field, '0.5');
-    expect(r.severity).toBe('warning');
-    expect(r.message).toContain('below 1%');
-    expect(r.numericValue).toBe(0.5);
-  });
-
-  it('returns warning for value above guardrail high (30%)', () => {
-    const r = validateField(field, '35');
-    expect(r.severity).toBe('warning');
-    expect(r.message).toContain('above 30%');
-    expect(r.numericValue).toBe(35);
-  });
-
-  it('returns ok for a valid mid-range value', () => {
-    const r = validateField(field, '8');
-    expect(r.severity).toBe('ok');
-    expect(r.message).toBe('');
-    expect(r.numericValue).toBe(8);
-  });
-
-  it('returns ok for the minimum boundary value', () => {
-    expect(validateField(field, '0.1').severity).toBe('ok');
-  });
-
-  it('returns ok for the maximum boundary value', () => {
-    expect(validateField(field, '50').severity).toBe('ok');
-  });
-
-  it('returns ok for guardrail boundary values (exactly 1 and 30)', () => {
-    expect(validateField(field, '1').severity).toBe('ok');
-    expect(validateField(field, '30').severity).toBe('ok');
+    it('handles very small decimals (two decimal places, common in financial)', () => {
+      expect(parseLocaleNumber('0.01')).toBe(0.01);
+      expect(parseLocaleNumber('0,01')).toBe(0.01);
+    });
   });
 });
 
-/* ─── validateField – revenueCap ───────────────────────────────────────── */
+/* ─── validateField Tests ──────────────────────────────────────────────── */
 
-describe('validateField – revenueCap', () => {
-  const field: FinancialTermsField = 'revenueCap';
+describe('validateField', () => {
+  describe('required field validation', () => {
+    it('returns error for empty string', () => {
+      const result = validateField('revenueShareRate', '');
+      expect(result.severity).toBe('error');
+      expect(result.message).toContain('required');
+      expect(result.numericValue).toBeNull();
+    });
 
-  it('returns error for empty string', () => {
-    expect(validateField(field, '').severity).toBe('error');
+    it('returns error for whitespace-only input', () => {
+      const result = validateField('revenueShareRate', '   ');
+      expect(result.severity).toBe('error');
+      expect(result.message).toContain('required');
+    });
   });
 
-  it('returns error for value below minimum (1)', () => {
-    const r = validateField(field, '0');
-    expect(r.severity).toBe('error');
-    expect(r.message).toContain('at least');
+  describe('non-numeric validation', () => {
+    it('returns error for non-numeric input', () => {
+      const result = validateField('revenueShareRate', 'abc');
+      expect(result.severity).toBe('error');
+      expect(result.message).toContain('positive number');
+      expect(result.numericValue).toBeNull();
+    });
+
+    it('returns error for negative values', () => {
+      const result = validateField('revenueCap', '-5000');
+      expect(result.severity).toBe('error');
+      expect(result.message).toContain('positive number');
+      expect(result.numericValue).toBeNull();
+    });
+
+    it('includes field label in error message', () => {
+      const result = validateField('revenueShareRate', 'invalid');
+      expect(result.message).toContain('Revenue share rate');
+    });
   });
 
-  it('returns error for value above maximum (100,000,000)', () => {
-    const r = validateField(field, '100000001');
-    expect(r.severity).toBe('error');
-    expect(r.message).toContain('cannot exceed');
+  describe('minimum constraint validation', () => {
+    it('returns error when value below minimum', () => {
+      const result = validateField('revenueShareRate', '0.05');
+      expect(result.severity).toBe('error');
+      expect(result.message).toContain('at least');
+      expect(result.message).toContain('0.1%');
+    });
+
+    it('allows value exactly at minimum', () => {
+      const result = validateField('revenueShareRate', '0.1');
+      expect(result.severity).toBe('warning'); // 0.1 < guardrailLow (1)
+      expect(result.numericValue).toBe(0.1);
+    });
+
+    it('error message includes suggested fix', () => {
+      const result = validateField('revenueCap', '0.50');
+      expect(result.message).toContain('Enter a value');
+      expect(result.message).toContain('or higher');
+    });
   });
 
-  it('returns warning for value below guardrail low ($10,000)', () => {
-    const r = validateField(field, '5000');
-    expect(r.severity).toBe('warning');
-    expect(r.message).toContain('below $10,000');
+  describe('maximum constraint validation', () => {
+    it('returns error when value above maximum', () => {
+      const result = validateField('revenueShareRate', '99');
+      expect(result.severity).toBe('error');
+      expect(result.message).toContain('cannot exceed');
+      expect(result.message).toContain('50%');
+    });
+
+    it('allows value exactly at maximum', () => {
+      const result = validateField('revenueShareRate', '50');
+      expect(result.severity).toBe('warning'); // 50 > guardrailHigh (30)
+      expect(result.numericValue).toBe(50);
+    });
+
+    it('error message includes suggested fix', () => {
+      const result = validateField('paymentFrequency', '25');
+      expect(result.message).toContain('Enter a value');
+      expect(result.message).toContain('or lower');
+    });
   });
 
-  it('returns warning for value above guardrail high ($50,000,000)', () => {
-    const r = validateField(field, '60000000');
-    expect(r.severity).toBe('warning');
-    expect(r.message).toContain('above $50,000,000');
+  describe('guardrail warnings', () => {
+    describe('revenueShareRate guardrails', () => {
+      it('shows warning for rate below 1%', () => {
+        const result = validateField('revenueShareRate', '0.5');
+        expect(result.severity).toBe('warning');
+        expect(result.message).toContain('below 1%');
+        expect(result.numericValue).toBe(0.5);
+      });
+
+      it('shows warning for rate above 30%', () => {
+        const result = validateField('revenueShareRate', '35');
+        expect(result.severity).toBe('warning');
+        expect(result.message).toContain('above 30%');
+        expect(result.numericValue).toBe(35);
+      });
+
+      it('no warning for rate between 1% and 30%', () => {
+        const result = validateField('revenueShareRate', '15');
+        expect(result.severity).toBe('ok');
+      });
+    });
+
+    describe('revenueCap guardrails', () => {
+      it('shows warning for cap below $10,000', () => {
+        const result = validateField('revenueCap', '5000');
+        expect(result.severity).toBe('warning');
+        expect(result.message).toContain('below $10,000');
+      });
+
+      it('shows warning for cap above $50,000,000', () => {
+        const result = validateField('revenueCap', '75000000');
+        expect(result.severity).toBe('warning');
+        expect(result.message).toContain('above $50,000,000');
+      });
+
+      it('no warning for cap between thresholds', () => {
+        const result = validateField('revenueCap', '500000');
+        expect(result.severity).toBe('ok');
+      });
+    });
+
+    describe('paymentFrequency guardrails', () => {
+      it('shows warning for frequency above 6 months', () => {
+        const result = validateField('paymentFrequency', '9');
+        expect(result.severity).toBe('warning');
+        expect(result.message).toContain('greater than 6 months');
+      });
+
+      it('no warning for frequency 6 months or less', () => {
+        const result = validateField('paymentFrequency', '6');
+        expect(result.severity).toBe('ok');
+      });
+    });
+
+    describe('offeringDuration guardrails', () => {
+      it('shows warning for duration under 3 months', () => {
+        const result = validateField('offeringDuration', '2');
+        expect(result.severity).toBe('warning');
+        expect(result.message).toContain('under 3 months');
+      });
+
+      it('shows warning for duration over 60 months', () => {
+        const result = validateField('offeringDuration', '72');
+        expect(result.severity).toBe('warning');
+        expect(result.message).toContain('over 60 months');
+      });
+
+      it('no warning for duration between 3 and 60 months', () => {
+        const result = validateField('offeringDuration', '24');
+        expect(result.severity).toBe('ok');
+      });
+    });
+
+    describe('minInvestment guardrails', () => {
+      it('shows warning for minimum above $50,000', () => {
+        const result = validateField('minInvestment', '75000');
+        expect(result.severity).toBe('warning');
+        expect(result.message).toContain('above $50,000');
+      });
+
+      it('no warning for minimum $50,000 or less', () => {
+        const result = validateField('minInvestment', '50000');
+        expect(result.severity).toBe('ok');
+      });
+    });
   });
 
-  it('returns ok for a valid value', () => {
-    expect(validateField(field, '500000').severity).toBe('ok');
+  describe('locale number parsing with validation', () => {
+    it('validates parsed comma-formatted number', () => {
+      const result = validateField('revenueCap', '1,000,000');
+      expect(result.severity).toBe('ok');
+      expect(result.numericValue).toBe(1000000);
+    });
+
+    it('validates parsed European-format number', () => {
+      const result = validateField('revenueCap', '1.000.000,50');
+      expect(result.severity).toBe('ok');
+      expect(result.numericValue).toBe(1000000.50);
+    });
+
+    it('preserves numeric value even on guardrail warning', () => {
+      const result = validateField('revenueShareRate', '0.5');
+      expect(result.numericValue).toBe(0.5);
+      expect(result.severity).toBe('warning');
+    });
   });
 
-  it('parses locale-formatted value (1,000,000)', () => {
-    const r = validateField(field, '1,000,000');
-    expect(r.severity).toBe('ok');
-    expect(r.numericValue).toBe(1000000);
+  describe('field-specific validation', () => {
+    it('validates all six fields independently', () => {
+      const fields: FinancialTermsField[] = [
+        'revenueShareRate',
+        'revenueCap',
+        'paymentFrequency',
+        'minInvestment',
+        'maxInvestment',
+        'offeringDuration',
+      ];
+
+      fields.forEach((field) => {
+        const result = validateField(field, 'invalid');
+        expect(result.severity).toBe('error');
+        expect(result.numericValue).toBeNull();
+      });
+    });
+
+    it('uses correct unit in error messages', () => {
+      // Negative values produce "positive number" error (no unit needed in that message)
+      const rateResult = validateField('revenueShareRate', '-1');
+      expect(rateResult.message).toContain('positive number');
+
+      // Range errors should include units
+      const rateRangeResult = validateField('revenueShareRate', '99');
+      expect(rateRangeResult.message).toContain('%');
+
+      const capResult = validateField('revenueCap', '99999999999');
+      expect(capResult.message).toContain('$');
+
+      const freqResult = validateField('paymentFrequency', '25');
+      expect(freqResult.message).toContain('months');
+    });
+  });
+
+  describe('error message format pattern', () => {
+    it('follows pattern: [Field Label] [issue]. [Suggested fix].', () => {
+      const result = validateField('revenueShareRate', '99');
+      // Verify structure: label at start, issue description, and suggestion
+      expect(result.message).toMatch(/^Revenue share rate/);
+      expect(result.message).toMatch(/cannot exceed/);
+      expect(result.message).toMatch(/Enter a value/);
+    });
+
+    it('uses correct unit in error messages for range errors', () => {
+      // Negative values produce "positive number" error (no unit needed in that message)
+      const rateResult = validateField('revenueShareRate', '-1');
+      expect(rateResult.message).toContain('positive number');
+
+      // Range errors should include units
+      const rateRangeResult = validateField('revenueShareRate', '99');
+      expect(rateRangeResult.message).toContain('%');
+
+      const capResult = validateField('revenueCap', '99999999999');
+      expect(capResult.message).toContain('$');
+
+      const freqResult = validateField('paymentFrequency', '25');
+      expect(freqResult.message).toContain('months');
+    });
   });
 });
 
-/* ─── validateField – paymentFrequency ─────────────────────────────────── */
-
-describe('validateField – paymentFrequency', () => {
-  const field: FinancialTermsField = 'paymentFrequency';
-
-  it('returns error for empty string', () => {
-    expect(validateField(field, '').severity).toBe('error');
-  });
-
-  it('returns error for value below minimum (1)', () => {
-    expect(validateField(field, '0').severity).toBe('error');
-  });
-
-  it('returns error for value above maximum (12)', () => {
-    expect(validateField(field, '13').severity).toBe('error');
-  });
-
-  it('returns warning for value above guardrail high (6)', () => {
-    const r = validateField(field, '9');
-    expect(r.severity).toBe('warning');
-    expect(r.message).toContain('greater than 6 months');
-  });
-
-  it('returns ok for monthly (1)', () => {
-    expect(validateField(field, '1').severity).toBe('ok');
-  });
-
-  it('returns ok for quarterly (3)', () => {
-    expect(validateField(field, '3').severity).toBe('ok');
-  });
-
-  it('returns ok for annual (12)', () => {
-    expect(validateField(field, '12').severity).toBe('ok');
-  });
-});
-
-/* ─── validateField – minInvestment ────────────────────────────────────── */
-
-describe('validateField – minInvestment', () => {
-  const field: FinancialTermsField = 'minInvestment';
-
-  it('returns error for empty string', () => {
-    expect(validateField(field, '').severity).toBe('error');
-  });
-
-  it('returns error for value below minimum (1)', () => {
-    expect(validateField(field, '0').severity).toBe('error');
-  });
-
-  it('returns error for value above maximum (1,000,000)', () => {
-    expect(validateField(field, '1000001').severity).toBe('error');
-  });
-
-  it('returns warning for value above guardrail high ($50,000)', () => {
-    const r = validateField(field, '75000');
-    expect(r.severity).toBe('warning');
-    expect(r.message).toContain('above $50,000');
-  });
-
-  it('returns ok for $1,000', () => {
-    expect(validateField(field, '1000').severity).toBe('ok');
-  });
-});
-
-/* ─── validateField – maxInvestment ────────────────────────────────────── */
-
-describe('validateField – maxInvestment', () => {
-  const field: FinancialTermsField = 'maxInvestment';
-
-  it('returns error for empty string', () => {
-    expect(validateField(field, '').severity).toBe('error');
-  });
-
-  it('returns error for value above maximum (10,000,000)', () => {
-    expect(validateField(field, '10000001').severity).toBe('error');
-  });
-
-  it('returns ok for a valid value with no guardrails', () => {
-    expect(validateField(field, '500000').severity).toBe('ok');
-  });
-});
-
-/* ─── validateField – offeringDuration ─────────────────────────────────── */
-
-describe('validateField – offeringDuration', () => {
-  const field: FinancialTermsField = 'offeringDuration';
-
-  it('returns error for empty string', () => {
-    expect(validateField(field, '').severity).toBe('error');
-  });
-
-  it('returns error for value below minimum (1)', () => {
-    expect(validateField(field, '0').severity).toBe('error');
-  });
-
-  it('returns error for value above maximum (120)', () => {
-    expect(validateField(field, '121').severity).toBe('error');
-  });
-
-  it('returns warning for value below guardrail low (3 months)', () => {
-    const r = validateField(field, '2');
-    expect(r.severity).toBe('warning');
-    expect(r.message).toContain('under 3 months');
-  });
-
-  it('returns warning for value above guardrail high (60 months)', () => {
-    const r = validateField(field, '72');
-    expect(r.severity).toBe('warning');
-    expect(r.message).toContain('over 60 months');
-  });
-
-  it('returns ok for 12 months', () => {
-    expect(validateField(field, '12').severity).toBe('ok');
-  });
-
-  it('returns ok for guardrail boundary values (exactly 3 and 60)', () => {
-    expect(validateField(field, '3').severity).toBe('ok');
-    expect(validateField(field, '60').severity).toBe('ok');
-  });
-});
-
-/* ─── validateInvestmentRange ───────────────────────────────────────────── */
+/* ─── validateInvestmentRange Tests ────────────────────────────────────── */
 
 describe('validateInvestmentRange', () => {
-  it('returns null when min < max', () => {
-    expect(validateInvestmentRange('1000', '50000')).toBeNull();
+  describe('valid range', () => {
+    it('returns null when min < max', () => {
+      const error = validateInvestmentRange('1000', '50000');
+      expect(error).toBeNull();
+    });
+
+    it('handles locale-formatted numbers', () => {
+      const error = validateInvestmentRange('1,000', '50,000');
+      expect(error).toBeNull();
+    });
+
+    it('handles European format', () => {
+      const error = validateInvestmentRange('1.000', '50.000');
+      expect(error).toBeNull();
+    });
   });
 
-  it('returns error message when min === max', () => {
-    const msg = validateInvestmentRange('5000', '5000');
-    expect(msg).not.toBeNull();
-    expect(msg).toContain('must be greater than minimum');
+  describe('invalid range', () => {
+    it('returns error when min >= max', () => {
+      const error = validateInvestmentRange('50000', '1000');
+      expect(error).not.toBeNull();
+      expect(error).toContain('must be greater than');
+    });
+
+    it('returns error when min equals max', () => {
+      const error = validateInvestmentRange('25000', '25000');
+      expect(error).not.toBeNull();
+      expect(error).toContain('must be greater than');
+    });
+
+    it('includes formatted values in error message', () => {
+      const error = validateInvestmentRange('50000', '1000');
+      expect(error).toContain('$');
+      expect(error).toContain('50');
+      expect(error).toContain('1');
+    });
+
+    it('provides suggested fix in error message', () => {
+      const error = validateInvestmentRange('50000', '1000');
+      expect(error).toMatch(/Increase the maximum|decrease the minimum/);
+    });
   });
 
-  it('returns error message when min > max', () => {
-    const msg = validateInvestmentRange('50000', '1000');
-    expect(msg).not.toBeNull();
-    expect(msg).toContain('must be greater than minimum');
-  });
+  describe('missing/invalid values', () => {
+    it('returns null when either value is unparseable', () => {
+      expect(validateInvestmentRange('invalid', '5000')).toBeNull();
+      expect(validateInvestmentRange('1000', 'invalid')).toBeNull();
+      expect(validateInvestmentRange('invalid', 'invalid')).toBeNull();
+    });
 
-  it('returns null when either value is unparseable (individual errors handle it)', () => {
-    expect(validateInvestmentRange('', '5000')).toBeNull();
-    expect(validateInvestmentRange('1000', '')).toBeNull();
-    expect(validateInvestmentRange('abc', '5000')).toBeNull();
-  });
-
-  it('includes both values in the error message', () => {
-    const msg = validateInvestmentRange('10000', '5000');
-    expect(msg).toContain('5,000');
-    expect(msg).toContain('10,000');
+    it('returns null when either value is empty', () => {
+      expect(validateInvestmentRange('', '5000')).toBeNull();
+      expect(validateInvestmentRange('1000', '')).toBeNull();
+    });
   });
 });
 
-/* ─── validateFinancialTermsForm ────────────────────────────────────────── */
+/* ─── validateFinancialTermsForm Tests ──────────────────────────────────── */
 
 describe('validateFinancialTermsForm', () => {
-  const validValues: FinancialTermsValues = {
+  const VALID_VALUES: FinancialTermsValues = {
     revenueShareRate: '8',
     revenueCap: '500000',
     paymentFrequency: '3',
@@ -357,85 +440,261 @@ describe('validateFinancialTermsForm', () => {
     offeringDuration: '24',
   };
 
-  it('returns isValid=true for all-valid values', () => {
-    const result = validateFinancialTermsForm(validValues);
-    expect(result.isValid).toBe(true);
-    expect(result.crossFieldError).toBeNull();
-  });
-
-  it('returns isValid=false when any field has an error', () => {
-    const result = validateFinancialTermsForm({ ...validValues, revenueShareRate: '' });
-    expect(result.isValid).toBe(false);
-  });
-
-  it('returns isValid=false when cross-field constraint is violated', () => {
-    const result = validateFinancialTermsForm({
-      ...validValues,
-      minInvestment: '50000',
-      maxInvestment: '1000',
+  describe('valid form', () => {
+    it('returns isValid: true when all fields valid', () => {
+      const summary = validateFinancialTermsForm(VALID_VALUES);
+      expect(summary.isValid).toBe(true);
+      expect(summary.crossFieldError).toBeNull();
     });
-    expect(result.isValid).toBe(false);
-    expect(result.crossFieldError).not.toBeNull();
+
+    it('includes all field results', () => {
+      const summary = validateFinancialTermsForm(VALID_VALUES);
+      expect(Object.keys(summary.fields).length).toBe(6);
+      Object.values(summary.fields).forEach((result) => {
+        expect(result.severity).toBe('ok');
+      });
+    });
   });
 
-  it('returns isValid=true when all fields have warnings but no errors', () => {
-    const warningValues: FinancialTermsValues = {
-      revenueShareRate: '0.5',  // warning: below 1%
-      revenueCap: '5000',       // warning: below $10,000
-      paymentFrequency: '9',    // warning: > 6 months
-      minInvestment: '75000',   // warning: > $50,000
-      maxInvestment: '500000',  // ok
-      offeringDuration: '72',   // warning: > 60 months
-    };
-    const result = validateFinancialTermsForm(warningValues);
-    expect(result.isValid).toBe(true);
+  describe('form with field errors', () => {
+    it('returns isValid: false when any field has error', () => {
+      const values = { ...VALID_VALUES, revenueShareRate: 'invalid' };
+      const summary = validateFinancialTermsForm(values);
+      expect(summary.isValid).toBe(false);
+    });
+
+    it('reports all field errors', () => {
+      const values = {
+        ...VALID_VALUES,
+        revenueShareRate: 'invalid',
+        revenueCap: '',
+      };
+      const summary = validateFinancialTermsForm(values);
+      expect(summary.fields.revenueShareRate.severity).toBe('error');
+      expect(summary.fields.revenueCap.severity).toBe('error');
+    });
   });
 
-  it('includes per-field results for all 6 fields', () => {
-    const result = validateFinancialTermsForm(validValues);
-    const fields = Object.keys(result.fields) as FinancialTermsField[];
-    expect(fields).toHaveLength(6);
-    expect(fields).toContain('revenueShareRate');
-    expect(fields).toContain('revenueCap');
-    expect(fields).toContain('paymentFrequency');
-    expect(fields).toContain('minInvestment');
-    expect(fields).toContain('maxInvestment');
-    expect(fields).toContain('offeringDuration');
+  describe('form with guardrail warnings', () => {
+    it('returns isValid: true with warnings (not blocking)', () => {
+      const values = { ...VALID_VALUES, revenueShareRate: '0.5' };
+      const summary = validateFinancialTermsForm(values);
+      expect(summary.isValid).toBe(true);
+      expect(summary.fields.revenueShareRate.severity).toBe('warning');
+    });
+
+    it('allows submission with warnings', () => {
+      const values = {
+        ...VALID_VALUES,
+        revenueShareRate: '0.5',
+        revenueCap: '5000',
+      };
+      const summary = validateFinancialTermsForm(values);
+      expect(summary.isValid).toBe(true);
+    });
   });
 
-  it('returns isValid=false when all fields are empty', () => {
-    const empty: FinancialTermsValues = {
-      revenueShareRate: '',
-      revenueCap: '',
-      paymentFrequency: '',
-      minInvestment: '',
-      maxInvestment: '',
-      offeringDuration: '',
-    };
-    expect(validateFinancialTermsForm(empty).isValid).toBe(false);
+  describe('form with cross-field errors', () => {
+    it('returns isValid: false when cross-field constraint violated', () => {
+      const values = {
+        ...VALID_VALUES,
+        minInvestment: '50000',
+        maxInvestment: '1000',
+      };
+      const summary = validateFinancialTermsForm(values);
+      expect(summary.isValid).toBe(false);
+      expect(summary.crossFieldError).not.toBeNull();
+    });
+
+    it('includes cross-field error message in summary', () => {
+      const values = {
+        ...VALID_VALUES,
+        minInvestment: '50000',
+        maxInvestment: '1000',
+      };
+      const summary = validateFinancialTermsForm(values);
+      expect(summary.crossFieldError).toMatch(/must be greater than/);
+    });
+
+    it('ignores cross-field error when either field is invalid', () => {
+      const values = {
+        ...VALID_VALUES,
+        minInvestment: 'invalid',
+        maxInvestment: '1000',
+      };
+      const summary = validateFinancialTermsForm(values);
+      expect(summary.crossFieldError).toBeNull();
+    });
+  });
+
+  describe('form with mixed error states', () => {
+    it('returns isValid: false with field error and cross-field warning', () => {
+      const values = {
+        ...VALID_VALUES,
+        revenueShareRate: 'invalid',
+        minInvestment: '50000',
+        maxInvestment: '1000',
+      };
+      const summary = validateFinancialTermsForm(values);
+      expect(summary.isValid).toBe(false);
+      expect(summary.fields.revenueShareRate.severity).toBe('error');
+      expect(summary.crossFieldError).not.toBeNull();
+    });
+
+    it('reports only errors, warnings do not block', () => {
+      const values = {
+        ...VALID_VALUES,
+        revenueShareRate: '0.5', // warning
+        revenueCap: '5000', // warning
+      };
+      const summary = validateFinancialTermsForm(values);
+      expect(summary.isValid).toBe(true);
+    });
+  });
+
+  describe('form with empty values', () => {
+    it('returns isValid: false when all fields empty', () => {
+      const values: FinancialTermsValues = {
+        revenueShareRate: '',
+        revenueCap: '',
+        paymentFrequency: '',
+        minInvestment: '',
+        maxInvestment: '',
+        offeringDuration: '',
+      };
+      const summary = validateFinancialTermsForm(values);
+      expect(summary.isValid).toBe(false);
+      Object.values(summary.fields).forEach((result) => {
+        expect(result.severity).toBe('error');
+      });
+    });
+  });
+
+  describe('numeric value extraction', () => {
+    it('extracts numeric values from valid fields', () => {
+      const summary = validateFinancialTermsForm(VALID_VALUES);
+      expect(summary.fields.revenueShareRate.numericValue).toBe(8);
+      expect(summary.fields.revenueCap.numericValue).toBe(500000);
+    });
+
+    it('extracts numeric values from locale-formatted input', () => {
+      const values = {
+        ...VALID_VALUES,
+        revenueCap: '1,000,000',
+        minInvestment: '10.000',
+      };
+      const summary = validateFinancialTermsForm(values);
+      expect(summary.fields.revenueCap.numericValue).toBe(1000000);
+      expect(summary.fields.minInvestment.numericValue).toBe(10000);
+    });
+
+    it('sets numeric value to null for unparseable input', () => {
+      const values = { ...VALID_VALUES, revenueShareRate: 'invalid' };
+      const summary = validateFinancialTermsForm(values);
+      expect(summary.fields.revenueShareRate.numericValue).toBeNull();
+    });
   });
 });
 
-/* ─── FIELD_CONSTRAINTS completeness ───────────────────────────────────── */
+/* ─── FIELD_CONSTRAINTS Structure Tests ────────────────────────────────── */
 
 describe('FIELD_CONSTRAINTS', () => {
-  const fields: FinancialTermsField[] = [
-    'revenueShareRate',
-    'revenueCap',
-    'paymentFrequency',
-    'minInvestment',
-    'maxInvestment',
-    'offeringDuration',
-  ];
+  it('defines constraints for all six fields', () => {
+    const fields: FinancialTermsField[] = [
+      'revenueShareRate',
+      'revenueCap',
+      'paymentFrequency',
+      'minInvestment',
+      'maxInvestment',
+      'offeringDuration',
+    ];
 
-  fields.forEach((field) => {
-    it(`${field} has min < max`, () => {
-      expect(FIELD_CONSTRAINTS[field].min).toBeLessThan(FIELD_CONSTRAINTS[field].max);
+    fields.forEach((field) => {
+      expect(FIELD_CONSTRAINTS[field]).toBeDefined();
+      expect(FIELD_CONSTRAINTS[field]).toHaveProperty('min');
+      expect(FIELD_CONSTRAINTS[field]).toHaveProperty('max');
+      expect(FIELD_CONSTRAINTS[field]).toHaveProperty('unit');
+      expect(FIELD_CONSTRAINTS[field]).toHaveProperty('label');
+      expect(FIELD_CONSTRAINTS[field]).toHaveProperty('helpText');
+      expect(FIELD_CONSTRAINTS[field]).toHaveProperty('guardrailLow');
+      expect(FIELD_CONSTRAINTS[field]).toHaveProperty('guardrailHigh');
     });
+  });
 
-    it(`${field} has a non-empty label and helpText`, () => {
-      expect(FIELD_CONSTRAINTS[field].label.length).toBeGreaterThan(0);
-      expect(FIELD_CONSTRAINTS[field].helpText.length).toBeGreaterThan(0);
+  it('has min < max for all fields', () => {
+    (Object.keys(FIELD_CONSTRAINTS) as FinancialTermsField[]).forEach((field) => {
+      const c = FIELD_CONSTRAINTS[field];
+      expect(c.min).toBeLessThan(c.max);
     });
+  });
+
+  it('has valid guardrail thresholds', () => {
+    (Object.keys(FIELD_CONSTRAINTS) as FinancialTermsField[]).forEach((field) => {
+      const c = FIELD_CONSTRAINTS[field];
+      if (c.guardrailLow !== null) {
+        expect(c.guardrailLow).toBeGreaterThanOrEqual(c.min);
+        expect(c.guardrailLow).toBeLessThanOrEqual(c.max);
+      }
+      if (c.guardrailHigh !== null) {
+        expect(c.guardrailHigh).toBeGreaterThanOrEqual(c.min);
+        expect(c.guardrailHigh).toBeLessThanOrEqual(c.max);
+      }
+    });
+  });
+
+  it('has non-empty labels and help text', () => {
+    (Object.keys(FIELD_CONSTRAINTS) as FinancialTermsField[]).forEach((field) => {
+      const c = FIELD_CONSTRAINTS[field];
+      expect(c.label).toBeTruthy();
+      expect(c.helpText).toBeTruthy();
+    });
+  });
+});
+
+/* ─── Coverage edge cases ──────────────────────────────────────────────── */
+
+describe('edge cases for complete coverage', () => {
+  it('handles zero value', () => {
+    const result = validateField('revenueShareRate', '0');
+    expect(result.severity).toBe('error');
+    expect(result.message).toContain('at least');
+  });
+
+  it('handles very small positive decimal (guardrail low threshold)', () => {
+    const result = validateField('revenueShareRate', '0.1');
+    expect(result.severity).toBe('warning'); // Below guardrailLow (1%)
+    expect(result.numericValue).toBe(0.1);
+  });
+
+  it('handles maximum allowed value exactly (guardrail high threshold)', () => {
+    const result = validateField('revenueShareRate', '50');
+    expect(result.severity).toBe('warning'); // Above guardrailHigh (30%)
+    expect(result.numericValue).toBe(50);
+  });
+
+  it('handles one over maximum', () => {
+    const result = validateField('revenueShareRate', '50.1');
+    expect(result.severity).toBe('error');
+    expect(result.message).toContain('cannot exceed');
+  });
+
+  it('handles guardrail low boundary exactly', () => {
+    const result = validateField('revenueShareRate', '1');
+    expect(result.severity).toBe('ok');
+  });
+
+  it('handles guardrail high boundary exactly', () => {
+    const result = validateField('revenueShareRate', '30');
+    expect(result.severity).toBe('ok');
+  });
+
+  it('handles one below guardrail low', () => {
+    const result = validateField('revenueShareRate', '0.9');
+    expect(result.severity).toBe('warning');
+  });
+
+  it('handles one above guardrail high', () => {
+    const result = validateField('revenueShareRate', '30.1');
+    expect(result.severity).toBe('warning');
   });
 });

@@ -35,6 +35,21 @@ export interface CommandItem {
   group: CommandGroupKey;
   /** Optional keyboard shortcut hint shown on the trailing end of the row. */
   shortcutKeys?: string[];
+  /**
+   * Whether this command is destructive. When true, the palette swaps the row
+   * into an inline confirm/cancel state instead of executing immediately.
+   */
+  destructive?: boolean;
+  /**
+   * Label for the confirm button (e.g. "Delete offering", "Revoke session").
+   * Required when `destructive` is true.
+   */
+  confirmLabel?: string;
+  /**
+   * Additional context shown in the confirm row beneath the confirm label.
+   * e.g. "This will permanently delete the offering and all associated data."
+   */
+  confirmDescription?: string;
 }
 
 export interface CommandGroup {
@@ -149,6 +164,28 @@ export const COMMAND_GROUPS: CommandGroup[] = [
         group: 'actions',
         label: 'Sign Out',
         icon: 'LogOut',
+      },
+      {
+        id: 'action:delete-offering',
+        group: 'actions',
+        label: 'Delete Offering',
+        description: 'Permanently delete an offering',
+        icon: 'X',
+        destructive: true,
+        confirmLabel: 'Delete Offering',
+        confirmDescription:
+          'This will permanently delete the offering and all associated data. This action cannot be undone.',
+      },
+      {
+        id: 'action:revoke-session',
+        group: 'actions',
+        label: 'Revoke Session',
+        description: 'Force-logout a user session',
+        icon: 'LogOut',
+        destructive: true,
+        confirmLabel: 'Revoke Session',
+        confirmDescription:
+          'The user will be immediately logged out and must re-authenticate. This action is audit-logged.',
       },
     ],
   },

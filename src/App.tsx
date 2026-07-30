@@ -15,6 +15,7 @@ import { notificationsMock } from "./components/Notifications/notificationsData"
 import { OfferingWizardSummary } from "./pages/OfferingWizardSummary";
 import { ScheduledExportsPage } from "./pages/ScheduledExportsPage";
 import { StartupDashboard } from "./pages/StartupDashboard";
+import { GovernanceVoteReceiptDemo } from "./pages/GovernanceVoteReceiptDemo";
 
 export function App() {
   return (
@@ -45,6 +46,11 @@ export function App() {
           <Route
             path="/startup/governance/proposals/create"
             element={<GovernanceProposalCreatePage />}
+          />
+          {/* Issue #472 – Governance vote receipt with on-chain link */}
+          <Route
+            path="/startup/governance/vote-receipt"
+            element={<GovernanceVoteReceiptDemo />}
           />
 
           {/* Investor routes */}
@@ -115,6 +121,9 @@ function Home() {
                 • <Link to="/startup/offering-registration" className="link-styled">Register a RevenueShare offering</Link>
               </li>
               <li>• Track on-chain RevenueShare payouts</li>
+              <li>
+                • <Link to="/startup/governance/vote-receipt" className="link-styled">Governance vote receipt</Link>
+              </li>
             </ul>
           </section>
 

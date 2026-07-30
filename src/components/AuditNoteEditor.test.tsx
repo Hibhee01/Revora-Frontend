@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, within, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { AuditNoteEditor } from './AuditNoteEditor';
@@ -139,6 +139,28 @@ describe('AuditNoteEditor', () => {
     });
   });
 
+  describe('Keyboard shortcuts', () => {
+    it('applies bold formatting with Ctrl+B', async () => {
+      const user = userEvent.setup();
+      render(<AuditNoteEditor />);
+      const textarea = screen.getByRole('textbox');
+      await user.type(textarea, 'bold text');
+      textarea.setSelectionRange(0, 9);
+      fireEvent.keyDown(textarea, { key: 'b', ctrlKey: true });
+      expect(textarea).toHaveValue('**bold text**');
+    });
+
+    it('applies italic formatting with Ctrl+I', async () => {
+      const user = userEvent.setup();
+      render(<AuditNoteEditor />);
+      const textarea = screen.getByRole('textbox');
+      await user.type(textarea, 'italic');
+      textarea.setSelectionRange(0, 6);
+      fireEvent.keyDown(textarea, { key: 'i', ctrlKey: true });
+      expect(textarea).toHaveValue('_italic_');
+    });
+  });
+
   describe('Templates', () => {
     it('opens template dropdown on click', async () => {
       const user = userEvent.setup();
@@ -170,6 +192,25 @@ describe('AuditNoteEditor', () => {
       render(<AuditNoteEditor />);
       await user.click(screen.getByRole('button', { name: /templates/i }));
       await user.click(screen.getByRole('option', { name: /sanctions list/i }));
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    });
+
+    it('closes dropdown on Escape key', async () => {
+      const user = userEvent.setup();
+      render(<AuditNoteEditor />);
+      await user.click(screen.getByRole('button', { name: /templates/i }));
+      expect(screen.getByRole('listbox')).toBeInTheDocument();
+      fireEvent.keyDown(screen.getByRole('listbox'), { key: 'Escape' });
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    });
+
+    it('closes dropdown on click outside', async () => {
+      const user = userEvent.setup();
+      render(<AuditNoteEditor />);
+      await user.click(screen.getByRole('button', { name: /templates/i }));
+      expect(screen.getByRole('listbox')).toBeInTheDocument();
+      // Click outside the dropdown
+      await user.click(screen.getByRole('tab', { name: /write/i }));
       expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
     });
   });
@@ -217,6 +258,37 @@ describe('AuditNoteEditor', () => {
       const linkBtn = screen.getByRole('button', { name: /link/i });
       await user.click(linkBtn);
       expect(textarea).toHaveValue('[click here](url)');
+    });
+  });
+
+  describe('XSS prevention', () => {
+    it('renders HTML characters as literal text in preview', async () => {
+      const user = userEvent.setup();
+      render(<AuditNoteEditor />);
+      const textarea = screen.getByRole('textbox');
+      await user.type(textarea, '<script>alert(\'xss\')</script>');
+      await user.click(screen.getByRole('tab', { name: /preview/i }));
+      const preview = screen.getByTestId('ane-preview-content');
+      // React's textContent renders HTML tags as literal text (safe)
+      expect(preview.textContent).toContain('<script>');
+      expect(preview.textContent).toContain('alert(\'xss\')');
+      expect(preview.textContent).toContain('</script>');
+      // Ensure no script actually executes (the outer HTML should have the text escaped)
+      expect(preview.innerHTML).toContain('&lt;script&gt;');
+    });
+
+    it('renders angle brackets as literal text', async () => {
+      const user = userEvent.setup();
+      render(<AuditNoteEditor />);
+      const textarea = screen.getByRole('textbox');
+      await user.type(textarea, '<b>bold?</b>');
+      await user.click(screen.getByRole('tab', { name: /preview/i }));
+      const preview = screen.getByTestId('ane-preview-content');
+      // textContent shows the literal characters
+      expect(preview.textContent).toContain('<b>');
+      expect(preview.textContent).toContain('</b>');
+      // innerHTML confirms React escaped them
+      expect(preview.innerHTML).toContain('&lt;b&gt;');
     });
   });
 

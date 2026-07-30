@@ -439,6 +439,14 @@
   .cp-body {
     scroll-behavior: auto;
   }
+
+  .cp-confirm-row {
+    animation: none;
+  }
+
+  .cp-confirm-spinner {
+    animation: none;
+  }
 }
 
 /* ── High contrast ─────────────────────────────────────────────────────────── */
@@ -460,6 +468,15 @@
   .cp-shortcut-key,
   .cp-esc-key {
     border: 1px solid var(--text-muted);
+  }
+
+  .cp-confirm-row {
+    border-inline-start-width: 4px;
+    background: rgba(239, 68, 68, 0.1);
+  }
+
+  .cp-confirm-btn {
+    border: 1px solid var(--text-main);
   }
 }
 
@@ -489,6 +506,156 @@
   .cp-footer-hint {
     display: none;
   }
+
+  /* Stack confirm actions vertically on narrow screens */
+  .cp-confirm-row {
+    flex-wrap: wrap;
+  }
+
+  .cp-confirm-actions {
+    width: 100%;
+    justify-content: flex-end;
+    gap: var(--spacing-sm);
+  }
+}
+
+/* ── Inline confirm row (destructive actions) ──────────────────────────────── */
+.cp-confirm-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background: rgba(239, 68, 68, 0.04);
+  border-inline-start: 3px solid var(--danger, #ef4444);
+  min-height: 4.25rem;
+  animation: cpConfirmSlideIn 0.15s ease-out;
+}
+
+.cp-confirm-icon-col {
+  display: flex;
+  align-items: flex-start;
+  padding-top: var(--spacing-3xs);
+  flex-shrink: 0;
+}
+
+.cp-confirm-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--danger, #ef4444);
+}
+
+.cp-confirm-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3xs);
+}
+
+.cp-confirm-title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-main);
+}
+
+.cp-confirm-desc {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  line-height: var(--line-height-relaxed);
+}
+
+.cp-confirm-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  flex-shrink: 0;
+}
+
+.cp-confirm-cancel-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-2xs) var(--spacing-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-muted);
+  background: var(--glass-bg-accent);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.15s, background 0.15s;
+}
+
+.cp-confirm-cancel-btn:hover {
+  color: var(--text-main);
+  background: var(--glass-bg);
+}
+
+.cp-confirm-cancel-btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.cp-confirm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2xs);
+  padding: var(--spacing-2xs) var(--spacing-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: #fff;
+  background: var(--danger, #ef4444);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s, background 0.15s;
+}
+
+.cp-confirm-btn:hover:not(:disabled) {
+  background: #dc2626;
+}
+
+.cp-confirm-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cp-confirm-btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.cp-confirm-delaying {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2xs);
+}
+
+.cp-confirm-spinner {
+  animation: cpSpin 0.75s linear infinite;
+}
+
+@keyframes cpSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes cpConfirmSlideIn {
+  from {
+    opacity: 0;
+    transform: scaleY(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
 }
 
 /* ── RTL ───────────────────────────────────────────────────────────────────── */
@@ -500,4 +667,9 @@
 [dir="rtl"] .cp-result-shortcut {
   margin-inline-start: 0;
   margin-inline-end: var(--spacing-sm);
+}
+
+[dir="rtl"] .cp-confirm-row {
+  border-inline-start: none;
+  border-inline-end: 3px solid var(--danger, #ef4444);
 }

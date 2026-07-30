@@ -63,9 +63,9 @@ describe('CommandPalette', () => {
       });
     });
 
-    it('renders the listbox with role="listbox"', () => {
+    it('renders the results area where listboxes will appear', () => {
       renderPalette();
-      expect(screen.getByRole('listbox')).toBeInTheDocument();
+      expect(screen.getByRole('combobox')).toHaveAttribute('aria-controls');
     });
 
     it('renders empty-query state when no recents and no query', () => {
@@ -560,6 +560,233 @@ describe('CommandPalette', () => {
       renderPalette({ onClose });
       fireEvent.keyDown(screen.getByTestId('command-palette-dialog'), { key: 'Tab' });
       expect(onClose).not.toHaveBeenCalled();
+    });
+  });
+
+  // ─── Inline destructive confirmation ─────────────────────────────────────────
+
+  describe('destructive confirmation', () => {
+    const DESTRUCTIVE_ITEM: CommandItem = {
+      id: 'action:delete-offering',
+      group: 'actions',
+      label: 'Delete Offering',
+      description: 'Permanently delete an offering',
+      icon: 'X',
+      destructive: true,
+      confirmLabel: 'Delete Offering',
+      confirmDescription:
+        'This will permanently delete the offering and all associated data.',
+    };
+
+    const DESTRUCTIVE_RECENTS: CommandItem[] = [
+      DESTRUCTIVE_ITEM,
+      { id: 'nav:dashboard', group: 'navigate', label: 'Go to Dashboard', icon: 'LayoutDashboard' },
+    ];
+
+    it('enters inline confirmation instead of executing when destructive item is clicked', () => {
+      const onCommandExecute = vi.fn();
+      const onClose = vi.fn();
+      renderPalette({ recentCommands: DESTRUCTIVE_RECENTS, onCommandExecute, onClose });
+
+      const options = screen.getAllByRole('option');
+      fireEvent.click(options[0]); // click the destructive item
+
+      // Should NOT execute immediately or close
+      expect(onCommandExecute).not.toHaveBeenCalled();
+      expect(onClose).not.toHaveBeenCalled();
+
+      // Confirm row should appear
+      expect(screen.getByTestId('cp-confirm-row-action:delete-offering')).toBeInTheDocument();
+      expect(screen.getByTestId('cp-confirm-cancel-action:delete-offering')).toBeInTheDocument();
+      expect(screen.getByTestId('cp-confirm-btn-action:delete-offering')).toBeInTheDocument();
+    });
+
+    it('confirm button is disabled during the 500ms activation delay', () => {
+      renderPalette({ recentCommands: DESTRUCTIVE_RECENTS });
+      fireEvent.click(screen.getAllByRole('option')[0]);
+
+      const confirmBtn = screen.getByTestId('cp-confirm-btn-action:delete-offering');
+      expect(confirmBtn).toBeDisabled();
+    });
+
+    it('confirm button becomes enabled after 500ms delay', async () => {
+      vi.useFakeTimers();
+      renderPalette({ recentCommands: DESTRUCTIVE_RECENTS });
+      fireEvent.click(screen.getAllByRole('option')[0]);
+
+      const confirmBtn = screen.getByTestId('cp-confirm-btn-action:delete-offering');
+      expect(confirmBtn).toBeDisabled();
+
+      act(() => { vi.advanceTimersByTime(500); });
+      expect(confirmBtn).not.toBeDisabled();
+
+      vi.useRealTimers();
+    });
+
+    it('shows "Please wait…" text while delay is active', () => {
+      renderPalette({ recentCommands: DESTRUCTIVE_RECENTS });
+      fireEvent.click(screen.getAllByRole('option')[0]);
+
+      expect(screen.getByText(/Please wait/i)).toBeInTheDocument();
+    });
+
+    it('executes command on confirm button click', async () => {
+      vi.useFakeTimers();
+      const onCommandExecute = vi.fn();
+      const onClose = vi.fn();
+      renderPalette({ recentCommands: DESTRUCTIVE_RECENTS, onCommandExecute, onClose });
+
+      fireEvent.click(screen.getAllByRole('option')[0]);
+      act(() => { vi.advanceTimersByTime(500); });
+
+      fireEvent.click(screen.getByTestId('cp-confirm-btn-action:delete-offering'));
+      expect(onCommandExecute).toHaveBeenCalledWith(DESTRUCTIVE_ITEM);
+      expect(onClose).toHaveBeenCalled();
+
+      vi.useRealTimers();
+    });
+
+    it('cancels confirmation on Cancel button click', () => {
+      const onCommandExecute = vi.fn();
+      const onClose = vi.fn();
+      renderPalette({ recentCommands: DESTRUCTIVE_RECENTS, onCommandExecute, onClose });
+
+      fireEvent.click(screen.getAllByRole('option')[0]);
+      fireEvent.click(screen.getByTestId('cp-confirm-cancel-action:delete-offering'));
+
+      // Confirm row should be gone, normal row back
+      expect(screen.queryByTestId('cp-confirm-row-action:delete-offering')).not.toBeInTheDocument();
+      expect(onCommandExecute).not.toHaveBeenCalled();
+      expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it('cancels confirmation on Escape key', () => {
+      const onClose = vi.fn();
+      renderPalette({ recentCommands: DESTRUCTIVE_RECENTS, onClose });
+
+      fireEvent.click(screen.getAllByRole('option')[0]);
+      fireEvent.keyDown(screen.getByTestId('command-palette-dialog'), { key: 'Escape' });
+
+      // Should cancel confirmation, NOT close the palette
+      expect(screen.queryByTestId('cp-confirm-row-action:delete-offering')).not.toBeInTheDocument();
+      expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it('second Escape closes the palette after confirmation is cancelled', () => {
+      const onClose = vi.fn();
+      renderPalette({ recentCommands: DESTRUCTIVE_RECENTS, onClose });
+
+      fireEvent.click(screen.getAllByRole('option')[0]);
+      // First Escape: cancel confirmation
+      fireEvent.keyDown(screen.getByTestId('command-palette-dialog'), { key: 'Escape' });
+      // Second Escape: close palette
+      fireEvent.keyDown(screen.getByTestId('command-palette-dialog'), { key: 'Escape' });
+
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('clicking the backdrop cancels confirmation instead of closing palette', () => {
+      const onClose = vi.fn();
+      renderPalette({ recentCommands: DESTRUCTIVE_RECENTS, onClose });
+
+      fireEvent.click(screen.getAllByRole('option')[0]);
+      fireEvent.click(screen.getByTestId('command-palette-overlay'));
+
+      // Should cancel, not close
+      expect(onClose).not.toHaveBeenCalled();
+      expect(screen.queryByTestId('cp-confirm-row-action:delete-offering')).not.toBeInTheDocument();
+    });
+
+    it('confirm row has role="status"', () => {
+      renderPalette({ recentCommands: DESTRUCTIVE_RECENTS });
+      fireEvent.click(screen.getAllByRole('option')[0]);
+
+      const statusRow = screen.getByRole('status', { name: /Confirm/i });
+      expect(statusRow).toBeInTheDocument();
+      expect(statusRow).toHaveTextContent(/permanently delete/i);
+    });
+
+    it('focuses Cancel button when entering confirmation mode', async () => {
+      renderPalette({ recentCommands: DESTRUCTIVE_RECENTS });
+      fireEvent.click(screen.getAllByRole('option')[0]);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('cp-confirm-cancel-action:delete-offering')).toHaveFocus();
+      });
+    });
+
+    it('arrow keys are blocked while in confirmation mode', () => {
+      renderPalette({ recentCommands: DESTRUCTIVE_RECENTS });
+      fireEvent.click(screen.getAllByRole('option')[0]);
+
+      const dialog = screen.getByTestId('command-palette-dialog');
+      // Neither ArrowDown nor Enter should have any effect
+      fireEvent.keyDown(dialog, { key: 'ArrowDown' });
+      fireEvent.keyDown(dialog, { key: 'Enter' });
+
+      // Confirm row should still be visible
+      expect(screen.getByTestId('cp-confirm-row-action:delete-offering')).toBeInTheDocument();
+    });
+
+    it('non-destructive commands execute immediately (no confirm row)', () => {
+      const onCommandExecute = vi.fn();
+      const onClose = vi.fn();
+      const nonDestructive: CommandItem[] = [
+        { id: 'nav:dashboard', group: 'navigate', label: 'Go to Dashboard', icon: 'LayoutDashboard' },
+      ];
+      renderPalette({ recentCommands: nonDestructive, onCommandExecute, onClose });
+
+      fireEvent.click(screen.getByRole('option'));
+      expect(onCommandExecute).toHaveBeenCalledWith(nonDestructive[0]);
+      expect(onClose).toHaveBeenCalled();
+    });
+
+    it('clears confirmation when query changes', () => {
+      renderPalette({ recentCommands: DESTRUCTIVE_RECENTS });
+      fireEvent.click(screen.getAllByRole('option')[0]);
+
+      fireEvent.change(screen.getByRole('combobox'), { target: { value: 'dashboard' } });
+
+      expect(screen.queryByTestId('cp-confirm-row-action:delete-offering')).not.toBeInTheDocument();
+    });
+
+    it('resets confirmation state when palette is reopened', () => {
+      const { rerender } = renderPalette({ recentCommands: DESTRUCTIVE_RECENTS });
+      fireEvent.click(screen.getAllByRole('option')[0]);
+
+      // Close
+      rerender(
+        <CommandPalette
+          isOpen={false}
+          onClose={noop}
+          isMac={false}
+          recentCommands={[]}
+          onCommandExecute={noop}
+          onClearRecent={noop}
+        />,
+      );
+      // Reopen
+      rerender(
+        <CommandPalette
+          isOpen={true}
+          onClose={noop}
+          isMac={false}
+          recentCommands={DESTRUCTIVE_RECENTS}
+          onCommandExecute={noop}
+          onClearRecent={noop}
+        />,
+      );
+
+      // Should be back to normal rows
+      expect(screen.queryByTestId('cp-confirm-row-action:delete-offering')).not.toBeInTheDocument();
+    });
+
+    it('has no axe violations in confirmation state', async () => {
+      const { container } = renderPalette({ recentCommands: DESTRUCTIVE_RECENTS });
+      fireEvent.click(screen.getAllByRole('option')[0]);
+
+      const results = await axe(container);
+      expect(results).toHaveNoViolations();
     });
   });
 });

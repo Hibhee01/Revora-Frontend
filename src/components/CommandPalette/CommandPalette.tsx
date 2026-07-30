@@ -9,6 +9,9 @@
  *  - Empty-query state that emphasises recents (or a "start typing" prompt)
  *  - Full keyboard navigation: ↑/↓ move through items, Enter activates,
  *    Escape closes
+ *  - Inline confirmation for destructive commands (Issue #500):
+ *    destructive rows swap into a two-button confirm/cancel row with a
+ *    500ms activation delay
  *  - Focus trap, body scroll lock, focus restore on close
  *  - RTL-aware (logical CSS properties + [dir="rtl"] overrides in CSS)
  *  - Reduced-motion safe
@@ -50,6 +53,8 @@ import {
   Clock,
   X,
   ChevronRight,
+  AlertTriangle,
+  LoaderCircle,
 } from 'lucide-react';
 import type { CommandItem, CommandGroup } from './commandPaletteData';
 import {
@@ -83,6 +88,9 @@ const ICON_MAP: Record<string, React.ComponentType<{ size?: number; 'aria-hidden
   Globe,
   Clock,
   ChevronRight,
+  AlertTriangle,
+  LoaderCircle,
+  X,
 };
 
 function CommandIcon({
@@ -138,16 +146,29 @@ export function CommandPalette({
   const dialogId = useId();
   const titleId = `${dialogId}-title`;
   const inputId = `${dialogId}-input`;
-  const listboxId = `${dialogId}-listbox`;
+  const bodyId = `${dialogId}-body`;
   const statusId = `${dialogId}-status`;
 
   const dialogRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
+  const confirmCancelRef = useRef<HTMLButtonElement>(null);
+  const delayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** Ref mirror of confirmingItemId so the keyboard handler never captures stale state. */
+  const confirmingItemIdRef = useRef<string | null>(null);
 
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState<number>(-1);
   const [announcement, setAnnouncement] = useState('');
+  /** When set, the row for this id is in inline-confirmation mode. */
+  const [confirmingItemId, setConfirmingItemId] = useState<string | null>(null);
+  /** Whether the confirm button's 500ms activation delay has elapsed. */
+  const [confirmDelayElapsed, setConfirmDelayElapsed] = useState(false);
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    confirmingItemIdRef.current = confirmingItemId;
+  }, [confirmingItemId]);
 
   // ------------------------------------------------------------------
   // Derived state
@@ -178,6 +199,8 @@ export function CommandPalette({
       previousFocusRef.current = document.activeElement as HTMLElement;
       setQuery('');
       setActiveIndex(-1);
+      setConfirmingItemId(null);
+      setConfirmDelayElapsed(false);
     } else if (previousFocusRef.current) {
       previousFocusRef.current.focus({ preventScroll: true });
       previousFocusRef.current = null;
@@ -204,10 +227,12 @@ export function CommandPalette({
     }
   }, [isOpen]);
 
-  // Reset active index when results change
+  // Reset active index when results change (but not during confirmation)
   useEffect(() => {
-    setActiveIndex(-1);
-  }, [query]);
+    if (!confirmingItemId) {
+      setActiveIndex(-1);
+    }
+  }, [query, confirmingItemId]);
 
   // Announce result count to screen readers
   useEffect(() => {
@@ -224,6 +249,57 @@ export function CommandPalette({
   }, [flatItems.length, query, isOpen]);
 
   // ------------------------------------------------------------------
+  // Handlers (defined before effects that reference them)
+  // ------------------------------------------------------------------
+
+  const handleActivate = useCallback(
+    (item: CommandItem) => {
+      // If item is destructive, enter inline confirmation instead of executing
+      if (item.destructive) {
+        setConfirmingItemId(item.id);
+        setAnnouncement(
+          `Confirm ${item.confirmLabel ?? item.label}. Press Escape to cancel.`,
+        );
+        return;
+      }
+      onCommandExecute(item);
+      item.onExecute?.();
+      onClose();
+    },
+    [onCommandExecute, onClose],
+  );
+
+  const handleConfirm = useCallback(
+    (item: CommandItem) => {
+      onCommandExecute(item);
+      item.onExecute?.();
+      onClose();
+    },
+    [onCommandExecute, onClose],
+  );
+
+  const handleCancelConfirm = useCallback(() => {
+    setConfirmingItemId(null);
+    confirmingItemIdRef.current = null; // sync ref immediately for synchronous Escape handling
+    setConfirmDelayElapsed(false);
+    setAnnouncement('Confirmation cancelled');
+  }, []);
+
+  const handleOverlayClick = useCallback(
+    (e: React.MouseEvent) => {
+      if (e.target === e.currentTarget) {
+        // If in confirmation, cancel confirmation; otherwise close palette
+        if (confirmingItemId) {
+          handleCancelConfirm();
+        } else {
+          onClose();
+        }
+      }
+    },
+    [onClose, confirmingItemId, handleCancelConfirm],
+  );
+
+  // ------------------------------------------------------------------
   // Focus trap
   // ------------------------------------------------------------------
 
@@ -235,9 +311,17 @@ export function CommandPalette({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault();
-        onClose();
+        // If in confirmation mode, cancel confirmation instead of closing
+        if (confirmingItemIdRef.current) {
+          handleCancelConfirm();
+        } else {
+          onClose();
+        }
         return;
       }
+
+      // Disable arrow nav and Enter while confirming (focus stays on buttons)
+      if (confirmingItemIdRef.current) return;
 
       // ↓ / ↑ navigate through flat items
       if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
@@ -281,7 +365,7 @@ export function CommandPalette({
 
     dialog.addEventListener('keydown', handleKeyDown);
     return () => dialog.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose, flatItems, activeIndex]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isOpen, onClose, flatItems, activeIndex, handleCancelConfirm, handleActivate]);
 
   // Scroll active item into view
   useEffect(() => {
@@ -293,24 +377,49 @@ export function CommandPalette({
   }, [activeIndex]);
 
   // ------------------------------------------------------------------
-  // Handlers
+  // Inline confirmation — 500ms activation delay
   // ------------------------------------------------------------------
 
-  const handleActivate = useCallback(
-    (item: CommandItem) => {
-      onCommandExecute(item);
-      item.onExecute?.();
-      onClose();
-    },
-    [onCommandExecute, onClose],
-  );
+  useEffect(() => {
+    if (confirmingItemId) {
+      setConfirmDelayElapsed(false);
+      delayTimerRef.current = setTimeout(() => {
+        setConfirmDelayElapsed(true);
+      }, 500);
+      return () => {
+        if (delayTimerRef.current) {
+          clearTimeout(delayTimerRef.current);
+          delayTimerRef.current = null;
+        }
+      };
+    } else {
+      setConfirmDelayElapsed(false);
+    }
+  }, [confirmingItemId]);
 
-  const handleOverlayClick = useCallback(
-    (e: React.MouseEvent) => {
-      if (e.target === e.currentTarget) onClose();
-    },
-    [onClose],
-  );
+  // Focus cancel button when entering confirmation mode
+  useEffect(() => {
+    if (confirmingItemId && confirmCancelRef.current) {
+      confirmCancelRef.current.focus();
+    }
+  }, [confirmingItemId]);
+
+  // Clear confirmation when user types at least 2 chars (avoids accidental cancel on single keystroke)
+  useEffect(() => {
+    if (confirmingItemId && query.trim().length >= 2) {
+      setConfirmingItemId(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
+
+  // ------------------------------------------------------------------
+  // Confirm item lookup
+  // ------------------------------------------------------------------
+
+  /** The item currently being confirmed, if any. */
+  const confirmingItem = confirmingItemId
+    ? flatItems.find((item) => item.id === confirmingItemId) ?? null
+    : null;
 
   // ------------------------------------------------------------------
   // Early return
@@ -337,7 +446,72 @@ export function CommandPalette({
     );
   }
 
+  /**
+   * Render the inline confirm/cancel row that replaces a destructive command.
+   * Includes a 500ms activation delay on the confirm button.
+   * Rendered OUTSIDE the listbox to avoid aria-required-children violations.
+   */
+  function renderConfirmRow(item: CommandItem) {
+    return (
+      <div
+        className="cp-confirm-row"
+        role="status"
+        aria-live="polite"
+        aria-label={`Confirm ${item.confirmLabel ?? item.label}`}
+        data-testid={`cp-confirm-row-${item.id}`}
+      >
+          <div className="cp-confirm-icon-col">
+            <span className="cp-confirm-icon" aria-hidden="true">
+              <AlertTriangle size={18} />
+            </span>
+          </div>
+          <div className="cp-confirm-content">
+            <span className="cp-confirm-title">
+              {item.confirmLabel ?? item.label}
+            </span>
+            {item.confirmDescription && (
+              <span className="cp-confirm-desc">
+                {item.confirmDescription}
+              </span>
+            )}
+          </div>
+          <div className="cp-confirm-actions">
+            <button
+              type="button"
+              className="cp-confirm-cancel-btn"
+              ref={confirmCancelRef}
+              onClick={handleCancelConfirm}
+              data-testid={`cp-confirm-cancel-${item.id}`}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="cp-confirm-btn"
+              disabled={!confirmDelayElapsed}
+              onClick={() => handleConfirm(item)}
+              data-testid={`cp-confirm-btn-${item.id}`}
+            >
+              {confirmDelayElapsed ? (
+                item.confirmLabel ?? 'Confirm'
+              ) : (
+                <span className="cp-confirm-delaying">
+                  <LoaderCircle size={12} aria-hidden="true" className="cp-confirm-spinner" />
+                  <span>Please wait&hellip;</span>
+                </span>
+              )}
+            </button>
+          </div>
+      </div>
+    );
+  }
+
   function renderResultItem(item: CommandItem, index: number) {
+    // If this item is in confirmation mode, skip it (confirm row is rendered separately)
+    if (item.id === confirmingItemId) {
+      return null;
+    }
+
     const isActive = index === activeIndex;
     return (
       <li key={item.id} role="none">
@@ -388,7 +562,11 @@ export function CommandPalette({
           <div className="cp-group-header">
             <h3 className="cp-group-label">{group.label}</h3>
           </div>
-          <ul className="cp-result-list" role="none">
+          <ul
+            className="cp-result-list"
+            role="listbox"
+            aria-label={`${group.label} commands`}
+          >
             {sectionItems}
           </ul>
         </div>
@@ -421,7 +599,11 @@ export function CommandPalette({
             </button>
           )}
         </div>
-        <ul className="cp-result-list" role="none">
+        <ul
+          className="cp-result-list"
+          role="listbox"
+          aria-label="Recent commands"
+        >
           {recentCommands.map((item, i) =>
             renderResultItem(item, i),
           )}
@@ -477,7 +659,7 @@ export function CommandPalette({
             type="text"
             role="combobox"
             aria-autocomplete="list"
-            aria-controls={listboxId}
+            aria-controls={bodyId}
             aria-expanded={hasResults}
             aria-activedescendant={
               activeIndex >= 0 ? `cp-item-${activeIndex}` : undefined
@@ -497,12 +679,10 @@ export function CommandPalette({
         </div>
 
         {/* ── Results body ───────────────────────────────────────────── */}
-        <div
-          id={listboxId}
-          role="listbox"
-          aria-label="Commands"
-          className="cp-body"
-        >
+        <div className="cp-body" id={bodyId}>
+          {/* Inline confirm row rendered OUTSIDE the listbox */}
+          {confirmingItem && renderConfirmRow(confirmingItem)}
+
           {/* Case 1: empty query, no recents */}
           {showEmptyQuery && (
             <div className="cp-empty-query" data-testid="cp-empty-query">
@@ -530,7 +710,7 @@ export function CommandPalette({
               <p className="cp-no-results-hint">
                 Nothing matched{' '}
                 <span className="cp-no-results-query">
-                  &ldquo;{query}&rdquo;
+                  &quot;{query}&quot;
                 </span>
               </p>
             </div>

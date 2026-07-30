@@ -45,6 +45,8 @@ export default defineConfig({
         'src/components/CommandPalette/CommandPalette.tsx',
         'src/components/CommandPalette/commandPaletteData.ts',
         'src/hooks/useCommandPalette.ts',
+        // Issue #493 – Notification bell reduced-motion
+        'src/components/Notifications/NotificationBell.tsx',
       ],
       thresholds: {
         'src/utils/financialTermsValidation.ts': {
@@ -147,6 +149,9 @@ export default defineConfig({
           functions: 95,
           lines: 95,
           statements: 95,
+        },
+        'src/components/Notifications/NotificationBell.tsx': {
+          branches: 95, functions: 95, lines: 95, statements: 95,
         },
       }
     }

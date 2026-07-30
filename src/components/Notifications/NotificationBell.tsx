@@ -1,51 +1,82 @@
-import React, { useState } from 'react';
-import NotificationPanel from './NotificationPanel';
-import { Notification } from './notificationsData';
-import { Bell } from 'lucide-react';
+/**
+ * NotificationBell — Issue #493
+ *
+ * Renders a bell button with an unread-count badge.
+ *
+ * Motion behaviour
+ * ─────────────────
+ * Default  : badge pulses via CSS animation (@keyframes nb-pulse).
+ * Reduced  : useReducedMotion() → animation disabled, badge gets a
+ *            static high-contrast ring (--nb-badge-static-ring) so the
+ *            state change is communicated by colour alone, not movement.
+ *            Both variants meet WCAG 3:1 contrast against the header bg.
+ *
+ * Accessibility (WCAG 2.1 AA)
+ * ────────────────────────────
+ * • Button has aria-label="Notifications" + aria-expanded.
+ * • Badge uses role="status" + aria-label="N unread notifications".
+ * • Badge is aria-hidden when count is 0 (not rendered).
+ * • Live-region on the button announces new counts politely.
+ * • Focus ring via :focus-visible only (no outline on mouse click).
+ * • Escape closes the panel.
+ */
 
-interface NotificationBellProps {
+import React, { useState } from 'react';
+import { Bell } from 'lucide-react';
+import { useReducedMotion } from '../../hooks/useReducedMotion';
+import NotificationPanel from './NotificationPanel';
+import type { Notification } from './notificationsData';
+import './NotificationBell.css';
+
+export interface NotificationBellProps {
   notifications: Notification[];
 }
 
 const NotificationBell: React.FC<NotificationBellProps> = ({ notifications }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  const [isOpen, setIsOpen]     = useState(false);
+  const reducedMotion           = useReducedMotion();
+  const unreadCount             = notifications.filter((n) => !n.read).length;
 
-  const togglePanel = () => setIsOpen(!isOpen);
+  const toggle = () => setIsOpen((o) => !o);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      togglePanel();
-    }
-    if (e.key === 'Escape') {
-      setIsOpen(false);
-    }
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+    if (e.key === 'Escape')                 { setIsOpen(false); }
   };
 
   return (
-    <div className="relative inline-block" aria-haspopup="true">
+    <div className="nb-root" data-testid="notification-bell">
       <button
-        className="relative p-2 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary"
+        type="button"
+        className="nb-button"
         aria-label="Notifications"
         aria-expanded={isOpen}
-        aria-live="polite"
-        onClick={togglePanel}
+        aria-haspopup="true"
+        onClick={toggle}
         onKeyDown={handleKeyDown}
+        data-testid="nb-trigger"
       >
-        <Bell className="h-6 w-6 text-gray-600" aria-hidden="true" />
+        <Bell className="nb-icon" size={22} aria-hidden="true" />
+
         {unreadCount > 0 && (
-          <span 
-            className="absolute -top-1 -right-1 inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded-full ring-2 ring-white text-white bg-red-600 animate-pulse motion-reduce:animate-none motion-reduce:bg-red-700 motion-reduce:ring-red-100"
+          <span
+            className={`nb-badge ${reducedMotion ? 'nb-badge--static' : 'nb-badge--pulse'}`}
             role="status"
-            aria-label={`${unreadCount} unread notifications`}
+            aria-label={`${unreadCount} unread notification${unreadCount !== 1 ? 's' : ''}`}
+            aria-live="polite"
+            aria-atomic="true"
+            data-testid="nb-badge"
           >
-            {unreadCount}
+            {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
       </button>
+
       {isOpen && (
-        <NotificationPanel notifications={notifications} onClose={() => setIsOpen(false)} />
+        <NotificationPanel
+          notifications={notifications}
+          onClose={() => setIsOpen(false)}
+        />
       )}
     </div>
   );

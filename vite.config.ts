@@ -41,10 +41,14 @@ export default defineConfig({
         'src/hooks/useDensity.ts',
         // Issue #199 – Inline document uploader
         'src/components/DocumentUploader/DocumentUploader.tsx',
+        // Issue #472 – Governance vote receipt
+        'src/components/GovernanceVoteReceipt/GovernanceVoteReceipt.tsx',
         // Command Palette
         'src/components/CommandPalette/CommandPalette.tsx',
         'src/components/CommandPalette/commandPaletteData.ts',
         'src/hooks/useCommandPalette.ts',
+        // Issue #493 – Notification bell reduced-motion
+        'src/components/Notifications/NotificationBell.tsx',
       ],
       thresholds: {
         'src/utils/financialTermsValidation.ts': {
@@ -63,6 +67,9 @@ export default defineConfig({
           branches: 95, functions: 95, lines: 95, statements: 95,
         },
         'src/components/DocumentUploader/DocumentUploader.tsx': {
+          branches: 95, functions: 95, lines: 95, statements: 95,
+        },
+        'src/components/GovernanceVoteReceipt/GovernanceVoteReceipt.tsx': {
           branches: 95, functions: 95, lines: 95, statements: 95,
         },
         'src/components/DensityProvider/DensityProvider.tsx': {
@@ -147,6 +154,9 @@ export default defineConfig({
           functions: 95,
           lines: 95,
           statements: 95,
+        },
+        'src/components/Notifications/NotificationBell.tsx': {
+          branches: 95, functions: 95, lines: 95, statements: 95,
         },
       }
     }

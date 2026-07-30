@@ -37,6 +37,14 @@ describe('DistributionDashboard', () => {
     expect(link.closest('a')).toHaveAttribute('href', '/startup/report-revenue');
   });
 
+  it('renders the governance proposal detail experience', () => {
+    renderWithRouter();
+
+    expect(screen.getByRole('heading', { name: /increase developer grant fund/i })).toBeInTheDocument();
+    expect(screen.getByRole('progressbar', { name: /quorum/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /for/i })).toBeInTheDocument();
+  });
+
   it('renders recent uploads queue section', () => {
     renderWithRouter();
 

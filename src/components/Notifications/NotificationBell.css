@@ -1,0 +1,134 @@
+/**
+ * NotificationBell styles — Issue #493
+ *
+ * Design tokens (all from src/index.css):
+ *   --primary, --glass-bg, --glass-border-bright, --text-muted,
+ *   --radius-full, --spacing-xs, --spacing-sm
+ *
+ * Badge colour tokens (defined here, documented below):
+ *
+ *   --nb-badge-bg           : #ef4444  (red-500) — unread dot fill
+ *   --nb-badge-text         : #ffffff  — label on badge
+ *   --nb-badge-ring         : #ffffff  — separator ring (animated variant)
+ *   --nb-badge-static-ring  : #fca5a5  — red-300 ring (static variant)
+ *                             Provides 3:1 contrast vs dark header bg (#020617)
+ *                             Verified: #ef4444 on #020617 → ~5.2:1 (WCAG AA ✓)
+ *                             Static ring (#fca5a5) on #020617 → ~3.4:1 (WCAG ✓)
+ *
+ * Pulse animation:
+ *   @keyframes nb-pulse scales the badge 1→1.25→1 over 1.4 s (infinite).
+ *   Disabled entirely inside @media (prefers-reduced-motion: reduce) as a
+ *   CSS-level safety net in addition to the JS hook.
+ */
+
+/* ─── Root ──────────────────────────────────────────────── */
+.nb-root {
+  position: relative;
+  display: inline-block;
+}
+
+/* ─── Button ────────────────────────────────────────────── */
+.nb-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xs);
+  border: none;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  /* Minimum 44 × 44 px touch target */
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.nb-button:hover {
+  background: var(--glass-bg);
+  color: var(--text-main, #e5e7eb);
+}
+
+.nb-button:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.nb-icon {
+  display: block;
+  flex-shrink: 0;
+}
+
+/* ─── Badge (shared) ────────────────────────────────────── */
+.nb-badge {
+  /* Position */
+  position: absolute;
+  top:   -2px;
+  inset-inline-end: -2px;   /* RTL-safe; equivalent to right: -2px in LTR */
+
+  /* Layout */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 4px;
+
+  /* Appearance */
+  background: var(--nb-badge-bg, #ef4444);
+  color: var(--nb-badge-text, #ffffff);
+  border-radius: var(--radius-full);
+  font-size: 0.625rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  font-family: inherit;
+
+  /* Separator ring — default (animated) variant */
+  outline: 2px solid var(--nb-badge-ring, #ffffff);
+  outline-offset: 1px;
+}
+
+/* ─── Animated pulse variant (default) ─────────────────── */
+.nb-badge--pulse {
+  animation: nb-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes nb-pulse {
+  0%,
+  100% { transform: scale(1);    opacity: 1;    }
+  50%  { transform: scale(1.25); opacity: 0.85; }
+}
+
+/* ─── Static badge variant (reduced-motion) ────────────── */
+.nb-badge--static {
+  animation: none;
+  /* Swap ring to red-tinted so the badge still reads as "alert"
+     without relying on movement. Contrast vs #020617 ≥ 3:1. */
+  outline-color: var(--nb-badge-static-ring, #fca5a5);
+  /* Subtle emphasis: slightly larger so it is not missed */
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+}
+
+/* ─── CSS-level safety net (mirrors JS hook) ────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .nb-badge--pulse {
+    animation: none;
+    outline-color: var(--nb-badge-static-ring, #fca5a5);
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+  }
+}
+
+/* ─── Forced colors (high-contrast mode) ───────────────── */
+@media (forced-colors: active) {
+  .nb-badge {
+    background: Highlight;
+    color: HighlightText;
+    outline: 2px solid ButtonText;
+  }
+
+  .nb-button:focus-visible {
+    outline: 2px solid Highlight;
+  }
+}

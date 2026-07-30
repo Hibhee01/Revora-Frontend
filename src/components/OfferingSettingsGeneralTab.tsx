@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { Chip } from './Chip';
 
 const schema = z.object({
   name: z.string().min(1, 'Name is required').max(100),
@@ -52,7 +53,10 @@ export const OfferingSettingsGeneralTab: React.FC<OfferingSettingsGeneralTabProp
     <div className="space-y-8">
       <form onSubmit={handleSubmit(handleSave)} className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <fieldset className="space-y-6">
-          <legend className="text-lg font-semibold mb-4">General Information</legend>
+          <legend className="text-lg font-semibold mb-4 flex items-center gap-2">
+            General Information
+            {isDirty && <Chip label="Unsaved changes" />}
+          </legend>
           <div className="space-y-2">
             <label htmlFor="name" className="block text-sm font-medium">Offering Name</label>
             <Controller

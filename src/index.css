@@ -1,4 +1,3 @@
-<<<<<<< Updated upstream
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 
 :root {
@@ -87,68 +86,64 @@
   --primary: #3b82f6;
   --primary-hover: #2563eb;
   --text-main: #e5e7eb;
-  --text-muted: #cbd5e1; /* Improved contrast for WCAG AA on dark backgrounds */
+  --text-muted: #cbd5e1;
   --text-accent: #38bdf8;
   --error: #ef4444;
   --success: #10b981;
 
-  /* ─── Auth Layout Design Tokens (Issue #80) ──────────────────────────── */
-  /* Typography scale for AuthLayout title / subtitle / helperText slots */
-  --auth-title-size: clamp(1.5rem, 4vw, 1.875rem);   /* 24px → 30px fluid */
+  /* Auth Layout Design Tokens (Issue #80) */
+  --auth-title-size: clamp(1.5rem, 4vw, 1.875rem);
   --auth-title-weight: 700;
   --auth-title-tracking: -0.025em;
   --auth-title-lh: 1.2;
 
-  --auth-subtitle-size: 0.9375rem;   /* 15px – one step below body */
+  --auth-subtitle-size: 0.9375rem;
   --auth-subtitle-lh: 1.5;
 
-  --auth-helper-size: 0.8125rem;     /* 13px – fine print / security notes */
+  --auth-helper-size: 0.8125rem;
   --auth-helper-lh: 1.5;
 
-  /* Card container sizing */
   --auth-card-max-w: 480px;
-  --auth-card-padding-x: clamp(1.25rem, 5vw, 2.5rem);  /* 20px → 40px */
-  --auth-card-padding-y: clamp(1.5rem, 4vw, 2.5rem);   /* 24px → 40px */
+  --auth-card-padding-x: clamp(1.25rem, 5vw, 2.5rem);
+  --auth-card-padding-y: clamp(1.5rem, 4vw, 2.5rem);
 
-  /* Header section spacing */
-  --auth-header-gap: 0.5rem;    /* gap between title, subtitle, helperText */
-  --auth-header-mb: 2rem;       /* margin below header, above form */
+  --auth-header-gap: 0.5rem;
+  --auth-header-mb: 2rem;
 
-  /* ─── Discovery Empty/Error State Tokens (Issue #107) ──────────────────── */
-  --ds-empty-icon-bg:  rgba(59, 130, 246, 0.08);   /* primary-tinted icon well (empty) */
-  --ds-empty-icon-fg:  var(--primary);              /* icon stroke colour (empty)       */
-  --ds-error-icon-bg:  rgba(239, 68, 68, 0.08);    /* error-tinted icon well           */
-  --ds-error-icon-fg:  var(--error);               /* icon stroke colour (error)       */
-  --ds-state-gap:      1.25rem;                    /* vertical gap between state slots */
-  --ds-state-max-w:    28rem;                      /* constrains text column           */
-  --ds-state-pad-y:    3.5rem;                     /* top/bottom breathing room        */
-  --ds-state-pad-x:    2rem;                       /* side padding on narrow screens   */
-  --ds-state-icon-size: 4.5rem;                    /* icon well diameter               */
-  --ds-filter-badge-size: 0.5rem;                  /* active-filter dot size           */
+  /* Discovery Empty/Error State Tokens (Issue #107) */
+  --ds-empty-icon-bg:  rgba(59, 130, 246, 0.08);
+  --ds-empty-icon-fg:  var(--primary);
+  --ds-error-icon-bg:  rgba(239, 68, 68, 0.08);
+  --ds-error-icon-fg:  var(--error);
+  --ds-state-gap:      1.25rem;
+  --ds-state-max-w:    28rem;
+  --ds-state-pad-y:    3.5rem;
+  --ds-state-pad-x:    2rem;
+  --ds-state-icon-size: 4.5rem;
+  --ds-filter-badge-size: 0.5rem;
 
-  /* ─── Status Timeline Tokens (Issue #153) ───────────────────────────── */
-  --st-gap: 1.5rem;                               /* gap between milestones           */
-  --st-marker-size: 2.5rem;                        /* milestone marker diameter         */
-  --st-connector-width: 2px;                       /* connector line thickness          */
-  --st-milestone-min-w: 8rem;                      /* min width per milestone (horiz)   */
-  --st-content-gap: 0.75rem;                       /* gap: marker → content (vertical)  */
+  /* Status Timeline Tokens (Issue #153) */
+  --st-gap: 1.5rem;
+  --st-marker-size: 2.5rem;
+  --st-connector-width: 2px;
+  --st-milestone-min-w: 8rem;
+  --st-content-gap: 0.75rem;
 
-  /* Milestone state colours */
-  --st-completed-bg: rgba(16, 185, 129, 0.12);     /* ✓ completed background           */
-  --st-completed-border: #10b981;                   /* ✓ completed ring / connector      */
-  --st-completed-fg: #10b981;                       /* ✓ completed icon                  */
+  --st-completed-bg: rgba(16, 185, 129, 0.12);
+  --st-completed-border: #10b981;
+  --st-completed-fg: #10b981;
 
-  --st-progress-bg: rgba(59, 130, 246, 0.12);      /* ● in-progress background          */
-  --st-progress-border: #3b82f6;                    /* ● in-progress ring / connector    */
-  --st-progress-fg: #3b82f6;                        /* ● in-progress icon                */
+  --st-progress-bg: rgba(59, 130, 246, 0.12);
+  --st-progress-border: #3b82f6;
+  --st-progress-fg: #3b82f6;
 
-  --st-blocked-bg: rgba(239, 68, 68, 0.12);        /* ▲ blocked background              */
-  --st-blocked-border: rgba(239, 68, 68, 0.5);     /* ▲ blocked ring                    */
-  --st-blocked-fg: #ef4444;                         /* ▲ blocked icon                    */
+  --st-blocked-bg: rgba(239, 68, 68, 0.12);
+  --st-blocked-border: rgba(239, 68, 68, 0.5);
+  --st-blocked-fg: #ef4444;
 
-  --st-pending-bg: rgba(148, 163, 184, 0.08);      /* ○ pending background              */
-  --st-pending-border: rgba(148, 163, 184, 0.25);  /* ○ pending ring / connector        */
-  --st-pending-fg: #94a3b8;                         /* ○ pending icon                    */
+  --st-pending-bg: rgba(148, 163, 184, 0.08);
+  --st-pending-border: rgba(148, 163, 184, 0.25);
+  --st-pending-fg: #94a3b8;
 
   /* On-chain status badge (Issue #256) */
   --ocb-badge-gap: 0.25rem;
@@ -162,44 +157,31 @@
   --ocb-badge-focus-ring: rgba(16, 185, 129, 0.25);
   --ocb-panel-width: 18rem;
 
-  /* ─── Density Mode Tokens (Issue #174) ───────────────────────────────
-   * Three modes: comfortable (spacious), cozy (normal), compact.
-   * Applied by setting data-density="comfortable|cozy|compact" on <html>.
-   * Use --density-* tokens in components that opt in to density scaling.
-   *
-   * Opt-in:  add class "density-aware" to your component root, then use
-   *          var(--density-row-height), var(--density-pad-y), etc.
-   * Opt-out: hardcode your own padding/height and ignore these tokens.
-   *
-   * Mobile touch targets: compact still guarantees 44px interactive height
-   * via min-height on interactive elements (see .density-touch-target below).
-   * ──────────────────────────────────────────────────────────────────── */
-
-  /* Comfortable – most breathing room (replaces old "spacious") */
-  --density-row-height: 3.5rem;       /* 56px */
-  --density-pad-y: 0.875rem;          /* 14px */
-  --density-pad-x: 1rem;              /* 16px */
-  --density-font-size: 0.9375rem;     /* 15px */
+  /* Density Mode Tokens (Issue #174) */
+  --density-row-height: 3.5rem;
+  --density-pad-y: 0.875rem;
+  --density-pad-x: 1rem;
+  --density-font-size: 0.9375rem;
   --density-line-height: 1.6;
-  --density-gap: 0.75rem;             /* 12px between items */
+  --density-gap: 0.75rem;
 
-  /* ─── Revenue Reporting Calendar Tokens (Issue #153) ─────────────── */
-  --rc-status-due: #f59e0b;                         /* ● due indicator                   */
-  --rc-status-submitted: #3b82f6;                   /* ● submitted indicator             */
-  --rc-status-accepted: #10b981;                    /* ● accepted indicator              */
-  --rc-status-overdue: #ef4444;                     /* ● overdue indicator               */
-  --rc-cell-size: 2.75rem;                          /* calendar day cell size            */
-  --rc-cell-gap: 0.25rem;                           /* gap between cells                 */
-  --rc-header-height: 2.5rem;                       /* day-name header height            */
-  --rc-nav-height: 3rem;                            /* month nav height                  */
-  --rc-pad-x: 1.25rem;                              /* horizontal padding                */
-  --rc-pad-y: 1.5rem;                               /* vertical padding                  */
-  --rc-gap: 1.5rem;                                 /* layout gap                        */
-  --rc-radius: 0.75rem;                             /* cell / panel radius               */
-  --rc-radius-sm: 0.5rem;                           /* small element radius              */
-  --rc-title-size: 1.25rem;                         /* month title size                  */
-  --rc-cell-size-text: 0.875rem;                    /* day number font size              */
-  --rc-legend-size: 0.75rem;                        /* legend font size                  */
+  /* Revenue Reporting Calendar Tokens (Issue #153) */
+  --rc-status-due: #f59e0b;
+  --rc-status-submitted: #3b82f6;
+  --rc-status-accepted: #10b981;
+  --rc-status-overdue: #ef4444;
+  --rc-cell-size: 2.75rem;
+  --rc-cell-gap: 0.25rem;
+  --rc-header-height: 2.5rem;
+  --rc-nav-height: 3rem;
+  --rc-pad-x: 1.25rem;
+  --rc-pad-y: 1.5rem;
+  --rc-gap: 1.5rem;
+  --rc-radius: 0.75rem;
+  --rc-radius-sm: 0.5rem;
+  --rc-title-size: 1.25rem;
+  --rc-cell-size-text: 0.875rem;
+  --rc-legend-size: 0.75rem;
   --shimmer-gradient: linear-gradient(
     90deg,
     rgba(148, 163, 184, 0.06) 25%,
@@ -207,48 +189,37 @@
     rgba(148, 163, 184, 0.06) 75%
   );
 
-  /* ─── Notification Bell Tokens (Issue #270) ──────────────────────── */
-  /* Default pulse variant (motion OK) */
-  --bell-badge-bg-default: #dc2626;                 /* bg-red-600 */
-  
-  /* Static badge variant (reduced motion) */
-  --bell-badge-bg-static: #b91c1c;                  /* bg-red-700 for subtle contrast change */
-  --bell-badge-ring-static: #fee2e2;                /* ring-red-100 for subtle border */
-  
-  /* Usage Guidance: Use motion-reduce utility classes (e.g., motion-reduce:animate-none, 
-     motion-reduce:bg-red-700) to fall back to a static state. The static badge uses 
-     a darker background (--bell-badge-bg-static) and a distinct ring (--bell-badge-ring-static) 
-     to maintain at least a 3:1 contrast ratio against the header. */
+  /* Notification Bell Tokens (Issue #270) */
+  --bell-badge-bg-default: #dc2626;
+  --bell-badge-bg-static: #b91c1c;
+  --bell-badge-ring-static: #fee2e2;
 
-  /* ─── Chart Tooltip & Axis Tokens (Issue #268) ──────────────────────── */
-  --chart-tooltip-bg: #0f172a;                      /* Dark surface for tooltip */
-  --chart-tooltip-fg: #f8fafc;                      /* High contrast foreground */
-  --chart-tooltip-border: #334155;                  /* Visible border on dark surface */
-  --chart-axis-label-color: #94a3b8;                /* WCAG AA contrast for dark surfaces */
-  --chart-axis-label-size: 0.75rem;                 /* 12px for axis text */
+  /* Chart Tooltip & Axis Tokens (Issue #268) */
+  --chart-tooltip-bg: #0f172a;
+  --chart-tooltip-fg: #f8fafc;
+  --chart-tooltip-border: #334155;
+  --chart-axis-label-color: #94a3b8;
+  --chart-axis-label-size: 0.75rem;
 
-  /* ─── Categorical Chart Palette (Issue #267) ────────────────────────── */
-  /* Light-mode categorical hues (for white/light surfaces) */
-  --chart-cat-1-light: #2563eb;                     /* Blue 600 - 4.6:1 contrast on #ffffff */
-  --chart-cat-2-light: #059669;                     /* Emerald 600 - 4.5:1 contrast on #ffffff */
-  --chart-cat-3-light: #d97706;                     /* Amber 600 - 3.1:1 contrast on #ffffff */
-  --chart-cat-4-light: #7c3aed;                     /* Violet 600 - 5.8:1 contrast on #ffffff */
-  --chart-cat-5-light: #dc2626;                     /* Red 600 - 4.5:1 contrast on #ffffff */
-  --chart-cat-6-light: #0891b2;                     /* Cyan 600 - 3.4:1 contrast on #ffffff */
-  --chart-cat-7-light: #ea580c;                     /* Orange 600 - 4.8:1 contrast on #ffffff */
-  --chart-cat-8-light: #be185d;                     /* Pink 600 - 5.5:1 contrast on #ffffff */
+  /* Categorical Chart Palette (Issue #267) */
+  --chart-cat-1-light: #2563eb;
+  --chart-cat-2-light: #059669;
+  --chart-cat-3-light: #d97706;
+  --chart-cat-4-light: #7c3aed;
+  --chart-cat-5-light: #dc2626;
+  --chart-cat-6-light: #0891b2;
+  --chart-cat-7-light: #ea580c;
+  --chart-cat-8-light: #be185d;
 
-  /* Dark-mode categorical hues (3:1+ WCAG AA contrast on #020617 / #0f172a dark surfaces) */
-  --chart-cat-1-dark: #60a5fa;                      /* Blue 400 - 8.5:1 contrast on #020617 */
-  --chart-cat-2-dark: #34d399;                      /* Emerald 400 - 10.2:1 contrast on #020617 */
-  --chart-cat-3-dark: #fbbf24;                      /* Amber 400 - 11.8:1 contrast on #020617 */
-  --chart-cat-4-dark: #a78bfa;                      /* Violet 400 - 7.4:1 contrast on #020617 */
-  --chart-cat-5-dark: #f87171;                      /* Rose 400 - 6.8:1 contrast on #020617 */
-  --chart-cat-6-dark: #22d3ee;                      /* Cyan 400 - 11.0:1 contrast on #020617 */
-  --chart-cat-7-dark: #fb923c;                      /* Orange 400 - 8.9:1 contrast on #020617 */
-  --chart-cat-8-dark: #f472b6;                      /* Pink 400 - 7.7:1 contrast on #020617 */
+  --chart-cat-1-dark: #60a5fa;
+  --chart-cat-2-dark: #34d399;
+  --chart-cat-3-dark: #fbbf24;
+  --chart-cat-4-dark: #a78bfa;
+  --chart-cat-5-dark: #f87171;
+  --chart-cat-6-dark: #22d3ee;
+  --chart-cat-7-dark: #fb923c;
+  --chart-cat-8-dark: #f472b6;
 
-  /* Active categorical chart tokens (default to dark-mode for dark surfaces; mirrored for easy swapping) */
   --chart-cat-1: var(--chart-cat-1-dark);
   --chart-cat-2: var(--chart-cat-2-dark);
   --chart-cat-3: var(--chart-cat-3-dark);
@@ -259,33 +230,28 @@
   --chart-cat-8: var(--chart-cat-8-dark);
 }
 
-/* ─── Density mode overrides ─────────────────────────────────────
- * Applied to <html data-density="..."> so every component can
- * inherit the tokens via CSS cascade without extra wrapper elements.
- * ─────────────────────────────────────────────────────────────── */
-
+/* Density mode overrides */
 [data-density="cozy"] {
-  --density-row-height: 3rem;         /* 48px */
-  --density-pad-y: 0.625rem;          /* 10px */
-  --density-pad-x: 0.875rem;          /* 14px */
-  --density-font-size: 0.875rem;      /* 14px */
+  --density-row-height: 3rem;
+  --density-pad-y: 0.625rem;
+  --density-pad-x: 0.875rem;
+  --density-font-size: 0.875rem;
   --density-line-height: 1.5;
-  --density-gap: 0.5rem;              /* 8px */
+  --density-gap: 0.5rem;
 }
 
 [data-density="compact"] {
-  --density-row-height: 2.25rem;      /* 36px */
-  --density-pad-y: 0.375rem;          /* 6px */
-  --density-pad-x: 0.75rem;           /* 12px */
-  --density-font-size: 0.8125rem;     /* 13px */
+  --density-row-height: 2.25rem;
+  --density-pad-y: 0.375rem;
+  --density-pad-x: 0.75rem;
+  --density-font-size: 0.8125rem;
   --density-line-height: 1.4;
-  --density-gap: 0.375rem;            /* 6px */
+  --density-gap: 0.375rem;
 }
 
-/* Compact mobile: ensure 44×44 touch target on interactive controls */
 @media (max-width: 768px) {
   [data-density="compact"] .density-touch-target {
-    min-height: 2.75rem;              /* 44px */
+    min-height: 2.75rem;
     min-width: 2.75rem;
   }
 }
@@ -389,6 +355,18 @@ body {
   width: 100%;
 }
 
+.btn-primary {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
 .btn-primary:hover {
   background: var(--primary-hover);
   transform: translateY(-1px);
@@ -455,7 +433,6 @@ body {
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
 }
 
-/* WCAG 2.1 AA: Focus visible for keyboard navigation */
 .input-field:focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
@@ -520,9 +497,8 @@ a:focus-visible {
   }
 }
 
-/* Accessibility: Focus rings for interactive elements */
-a:focus-visible, 
-button:focus-visible, 
+a:focus-visible,
+button:focus-visible,
 input:focus-visible,
 [tabindex]:focus-visible {
   outline: 2px solid var(--primary);
@@ -530,7 +506,6 @@ input:focus-visible,
   border-radius: 0.25rem;
 }
 
-/* Localized text handling */
 .localized-text {
   overflow-wrap: anywhere;
   word-break: break-word;
@@ -541,7 +516,6 @@ input:focus-visible,
   unicode-bidi: embed;
 }
 
-/* Utilities for accessibility and consistency */
 .text-primary {
   color: var(--primary);
 }
@@ -579,36 +553,12 @@ input:focus-visible,
   border-radius: 0.25rem;
 }
 
-/* Utility Classes */
 .text-muted { color: var(--text-muted); }
 .text-main { color: var(--text-main); }
 .text-success { color: var(--success); }
 .text-error { color: var(--error); }
 
-/* ─── AuthLayout Component Styles (Issue #80) ─────────────────────────────
-   Implements the formalized design-system type scale and responsive card.
-   Tokens are defined in :root above under "Auth Layout Design Tokens".
-   ───────────────────────────────────────────────────────────────────────── */
-
-/**
- * .auth-layout-outer
- * Full-viewport centring wrapper. Adds safe-area-aware horizontal padding
- * so content is never clipped at 320px or on notched devices.
- */
-.auth-layout-outer {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  /* horizontal safe-area inset ensures usability on notched devices */
-  padding:
-    1.5rem
-    max(env(safe-area-inset-right, 0px), 1rem)
-    1.5rem
-    max(env(safe-area-inset-left, 0px), 1rem);
-}
-
+/* RTL Overrides */
 [dir="rtl"] .auth-layout-outer {
   padding:
     1.5rem
@@ -617,346 +567,6 @@ input:focus-visible,
     max(env(safe-area-inset-right, 0px), 1rem);
 }
 
-/**
- * .auth-card
- * The glassmorphic card container. Uses fluid padding tokens so the card
- * breathes at desktop widths yet stays comfortable at 320px.
- */
-.auth-card {
-  width: 100%;
-  max-width: var(--auth-card-max-w);
-  padding: var(--auth-card-padding-y) var(--auth-card-padding-x);
-}
-
-/**
- * .auth-header
- * Groups the title / subtitle / helperText with a consistent column gap
- * and a bottom margin separating it from the form body.
- */
-.auth-header {
-  display: flex;
-  flex-direction: column;
-  gap: var(--auth-header-gap);
-  margin-bottom: var(--auth-header-mb);
-}
-
-/**
- * .auth-title  [Design Token: --auth-title-*]
- * Page-level heading. Fluid font-size scales from 24px (320px viewport)
- * to 30px (≥600px) via clamp(). Tight tracking improves legibility at
- * large sizes. Single <h1> per page — enforced by AuthLayout API.
- */
-.auth-title {
-  font-size: var(--auth-title-size);
-  font-weight: var(--auth-title-weight);
-  letter-spacing: var(--auth-title-tracking);
-  line-height: var(--auth-title-lh);
-  color: var(--text-main);
-  /* Long unbreakable strings (e.g. very long company names) wrap cleanly */
-  overflow-wrap: break-word;
-  word-break: break-word;
-}
-
-/**
- * .auth-subtitle  [Design Token: --auth-subtitle-*]
- * One-liner description beneath the title. Slightly muted to create
- * visual hierarchy without excessive contrast reduction.
- */
-.auth-subtitle {
-  font-size: var(--auth-subtitle-size);
-  line-height: var(--auth-subtitle-lh);
-  color: var(--text-muted);
-  overflow-wrap: break-word;
-}
-
-/**
- * .auth-helper  [Design Token: --auth-helper-*]
- * Tertiary fine-print slot (security disclaimers, hints). Slightly
- * smaller than subtitle; maintains ≥4.5:1 contrast on the dark bg.
- */
-.auth-helper {
-  font-size: var(--auth-helper-size);
-  line-height: var(--auth-helper-lh);
-  color: var(--text-muted);
-  overflow-wrap: break-word;
-}
-
-/**
- * .auth-body
- * Slot that wraps the form / non-header children. Isolated so page-level
- * spacing (e.g. space-y-4 in form) never bleeds into header margins.
- */
-.auth-body {
-  /* intentionally unstyled – children control their own spacing */
-}
-
-/* ─── Discovery Empty & Error State Styles (Issue #107) ────────────────────
-   Components: DiscoveryEmptyState, DiscoveryErrorState
-   Tokens:     --ds-* (defined in :root above)
-   ─────────────────────────────────────────────────────────────────────────── */
-
-/**
- * .discovery-state-container
- * Shared centred column layout used by both empty and error states.
- * Rendered inside a <section aria-live> so changes are announced to
- * screen readers without a page reload.
- */
-.discovery-state-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: var(--ds-state-gap);
-  padding: var(--ds-state-pad-y) var(--ds-state-pad-x);
-  /* Inherit the glass-card look from the surrounding section */
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  backdrop-filter: var(--glass-blur);
-  border-radius: 1.5rem;
-  box-shadow: var(--shadow-xl);
-}
-
-/**
- * .discovery-state-icon-wrap
- * Circular icon container. Uses variant modifier for colour theming.
- */
-.discovery-state-icon-wrap {
-  width:  var(--ds-state-icon-size);
-  height: var(--ds-state-icon-size);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.discovery-state-icon-wrap--empty {
-  background: var(--ds-empty-icon-bg);
-  color:      var(--ds-empty-icon-fg);
-  border: 1px solid rgba(59, 130, 246, 0.18);
-}
-
-.discovery-state-icon-wrap--error {
-  background: var(--ds-error-icon-bg);
-  color:      var(--ds-error-icon-fg);
-  border: 1px solid rgba(239, 68, 68, 0.18);
-}
-
-/**
- * .discovery-state-title
- * <h2> inside the state cards — one level below the page <h1>.
- * 20px / semi-bold to maintain hierarchy without competing with the
- * "Discover Offerings" heading.
- */
-.discovery-state-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  line-height: 1.3;
-  color: var(--text-main);
-}
-
-/**
- * .discovery-state-body
- * Supporting copy. 14px, muted — passes ≥4.5:1 contrast on the dark bg.
- */
-.discovery-state-body {
-  font-size: 0.875rem;
-  line-height: 1.6;
-  color: var(--text-muted);
-  max-width: var(--ds-state-max-w);
-}
-
-/**
- * .discovery-state-query
- * Inline highlight for the echoed search term inside the body copy.
- * Uses accent colour + subtle bg to make the term scannable.
- */
-.discovery-state-query {
-  color: var(--text-accent);
-  font-weight: 500;
-  background: rgba(56, 189, 248, 0.08);
-  padding: 0 0.25em;
-  border-radius: 0.2em;
-}
-
-/**
- * .discovery-state-retry-hint
- * Small supplementary text shown when retries > 0 on the error state.
- * 13px to sit clearly below the body copy in the visual hierarchy.
- */
-.discovery-state-retry-hint {
-  font-size: 0.8125rem;
-  color: var(--text-muted);
-  font-style: italic;
-}
-
-/**
- * .discovery-state-action
- * Shared sizing override for CTA buttons inside state views.
- * Forces consistent minimum width and centers the icon+label pair.
- */
-.discovery-state-action {
-  width: auto;
-  min-width: 9rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding-inline: 1.5rem;
-}
-
-/**
- * .discovery-filter-btn--active
- * Visual indicator that filters are currently active.
- * Brightens the border to match --glass-border-bright.
- */
-.discovery-filter-btn--active {
-  border-color: var(--glass-border-bright);
-  color: var(--text-accent);
-  position: relative;
-}
-
-/**
- * .discovery-filter-badge
- * Small dot overlaid on the filter button when filters are active.
- * Matches the accent colour for visual consistency.
- */
-.discovery-filter-badge {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-/* Home/Landing Page Styles - Issue #100 */
-.home-container {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: var(--spacing-xl);
-  text-align: center;
-}
-
-.home-card {
-  width: 100%;
-  max-width: 720px;
-  padding: clamp(var(--spacing-xl), 5vw, var(--spacing-4xl)) clamp(var(--spacing-lg), 5vw, var(--spacing-3xl));
-  border-radius: var(--radius-2xl);
-}
-
-.home-title {
-  font-size: clamp(var(--font-size-2xl), 5vw, var(--font-size-4xl));
-  font-weight: var(--font-weight-bold);
-  line-height: var(--line-height-tight);
-  margin-bottom: var(--spacing-md);
-}
-
-.home-description {
-  color: var(--text-muted);
-  font-size: var(--font-size-lg);
-  line-height: var(--line-height-relaxed);
-  margin-bottom: var(--spacing-2xl);
-  max-width: 32rem;
-  margin-inline: auto;
-}
-
-.home-grid {
-  display: grid;
-  grid-template-cols: 1fr;
-  gap: var(--spacing-xl);
-  margin-bottom: var(--spacing-2xl);
-}
-
-@media (min-width: 768px) {
-  .home-grid {
-    grid-template-cols: repeat(2, 1fr);
-  }
-}
-
-.home-section {
-  padding: var(--spacing-xl);
-  text-align: start;
-  border-color: var(--glass-border);
-  border-radius: var(--radius-xl);
-}
-
-.home-section-title {
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-semibold);
-  margin-bottom: var(--spacing-sm);
-}
-
-.home-list {
-  color: var(--text-muted);
-  font-size: var(--font-size-sm);
-  list-style: none;
-}
-
-.home-list li {
-  margin-bottom: var(--spacing-xs);
-}
-
-.home-list li:last-child {
-  margin-bottom: 0;
-}
-
-.home-actions {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-  justify-content: center;
-}
-
-@media (min-width: 640px) {
-  .home-actions {
-    flex-direction: row;
-  }
-  .home-actions .btn {
-    width: auto;
-    padding-inline: var(--spacing-3xl);
-  }
-}
-
-.home-footer {
-  margin-top: var(--spacing-3xl);
-  font-size: var(--font-size-xs);
-  color: var(--text-muted);
-}
-
-/* Placeholder Page Styles - Issue #100 */
-.placeholder-container {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--spacing-2xl);
-}
-
-.placeholder-card {
-  padding: clamp(var(--spacing-xl), 8vw, var(--spacing-4xl));
-  text-align: center;
-  border-radius: var(--radius-2xl);
-}
-
-.placeholder-title {
-  font-size: var(--font-size-3xl);
-  font-weight: var(--font-weight-bold);
-  margin-bottom: var(--spacing-md);
-}
-
-.placeholder-text {
-  color: var(--text-muted);
-  margin-bottom: var(--spacing-2xl);
-}
-
-/* ─── RTL Overrides ────────────────────────────────────────────── */
 [dir="rtl"] .home-section {
   text-align: end;
 }
@@ -969,12 +579,10 @@ input:focus-visible,
   text-align: start;
 }
 
-/* Icons that flip horizontally in RTL (arrows, chevrons, back/forward) */
 [dir="rtl"] .icon-rtl {
   transform: scaleX(-1);
 }
 
-/* RTL-aware absolute positioning utilities */
 [dir="rtl"] .right-0 { right: auto; left: 0; }
 [dir="rtl"] .right-3 { right: auto; left: 0.75rem; }
 [dir="rtl"] .right-4 { right: auto; left: 1rem; }
@@ -982,7 +590,6 @@ input:focus-visible,
 [dir="rtl"] .-right-1 { right: auto; left: -0.25rem; }
 [dir="rtl"] .-left-1 { left: auto; right: -0.25rem; }
 
-/* RTL-aware margin/padding utilities */
 [dir="rtl"] .mr-1 { margin-right: 0; margin-left: 0.25rem; }
 [dir="rtl"] .mr-2 { margin-right: 0; margin-left: 0.5rem; }
 [dir="rtl"] .ml-2 { margin-left: 0; margin-right: 0.5rem; }
@@ -991,18 +598,13 @@ input:focus-visible,
 [dir="rtl"] .pr-10 { padding-right: 0; padding-left: 2.5rem; }
 [dir="rtl"] .space-x-3 > * + * { margin-left: 0; margin-right: 0.75rem; }
 
-/* RTL-aware text alignment */
 [dir="rtl"] .text-left { text-align: right; }
 [dir="rtl"] .text-right { text-align: left; }
 
-/* ─── Branded Loading States & Shimmer ────────────────────────────── */
+/* Loading States & Shimmer */
 @keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
 .animate-shimmer {
@@ -1012,12 +614,8 @@ input:focus-visible,
 }
 
 @keyframes spin-loader {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .animate-spin-loader {
@@ -1121,325 +719,7 @@ input:focus-visible,
   height: 10rem;
 }
 
-/* ─── Multi-Issuer Comparison View (Issue #231) ─────────────────────────────
- *  Accessible, responsive side-by-side issuer comparison.
- *  Tokens: --glass-*, --primary, --text-*, --success, --error
- * ─────────────────────────────────────────────────────────────────────────── */
-
-/* Column sync: dim non-hovered columns */
-.mic-column {
-  background: var(--glass-bg-accent);
-  transition: border-color 0.2s ease, background-color 0.2s ease, opacity 0.2s ease;
-}
-
-.mic-column--hover {
-  z-index: 2;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-}
-
-.mic-column--dim {
-  opacity: 0.55;
-}
-
-/* Responsive: stack columns on narrow viewports */
-@media (max-width: 767px) {
-  .mic-column {
-    opacity: 1 !important;
-  }
-}
-
-/* Compliance status pills */
-.mic-compliance--compliant {
-  background: rgba(16, 185, 129, 0.12);
-  color: var(--success);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-}
-
-.mic-compliance--review {
-  background: rgba(239, 68, 68, 0.12);
-  color: var(--error);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-}
-
-.mic-compliance--hold {
-  background: rgba(245, 158, 11, 0.12);
-  color: #f59e0b;
-  border: 1px solid rgba(245, 158, 11, 0.3);
-}
-
-/* Chart snippet */
-.mic-chart-snippet {
-  background: rgba(15, 23, 42, 0.35);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-sm);
-}
-
-/* Button overrides */
-.btn--sm {
-  padding: 0.375rem 0.875rem;
-  font-size: 0.8125rem;
-  border-radius: var(--radius-md);
-  width: auto;
-}
-=======
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
-
-:root {
-  --bg-color: #020617;
-  --bg-gradient: radial-gradient(
-    circle at top,
-    #0f172a 0,
-    #020617 40%,
-    #000000 100%
-  );
-
-  /* Standardized Design Tokens - Issue #68 */
-  --glass-bg: rgba(15, 23, 42, 0.85);
-  --glass-bg-accent: rgba(30, 41, 59, 0.5);
-  --glass-border: rgba(148, 163, 184, 0.15);
-  --glass-border-bright: rgba(148, 163, 184, 0.35);
-  --glass-blur: blur(12px);
-
-  /* Elevation Tokens */
-  --shadow-sm:
-    0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-md:
-    0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-lg:
-    0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  --shadow-xl: 0 24px 80px rgba(0, 0, 0, 0.45); /* Standardized Card Elevation */
-
-  --primary: #3b82f6;
-  --primary-hover: #2563eb;
-  --text-main: #e5e7eb;
-  --text-muted: #cbd5e1; /* Improved contrast for WCAG AA on dark backgrounds */
-  --text-accent: #38bdf8;
-  --error: #ef4444;
-  --success: #10b981;
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family:
-    "Inter",
-    system-ui,
-    -apple-system,
-    sans-serif;
-  background: var(--bg-gradient);
-  color: var(--text-main);
-  min-height: 100vh;
-  -webkit-font-smoothing: antialiased;
-}
-
-.glass-card {
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  backdrop-filter: var(--glass-blur);
-  border-radius: 1.5rem;
-  box-shadow: var(--shadow-xl);
-  transition:
-    border-color 0.2s ease,
-    transform 0.2s ease;
-}
-
-.glass-card-interactive:hover {
-  border-color: var(--glass-border-bright);
-  transform: translateY(-2px);
-}
-
-.btn-primary {
-  background: var(--primary);
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.75rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  width: 100%;
-}
-
-.btn-primary:hover {
-  background: var(--primary-hover);
-  transform: translateY(-1px);
-}
-
-.btn-primary:focus-visible,
-.btn-secondary:focus-visible {
-  outline: 2px solid white;
-  outline-offset: 2px;
-  border-radius: 0.75rem;
-}
-
-.btn-secondary {
-  background: rgba(148, 163, 184, 0.1);
-  color: var(--text-main);
-  border: 1px solid var(--glass-border);
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.75rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-}
-
-.btn-secondary:hover {
-  background: rgba(148, 163, 184, 0.2);
-}
-
-.btn-secondary:focus {
-  outline: 2px solid var(--text-main);
-  outline-offset: 2px;
-}
-
-.input-group {
-  margin-bottom: 1.25rem;
-}
-
-.input-label {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--text-muted);
-  margin-bottom: 0.5rem;
-}
-
-.input-field {
-  width: 100%;
-  background: rgba(15, 23, 42, 0.5);
-  border: 1px solid var(--glass-border);
-  border-radius: 0.75rem;
-  padding: 0.75rem 1rem;
-  color: var(--text-main);
-  font-size: 1rem;
-  transition: border-color 0.2s ease;
-}
-
-.input-field:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
-}
-
-/* WCAG 2.1 AA: Focus visible for keyboard navigation */
-.input-field:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.4);
-}
-
-button:focus-visible {
-  outline: 2px solid white;
-  outline-offset: 2px;
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.6);
-}
-
-a:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
-  border-radius: 2px;
-}
-
-.input-field.input-error {
-  border-color: var(--error);
-}
-
-.input-field.input-error:focus {
-  outline: 2px solid var(--error);
-  outline-offset: 2px;
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.4s ease-out forwards;
-}
-
-.animate-shake {
-  animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
-}
-
-@keyframes shake {
-  10%, 90% { transform: translate3d(-1px, 0, 0); }
-  20%, 80% { transform: translate3d(2px, 0, 0); }
-  30%, 50%, 70% { transform: translate3d(-3px, 0, 0); }
-  40%, 60% { transform: translate3d(3px, 0, 0); }
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Accessibility: Focus rings for interactive elements */
-a:focus-visible, 
-button:focus-visible, 
-input:focus-visible,
-[tabindex]:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
-  border-radius: 0.25rem;
-}
-
-/* Utilities for accessibility and consistency */
-.text-primary {
-  color: var(--primary);
-}
-
-.text-primary:hover {
-  color: var(--primary-hover);
-}
-
-.hover-underline:hover {
-  text-decoration: underline;
-}
-
-.focus-ring:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
-  border-radius: 0.25rem;
-}
-
-.link-styled {
-  color: var(--primary);
-  font-weight: 500;
-  text-decoration: none;
-  transition: color 0.2s ease;
-  text-underline-offset: 2px;
-}
-
-.link-styled:hover {
-  color: var(--primary-hover);
-  text-decoration: underline;
-}
-
-.link-styled:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
-  border-radius: 0.25rem;
-}
-
-/* Utility Classes */
-.text-muted { color: var(--text-muted); }
-.text-main { color: var(--text-main); }
-.text-success { color: var(--success); }
-.text-error { color: var(--error); }
-
-/* Activity Feed Styles */
+/* Activity Feed */
 .activity-feed { padding: 1rem; }
 .activity-list { list-style: none; margin: 0; padding: 0; }
 .activity-item { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.75rem 0; border-bottom: 1px solid var(--glass-border); }
@@ -1452,7 +732,7 @@ input:focus-visible,
 .activity-date-group { margin-top: 1.5rem; margin-bottom: 0.5rem; font-weight: 600; color: var(--primary); }
 .load-more { margin-top: 1rem; }
 
-/* Actor Detail Popover Styles */
+/* Actor Detail Popover */
 .actor-detail-popover {
   animation: popoverFadeIn 0.2s ease-out;
 }
@@ -1497,7 +777,7 @@ input:focus-visible,
   }
 }
 
-/* Audit Trail Page Styles */
+/* Audit Trail Page */
 .audit-trail-page {
   padding: 2rem;
   min-height: 100vh;
@@ -1519,9 +799,60 @@ input:focus-visible,
   .actor-detail-popover {
     animation: none;
   }
-  
   .actor-card {
     transition: none;
   }
 }
->>>>>>> Stashed changes
+
+/* Multi-Issuer Comparison View (Issue #231) */
+.mic-column {
+  background: var(--glass-bg-accent);
+  transition: border-color 0.2s ease, background-color 0.2s ease, opacity 0.2s ease;
+}
+
+.mic-column--hover {
+  z-index: 2;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.mic-column--dim {
+  opacity: 0.55;
+}
+
+@media (max-width: 767px) {
+  .mic-column {
+    opacity: 1 !important;
+  }
+}
+
+.mic-compliance--compliant {
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--success);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.mic-compliance--review {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--error);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.mic-compliance--hold {
+  background: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.mic-chart-snippet {
+  background: rgba(15, 23, 42, 0.35);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-sm);
+}
+
+.btn--sm {
+  padding: 0.375rem 0.875rem;
+  font-size: 0.8125rem;
+  border-radius: var(--radius-md);
+  width: auto;
+}

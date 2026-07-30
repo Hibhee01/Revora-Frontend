@@ -1,0 +1,378 @@
+/* PayoutSchedule — Gantt chart RTL mirror pass (Issue #495)
+ *
+ * RTL-aware styles using logical CSS properties:
+ * - inset-inline-start/end instead of left/right
+ * - Mirrored today marker and tooltip positioning
+ * - RTL-aware gradient directions
+ * - Numeric dates wrapped in LTR isolates
+ */
+
+/* ─── View Toggle ──────────────────────────────────────────────────── */
+.psp-toggle {
+  display: flex;
+  gap: 0.25rem;
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg, 0.75rem);
+  padding: 0.25rem;
+}
+
+.psp-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: var(--radius-md, 0.5rem);
+  font-size: var(--font-size-sm, 0.875rem);
+  font-weight: 500;
+  color: var(--text-muted, #94a3b8);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.psp-toggle-btn:hover {
+  color: var(--text-main, #e2e8f0);
+  background: rgba(148, 163, 184, 0.08);
+}
+
+.psp-toggle-btn:focus-visible {
+  outline: 2px solid var(--primary, #3b82f6);
+  outline-offset: 2px;
+}
+
+.psp-toggle-btn--active {
+  color: var(--text-main, #e2e8f0);
+  background: rgba(59, 130, 246, 0.15);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+/* ─── Gantt Container ──────────────────────────────────────────────── */
+.psp-gantt {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* ─── Gantt Controls Row ───────────────────────────────────────────── */
+.psp-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.psp-range-label {
+  font-size: var(--font-size-xs, 0.75rem);
+  color: var(--text-muted, #94a3b8);
+  font-variant-numeric: tabular-nums;
+  unicode-bidi: plaintext;
+}
+
+.psp-zoom-group {
+  display: flex;
+  gap: 0.25rem;
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md, 0.5rem);
+  padding: 0.125rem;
+}
+
+.psp-zoom-btn {
+  padding: 0.25rem 0.625rem;
+  border: none;
+  border-radius: var(--radius-sm, 0.375rem);
+  font-size: var(--font-size-xs, 0.75rem);
+  font-weight: 500;
+  color: var(--text-muted, #94a3b8);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.psp-zoom-btn:hover {
+  color: var(--text-main, #e2e8f0);
+  background: rgba(148, 163, 184, 0.08);
+}
+
+.psp-zoom-btn:focus-visible {
+  outline: 2px solid var(--primary, #3b82f6);
+  outline-offset: 2px;
+}
+
+.psp-zoom-btn--active {
+  color: #fff;
+  background: var(--primary, #3b82f6);
+}
+
+/* ─── Gantt Lane ───────────────────────────────────────────────────── */
+.psp-lane {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.psp-lane:last-child {
+  margin-bottom: 0;
+}
+
+.psp-lane-label {
+  width: 9rem;
+  flex-shrink: 0;
+  padding-inline-end: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.psp-lane-name {
+  font-size: var(--font-size-sm, 0.875rem);
+  font-weight: 600;
+  color: var(--text-main, #e2e8f0);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.psp-lane-count {
+  font-size: 0.625rem;
+  color: var(--text-muted, #94a3b8);
+  white-space: nowrap;
+}
+
+/* ─── Gantt Track (the bar area) ─────────────────────────────────── */
+.psp-track {
+  flex: 1;
+  position: relative;
+  height: 2rem;
+  border-radius: var(--radius-md, 0.5rem);
+  background: rgba(2, 6, 23, 0.4);
+  border: 1px solid rgba(148, 163, 184, 0.06);
+}
+
+/* ─── Today Marker (RTL-aware) ─────────────────────────────────────
+ * Uses inset-inline-start so "now" sits from the reading-start side.
+ * In RTL, the marker is positioned from the right edge, meaning
+ * the percentage represents the position from the end. We also
+ * mirror the line and label via CSS transforms.
+ */
+.psp-today-marker {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: var(--psp-today-pct);
+  width: 2px;
+  background: var(--primary, #3b82f6);
+  opacity: 0.6;
+  z-index: 10;
+  pointer-events: none;
+  /* center the thin line on the percentage point */
+  transform: translateX(-50%);
+}
+
+[dir="rtl"] .psp-today-marker {
+  /* In RTL, since inset-inline-start positions from the right,
+     translateX(-50%) moves it further right. We need to mirror. */
+  transform: translateX(50%);
+}
+
+.psp-today-dot {
+  position: absolute;
+  inset-block-start: -0.25rem;
+  inset-inline-start: -0.25rem;
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 50%;
+  background: var(--primary, #3b82f6);
+}
+
+[dir="rtl"] .psp-today-dot {
+  inset-inline-start: auto;
+  inset-inline-end: -0.25rem;
+}
+
+/* ─── Payout Bars (RTL-aware) ──────────────────────────────────────
+ * Positioned with inset-inline-start so they mirror in RTL.
+ * The percentage is calculated from the start of the timeline.
+ */
+.psp-bar {
+  position: absolute;
+  border-radius: 2px;
+  transition: opacity 0.15s ease, box-shadow 0.15s ease;
+  cursor: default;
+  /* inset-inline-start is set via style prop */
+}
+
+.psp-bar:hover {
+  opacity: 1 !important;
+  box-shadow: 0 0 0 2px rgba(148, 163, 184, 0.25);
+}
+
+/* Failed/canceled bars get a diagonal stripe overlay */
+.psp-bar--failed,
+.psp-bar--canceled {
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 3px,
+    rgba(0, 0, 0, 0.15) 3px,
+    rgba(0, 0, 0, 0.15) 6px
+  );
+}
+
+[dir="rtl"] .psp-bar--failed,
+[dir="rtl"] .psp-bar--canceled {
+  /* Mirror the stripe direction for RTL */
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 3px,
+    rgba(0, 0, 0, 0.15) 3px,
+    rgba(0, 0, 0, 0.15) 6px
+  );
+}
+
+/* ─── Bar Tooltips (RTL-first) ──────────────────────────────────────
+ * Default: centered above the bar. In RTL, shift toward the
+ * inline-start side (physical right) to avoid clipping.
+ */
+.psp-bar-tooltip {
+  position: absolute;
+  bottom: calc(100% + 0.375rem);
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.psp-bar:hover .psp-bar-tooltip {
+  opacity: 1;
+}
+
+[dir="rtl"] .psp-bar-tooltip {
+  /* RTL-first: pin to the inline-end (physical left) so it doesn't
+     clip off the reading-start edge of the scrollport */
+  inset-inline-start: auto;
+  inset-inline-end: 0;
+  transform: none;
+}
+
+.psp-bar-tooltip-inner {
+  background: rgba(15, 23, 42, 0.96);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: var(--radius-md, 0.5rem);
+  padding: 0.375rem 0.625rem;
+  font-size: var(--font-size-xs, 0.75rem);
+  white-space: nowrap;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  text-align: start;
+}
+
+.psp-bar-tooltip-issuer {
+  font-weight: 600;
+  color: var(--text-main, #e2e8f0);
+}
+
+.psp-bar-tooltip-amount {
+  color: var(--text-muted, #94a3b8);
+  margin-block-start: 0.125rem;
+  direction: ltr;
+  unicode-bidi: isolate;
+  font-variant-numeric: tabular-nums;
+}
+
+.psp-bar-tooltip-date {
+  color: var(--text-muted, #94a3b8);
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.psp-bar-tooltip-status {
+  margin-block-start: 0.125rem;
+}
+
+/* ─── Gantt Footer / Pattern Key ───────────────────────────────────── */
+.psp-pattern-key {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  padding-block-start: 0.75rem;
+  border-block-start: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.psp-pattern-key-label {
+  font-size: var(--font-size-xs, 0.75rem);
+  color: var(--text-muted, #94a3b8);
+}
+
+.psp-pattern-key-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.625rem;
+  color: var(--text-muted, #94a3b8);
+}
+
+/* ─── Table View ────────────────────────────────────────────────────── */
+.psp-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.psp-table th {
+  text-align: start;
+  font-size: var(--font-size-xs, 0.75rem);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted, #94a3b8);
+  padding-block-end: 0.75rem;
+  padding-inline-end: 1rem;
+}
+
+.psp-table th:last-child {
+  padding-inline-end: 0;
+}
+
+.psp-table td {
+  padding-block: 0.75rem;
+  padding-inline-end: 1rem;
+  font-size: var(--font-size-sm, 0.875rem);
+}
+
+.psp-table td:last-child {
+  padding-inline-end: 0;
+}
+
+.psp-table-row {
+  border-block-start: 1px solid var(--glass-border, rgba(148, 163, 184, 0.15));
+}
+
+.psp-table-row td:first-child {
+  font-weight: 500;
+  color: var(--text-main, #e2e8f0);
+}
+
+.psp-table-row td {
+  color: var(--text-muted, #94a3b8);
+}
+
+/* ─── Mobile / Responsive ─────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .psp-lane-label {
+    width: 6rem;
+  }
+
+  .psp-controls {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .psp-range-label {
+    order: -1;
+  }
+}

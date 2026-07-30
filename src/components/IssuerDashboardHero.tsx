@@ -256,7 +256,7 @@ interface KpiTileProps {
   label: string;
   data: IssuerKpiData;
   icon: React.ReactNode;
-  'data-testid'?: string;
+  'data-testid': string;
 }
 
 const KpiTile: React.FC<KpiTileProps> = ({ label, data, icon, 'data-testid': testId }) => {
@@ -267,7 +267,7 @@ const KpiTile: React.FC<KpiTileProps> = ({ label, data, icon, 'data-testid': tes
         className="glass-card p-5 flex flex-col justify-center animate-pulse min-h-[112px]"
         aria-busy="true"
         aria-label={`${label} loading`}
-        data-testid={testId ?? `kpi-tile-${label.toLowerCase()}`}
+        data-testid={testId}
         role="status"
       >
         <div className="w-7 h-7 bg-slate-800 rounded-full mb-3" />
@@ -282,7 +282,7 @@ const KpiTile: React.FC<KpiTileProps> = ({ label, data, icon, 'data-testid': tes
     return (
       <div
         className="glass-card p-5 flex flex-col gap-2 min-h-[112px] border-red-500/20 bg-red-500/5"
-        data-testid={testId ?? `kpi-tile-${label.toLowerCase()}`}
+        data-testid={testId}
         role="status"
         aria-label={`${label} failed to load`}
       >
@@ -300,7 +300,7 @@ const KpiTile: React.FC<KpiTileProps> = ({ label, data, icon, 'data-testid': tes
     return (
       <div
         className="glass-card p-5 flex flex-col gap-2 min-h-[112px]"
-        data-testid={testId ?? `kpi-tile-${label.toLowerCase()}`}
+        data-testid={testId}
         role="status"
         aria-label={`${label}: no data yet`}
       >
@@ -321,7 +321,7 @@ const KpiTile: React.FC<KpiTileProps> = ({ label, data, icon, 'data-testid': tes
   return (
     <div
       className="glass-card p-5 flex flex-col justify-between min-h-[112px]"
-      data-testid={testId ?? `kpi-tile-${label.toLowerCase()}`}
+      data-testid={testId}
     >
       <div>
         <div className="flex items-center gap-2 text-muted mb-2">
@@ -550,8 +550,6 @@ const PrimaryCta: React.FC<PrimaryCtaProps> = ({
       </Link>
     );
   }
-
-  return null;
 };
 
 /* ─── Main Component ────────────────────────────────────────────────── */

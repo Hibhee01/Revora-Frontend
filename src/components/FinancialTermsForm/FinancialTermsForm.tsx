@@ -113,7 +113,7 @@ const FieldRow: React.FC<FieldRowProps> = ({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onBlur={onBlur}
-          aria-invalid={isError ? true : undefined}
+          aria-invalid={isError ? 'true' : 'false'}
           aria-describedby={describedBy}
           aria-required="true"
           data-testid={`ftf-input-${field}`}
@@ -223,6 +223,16 @@ export const FinancialTermsForm: React.FC<FinancialTermsFormProps> = ({
   if (submitted) {
     return (
       <div className={`ftf ${className}`} data-testid="ftf-success">
+        {/* Live region for screen readers — announces success */}
+        <div
+          className="sr-only"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          Financial terms saved successfully. Your offering's financial terms have been recorded
+          and will be reviewed before publishing.
+        </div>
         <div className="ftf__success">
           <CheckCircle2 size={40} color="var(--success)" aria-hidden="true" />
           <p className="ftf__success-title">Financial terms saved</p>

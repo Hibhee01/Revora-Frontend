@@ -242,6 +242,22 @@ describe('IssuerDashboardHero – next payout tile', () => {
     });
     expect(screen.getByTestId('next-payout-tile')).toHaveTextContent('Today');
   });
+
+  it('renders payout date as value when no estimated amount', () => {
+    const futureDate = isoRelative(7);
+    renderHero({ nextPayout: { date: futureDate } });
+    const tile = screen.getByTestId('next-payout-tile');
+    // date should appear as the main value when no estimatedAmount
+    expect(tile).toHaveTextContent('In 7 days');
+  });
+
+  it('payout tile shows yellow urgency label when payout is within 3 days', () => {
+    renderHero({
+      nextPayout: { date: isoRelative(2), estimatedAmount: 5000 },
+    });
+    const tile = screen.getByTestId('next-payout-tile');
+    expect(tile).toHaveTextContent('In 2 days');
+  });
 });
 
 /* ─── Primary CTA ───────────────────────────────────────────────────── */
@@ -310,5 +326,53 @@ describe('IssuerDashboardHero – edge cases', () => {
   it('renders correctly with only required props', () => {
     renderHero({ mrr: emptyKpi, arr: emptyKpi, dau: emptyKpi });
     expect(screen.getByTestId('issuer-dashboard-hero')).toBeInTheDocument();
+  });
+
+  it('banner heading uses singular "day" when overdue by exactly 1 day', () => {
+    renderHero({ reportStatus: 'overdue', reportDueDate: isoRelative(-1) });
+    const banner = screen.getByTestId('reminder-banner');
+    // should say "1 day" not "1 days"
+    expect(banner).toHaveTextContent('overdue by 1 day');
+    expect(banner).not.toHaveTextContent('overdue by 1 days');
+  });
+
+  it('banner heading uses singular "day" when due in exactly 1 day', () => {
+    renderHero({ reportStatus: 'due', reportDueDate: isoRelative(1) });
+    const banner = screen.getByTestId('reminder-banner');
+    // "due in 1 day" — singular, not "1 days"
+    expect(banner).toHaveTextContent('due in 1 day');
+    expect(banner).not.toHaveTextContent('due in 1 days');
+  });
+
+  it('shows overdue critical banner for long overdue (35+ days)', () => {
+    renderHero({ reportStatus: 'overdue', reportDueDate: isoRelative(-35) });
+    const banner = screen.getByTestId('reminder-banner');
+    expect(banner).toHaveTextContent(/overdue/i);
+    // critical severity text
+    expect(banner).toHaveTextContent(/submit immediately/i);
+  });
+
+  it('shows overdue moderate banner for moderate overdue (10 days)', () => {
+    renderHero({ reportStatus: 'overdue', reportDueDate: isoRelative(-10) });
+    const banner = screen.getByTestId('reminder-banner');
+    expect(banner).toHaveTextContent(/as soon as possible/i);
+  });
+
+  it('shows overdue mild banner for mild overdue (2 days)', () => {
+    renderHero({ reportStatus: 'overdue', reportDueDate: isoRelative(-2) });
+    const banner = screen.getByTestId('reminder-banner');
+    expect(banner).toHaveTextContent(/slightly past due/i);
+  });
+
+  it('next payout shows "Past due" for past payout date', () => {
+    renderHero({
+      nextPayout: { date: isoRelative(-5), estimatedAmount: 3000 },
+    });
+    expect(screen.getByTestId('next-payout-tile')).toHaveTextContent('Past due');
+  });
+
+  it('banner does not render when due status has no dueDate', () => {
+    renderHero({ reportStatus: 'due', reportDueDate: undefined });
+    expect(screen.queryByTestId('reminder-banner')).not.toBeInTheDocument();
   });
 });

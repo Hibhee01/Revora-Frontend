@@ -18,6 +18,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Link2, Save } from 'lucide-react';
 import { EmptyState } from '../components/designSystem/EmptyState';
 import { SaveFilterDialog } from '../components/AuditTrailFilters/SaveFilterDialog';
+import { ExportDialog, type ExportScope, type ExportFormat } from '../components/AuditTrailFilters/ExportDialog';
 import { PinnedSearchSidebar } from '../components/AuditTrailFilters/PinnedSearchSidebar';
 import { ExportHistoryTable } from '../components/ExportHistory/ExportHistoryTable';
 import { EventDiffViewer } from '../components/EventDiffViewer';
@@ -172,8 +173,10 @@ export const AuditTrail: React.FC<AuditTrailProps> = ({ entries = MOCK_AUDIT_ENT
 
   const [savedFilters, setSavedFilters] = useState<SavedFilter[]>(() => loadSavedFilters());
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const [activeFilterId, setActiveFilterId] = useState<string | null>(null);
   const [shareStatus, setShareStatus] = useState('');
+  const [exportStatus, setExportStatus] = useState('');
   const [activeTab, setActiveTab] = useState<'audit' | 'export'>('audit');
 
   // Persist per-user whenever the saved list changes.
@@ -215,6 +218,19 @@ export const AuditTrail: React.FC<AuditTrailProps> = ({ entries = MOCK_AUDIT_ENT
     } catch {
       setShareStatus(url); // Clipboard blocked: surface the URL for manual copy.
     }
+  };
+
+  const handleExport = (scope: ExportScope, format: ExportFormat, options: any) => {
+    setExportDialogOpen(false);
+    setExportStatus('Export started... compiling ' + format.toUpperCase() + ' document.');
+    
+    // Simulate export progress and completion
+    setTimeout(() => {
+      setExportStatus('Export complete! Downloading ' + format.toUpperCase() + '...');
+      setTimeout(() => {
+        setExportStatus(''); // Clear toast after a few seconds
+      }, 5000);
+    }, 3000);
   };
 
   const results = filterEntries(entries, filters);
@@ -345,6 +361,13 @@ export const AuditTrail: React.FC<AuditTrailProps> = ({ entries = MOCK_AUDIT_ENT
               >
                 <Link2 size={14} aria-hidden="true" /> Copy link
               </button>
+              <button
+                type="button"
+                className="btn btn--secondary btn--sm"
+                onClick={() => setExportDialogOpen(true)}
+              >
+                Export...
+              </button>
               {filtersActive && (
                 <button
                   type="button"
@@ -360,10 +383,31 @@ export const AuditTrail: React.FC<AuditTrailProps> = ({ entries = MOCK_AUDIT_ENT
             <div aria-live="polite" className="atf-share-status" data-testid="share-status">
               {shareStatus}
             </div>
+            {/* Export toast announced politely */}
+            {exportStatus && (
+              <div aria-live="polite" className="atf-toast" style={{ position: 'fixed', bottom: '1rem', right: '1rem', background: '#333', color: 'white', padding: '1rem', borderRadius: '8px', zIndex: 1000, boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }} data-testid="export-toast">
+                {exportStatus}
+              </div>
+            )}
           </form>
 
-          {/* Results */}
-          {results.length === 0 ? (
+          </form>
+
+<div
+  className="flex items-center justify-between mt-4 mb-3"
+  aria-live="polite"
+>
+  <h2 className="text-lg font-semibold">
+    Audit Results
+  </h2>
+
+  <p className="text-sm text-muted">
+    Showing <strong>{results.length}</strong> {results.length === 1 ? 'entry' : 'entries'}
+  </p>
+</div>
+
+/* Results */
+{results.length === 0 ? (
             filtersActive ? (
               <EmptyState
                 variant="audit-trail"
@@ -430,6 +474,13 @@ export const AuditTrail: React.FC<AuditTrailProps> = ({ entries = MOCK_AUDIT_ENT
         existing={savedFilters}
         onSave={handleSave}
         onClose={() => setDialogOpen(false)}
+      />
+
+      <ExportDialog
+        open={exportDialogOpen}
+        filters={filters}
+        onExport={handleExport}
+        onClose={() => setExportDialogOpen(false)}
       />
     </div>
   );

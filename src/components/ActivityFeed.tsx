@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Calendar, Moon, Bell } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import ActivityItem from './ActivityItem';

@@ -101,11 +101,11 @@ function Home() {
       </div>
       <div className="home-card glass-card">
         <h1 className="home-title">
-          Stellar RevenueShare – Revora
+          Revora on <span className="text-primary">Stellar</span>
         </h1>
         <p className="home-description">
-          Tokenized revenue-sharing infrastructure on Stellar. Bridge the gap
-          between visionaries and supporters.
+          Tokenized revenue-sharing infrastructure. Bridge the gap
+          between visionaries and supporters with secure, on-chain execution.
         </p>
 
         <div className="home-grid">
@@ -142,13 +142,25 @@ function Home() {
           </section>
         </div>
 
-        <div className="home-actions">
-          <Link to="/signup" className="btn btn--primary">
-            Get Started
+        <div className="home-actions" style={{ display: 'flex', gap: '1rem', flexDirection: 'column' }}>
+          <Link to="/signup" className="btn btn-primary" style={{ width: '100%' }}>
+            Connect Stellar Wallet
           </Link>
-          <Link to="/login" className="btn btn--secondary">
-            Sign In
-          </Link>
+          <div className="relative flex items-center w-full my-2">
+            <div className="flex-grow border-t border-[rgba(148,163,184,0.1)]"></div>
+            <span className="flex-shrink mx-4 text-muted text-xs uppercase tracking-wider font-medium">
+              Or continue with email
+            </span>
+            <div className="flex-grow border-t border-[rgba(148,163,184,0.1)]"></div>
+          </div>
+          <div style={{ display: 'flex', gap: '1rem', width: '100%' }}>
+            <Link to="/signup" className="btn btn-secondary" style={{ flex: 1 }}>
+              Sign Up
+            </Link>
+            <Link to="/login" className="btn btn-secondary" style={{ flex: 1 }}>
+              Sign In
+            </Link>
+          </div>
         </div>
 
         <div className="home-footer">

@@ -296,7 +296,8 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: var(--spacing-xl) clamp(1rem, 5vw, 1.5rem);
+  padding-block: var(--spacing-xl);
+  padding-inline: clamp(1rem, 5vw, 1.5rem);
 }
 
 .auth-card {
@@ -558,48 +559,55 @@ input:focus-visible,
 .text-success { color: var(--success); }
 .text-error { color: var(--error); }
 
-/* RTL Overrides */
-[dir="rtl"] .auth-layout-outer {
-  padding:
-    1.5rem
-    max(env(safe-area-inset-left, 0px), 1rem)
-    1.5rem
-    max(env(safe-area-inset-right, 0px), 1rem);
-}
-
-[dir="rtl"] .home-section {
-  text-align: end;
-}
-
-[dir="rtl"] .text-start {
-  text-align: end;
-}
-
-[dir="rtl"] .text-end {
+/* RTL Logical Properties */
+.home-section {
   text-align: start;
+}
+
+.text-start {
+  text-align: start;
+}
+
+.text-end {
+  text-align: end;
+}
+
+/* Icon Mirroring Rules
+ * - Directional icons (arrows, chevrons): mirror in RTL
+ * - Symmetric icons (circles, squares): do not mirror
+ * - Text-based icons: do not mirror
+ * - UI control icons (close, menu): mirror based on context
+ */
+.icon-rtl {
+  transform: scaleX(-1);
 }
 
 [dir="rtl"] .icon-rtl {
   transform: scaleX(-1);
 }
 
-[dir="rtl"] .right-0 { right: auto; left: 0; }
-[dir="rtl"] .right-3 { right: auto; left: 0.75rem; }
-[dir="rtl"] .right-4 { right: auto; left: 1rem; }
-[dir="rtl"] .left-3 { left: auto; right: 0.75rem; }
-[dir="rtl"] .-right-1 { right: auto; left: -0.25rem; }
-[dir="rtl"] .-left-1 { left: auto; right: -0.25rem; }
+/* Logical Positioning Classes */
+.inset-inline-start-0 { inset-inline-start: 0; }
+.inset-inline-end-0 { inset-inline-end: 0; }
+.inset-inline-start-3 { inset-inline-start: 0.75rem; }
+.inset-inline-end-3 { inset-inline-end: 0.75rem; }
+.inset-inline-start-4 { inset-inline-start: 1rem; }
+.inset-inline-end-4 { inset-inline-end: 1rem; }
+.inset-inline-start--1 { inset-inline-start: -0.25rem; }
+.inset-inline-end--1 { inset-inline-end: -0.25rem; }
 
-[dir="rtl"] .mr-1 { margin-right: 0; margin-left: 0.25rem; }
-[dir="rtl"] .mr-2 { margin-right: 0; margin-left: 0.5rem; }
-[dir="rtl"] .ml-2 { margin-left: 0; margin-right: 0.5rem; }
-[dir="rtl"] .pl-10 { padding-left: 0; padding-right: 2.5rem; }
-[dir="rtl"] .pr-2 { padding-right: 0; padding-left: 0.5rem; }
-[dir="rtl"] .pr-10 { padding-right: 0; padding-left: 2.5rem; }
-[dir="rtl"] .space-x-3 > * + * { margin-left: 0; margin-right: 0.75rem; }
+/* Logical Spacing Classes */
+.margin-inline-end-1 { margin-inline-end: 0.25rem; }
+.margin-inline-end-2 { margin-inline-end: 0.5rem; }
+.margin-inline-start-2 { margin-inline-start: 0.5rem; }
+.padding-inline-start-10 { padding-inline-start: 2.5rem; }
+.padding-inline-end-2 { padding-inline-end: 0.5rem; }
+.padding-inline-end-10 { padding-inline-end: 2.5rem; }
+.space-inline-3 > * + * { margin-inline-start: 0.75rem; }
 
-[dir="rtl"] .text-left { text-align: right; }
-[dir="rtl"] .text-right { text-align: left; }
+/* Logical Text Alignment */
+.text-align-start { text-align: start; }
+.text-align-end { text-align: end; }
 
 /* Loading States & Shimmer */
 @keyframes shimmer {

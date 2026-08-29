@@ -49,6 +49,9 @@ export default defineConfig({
         'src/hooks/useCommandPalette.ts',
         // Issue #493 – Notification bell reduced-motion
         'src/components/Notifications/NotificationBell.tsx',
+        // Issue #642 – Canonical status-timeline pattern
+        'src/components/StatusTimeline/StatusTimeline.tsx',
+        'src/components/StatusTimeline/presets.ts',
       ],
       thresholds: {
         'src/utils/financialTermsValidation.ts': {
@@ -156,6 +159,12 @@ export default defineConfig({
           statements: 95,
         },
         'src/components/Notifications/NotificationBell.tsx': {
+          branches: 95, functions: 95, lines: 95, statements: 95,
+        },
+        'src/components/StatusTimeline/StatusTimeline.tsx': {
+          branches: 95, functions: 95, lines: 95, statements: 95,
+        },
+        'src/components/StatusTimeline/presets.ts': {
           branches: 95, functions: 95, lines: 95, statements: 95,
         },
       }

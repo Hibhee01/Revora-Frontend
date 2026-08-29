@@ -1,5 +1,7 @@
 export { StatusTimeline } from './StatusTimeline';
 export { OnChainStatusBadge } from './OnChainStatusBadge';
+export { OnchainRejectionCard } from './OnchainRejectionCard';
+export type { OnchainRejectionCardProps } from './OnchainRejectionCard';
 export { TransactionReceiptShare } from './TransactionReceiptShare';
 export type {
   TransactionReceiptShareProps

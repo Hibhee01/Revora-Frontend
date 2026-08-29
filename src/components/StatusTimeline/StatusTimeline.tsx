@@ -73,6 +73,8 @@ export interface Milestone {
   blockedAction?: BlockedAction;
   /** On-chain confirmation metadata (shows badge + tooltip when present) */
   onChain?: OnChainMetadata;
+  /** On-chain rejection card (shown when status is 'blocked') */
+  onchainRejection?: OnchainRejectionCardProps;
 }
 
 export interface StatusTimelineProps {
@@ -122,18 +124,17 @@ function getConnectorState(
 }
 
 function formatTimestamp(iso: string): string {
-  try {
-    const date = new Date(iso);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  } catch {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) {
     return iso;
   }
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 }
 
 function getStatusLabel(status: MilestoneStatus): string {
@@ -157,11 +158,13 @@ function getStatusLabel(status: MilestoneStatus): string {
 interface SubStepsDisclosureProps {
   subSteps: SubStep[];
   milestoneId: string;
+  milestoneLabel: string;
 }
 
 const SubStepsDisclosure: React.FC<SubStepsDisclosureProps> = ({
   subSteps,
   milestoneId,
+  milestoneLabel,
 }) => {
   const [expanded, setExpanded] = useState(false);
   const panelId = `st-substeps-${milestoneId}`;
@@ -189,7 +192,7 @@ const SubStepsDisclosure: React.FC<SubStepsDisclosureProps> = ({
           id={panelId}
           className="st-substeps"
           role="list"
-          aria-label={`Sub-steps for milestone`}
+          aria-label={`Sub-steps for ${milestoneLabel}`}
         >
           {subSteps.map((step) => (
             <li key={step.id} className="st-substep">
@@ -335,6 +338,7 @@ export const StatusTimeline: React.FC<StatusTimelineProps> = ({
                 <SubStepsDisclosure
                   subSteps={milestone.subSteps}
                   milestoneId={milestone.id}
+                  milestoneLabel={milestone.label}
                 />
               )}
 

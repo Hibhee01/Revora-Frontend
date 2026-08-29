@@ -48,6 +48,7 @@ but previously had no shared pattern. Each implementation risked:
 | `subSteps` | `SubStep[]` | ❌ | Collapsible sub-step list |
 | `blockedAction` | `BlockedAction` | ❌ | Action badge when status is `blocked` |
 | `onChain` | `OnChainMetadata` | ❌ | On-chain badge + metadata tooltip (see UX256) |
+| `onchainRejection` | `OnchainRejectionCardProps` | ❌ | On-chain rejection card when status is `blocked` (see UX229) |
 
 ### `SubStep` type
 

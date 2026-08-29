@@ -1,5 +1,13 @@
 /* src/components/ActivityItem.css */
 
+.activity-item-wrapper {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-md, 8px);
+  overflow: hidden;
+  transition: box-shadow 0.2s ease;
+}
+
 .activity-item {
   position: relative;
   display: flex;
@@ -38,8 +46,14 @@
   margin-inline-start: auto;
 }
 
-.mark-read-btn {
-  opacity: 0;
+.activity-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm, 0.75rem);
+}
+
+.mark-read-btn,
+.toggle-receipt-btn {
   background: var(--primary, #3b82f6);
   color: white;
   border: none;
@@ -47,14 +61,33 @@
   padding: var(--spacing-3xs, 0.25rem) var(--spacing-xs, 0.5rem);
   font-size: var(--font-size-xs, 0.75rem);
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2xs, 0.25rem);
   transition: opacity 0.2s, background-color 0.2s;
+}
+
+.toggle-receipt-btn {
+  background: var(--glass-bg-interactive, rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+  color: var(--text-secondary, #94a3b8);
+}
+
+.toggle-receipt-btn:hover {
+  background: var(--glass-bg-interactive-hover, rgba(255, 255, 255, 0.1));
+  color: var(--text-primary, #f1f5f9);
+}
+
+.mark-read-btn {
+  opacity: 0;
 }
 
 .mark-read-btn:hover {
   background: var(--primary-hover, #2563eb);
 }
 
-.mark-read-btn:focus-visible {
+.mark-read-btn:focus-visible,
+.toggle-receipt-btn:focus-visible {
   opacity: 1;
   outline: 2px solid var(--primary, #3b82f6);
   outline-offset: 2px;
@@ -65,9 +98,204 @@
   opacity: 1;
 }
 
+/* ─── Transaction Receipt Panel ────────────────────────────────────────── */
+
+.tx-receipt-panel {
+  position: relative;
+  background-color: var(--glass-bg-card-flat, rgba(15, 23, 42, 0.4));
+  border-block-start: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+  padding: var(--spacing-md, 1rem) var(--spacing-lg, 1.5rem);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md, 1rem);
+  transition: all 0.2s ease-in-out;
+}
+
+.tx-receipt-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-sm, 0.75rem);
+}
+
+@media (min-width: 768px) {
+  .tx-receipt-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-md, 1rem);
+  }
+}
+
+.tx-receipt-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2xs, 0.25rem);
+}
+
+.tx-receipt-label {
+  font-size: var(--font-size-xs, 0.75rem);
+  color: var(--text-muted, #64748b);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.tx-receipt-value {
+  font-size: var(--font-size-sm, 0.875rem);
+  color: var(--text-primary, #f1f5f9);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs, 0.5rem);
+}
+
+/* Long Wallet Address & Hash directions */
+.address-value,
+.tx-hash-text {
+  word-break: break-all;
+  overflow-wrap: anywhere;
+  direction: ltr;
+  unicode-bidi: isolate;
+  text-align: start;
+}
+
+.hash-container {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs, 0.5rem);
+}
+
+.tx-copy-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted, #64748b);
+  cursor: pointer;
+  padding: var(--spacing-3xs, 0.125rem);
+  border-radius: var(--radius-xs, 4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s, background-color 0.15s;
+}
+
+.tx-copy-btn:hover {
+  color: var(--text-primary, #f1f5f9);
+  background-color: var(--glass-bg-hover, rgba(255, 255, 255, 0.08));
+}
+
+.tx-copy-btn:focus-visible {
+  outline: 2px solid var(--primary, #3b82f6);
+  color: var(--text-primary, #f1f5f9);
+}
+
+.copied-icon {
+  color: var(--success, #10b981);
+}
+
+/* Status badge variations */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-size: var(--font-size-xs, 0.75rem);
+  font-weight: 600;
+  width: fit-content;
+  border: 1px solid transparent;
+}
+
+.status-completed,
+.status-success {
+  background-color: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: #10b981;
+}
+
+.status-pending {
+  background-color: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.3);
+  color: #f59e0b;
+}
+
+.status-failed {
+  background-color: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+}
+
+.status-unknown {
+  background-color: rgba(100, 116, 139, 0.1);
+  border-color: rgba(100, 116, 139, 0.3);
+  color: #64748b;
+}
+
+/* Explorer Link styling */
+.tx-receipt-explorer-container {
+  display: flex;
+  margin-block-start: var(--spacing-sm, 0.5rem);
+}
+
+.tx-explorer-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2xs, 0.25rem);
+  color: var(--primary, #3b82f6);
+  text-decoration: none;
+  font-size: var(--font-size-sm, 0.875rem);
+  font-weight: 600;
+  border-bottom: 1px dashed transparent;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.tx-explorer-link:hover {
+  color: var(--primary-hover, #2563eb);
+  border-bottom-color: var(--primary-hover, #2563eb);
+}
+
+.tx-explorer-link:focus-visible {
+  outline: 2px solid var(--primary, #3b82f6);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs, 4px);
+}
+
+/* Toast Message */
+.tx-toast {
+  position: fixed;
+  inset-block-end: var(--spacing-lg, 1.5rem);
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  padding: var(--spacing-xs, 0.5rem) var(--spacing-md, 1rem);
+  border-radius: var(--radius-md, 8px);
+  font-size: var(--font-size-sm, 0.875rem);
+  font-weight: 500;
+  box-shadow: var(--shadow-lg, 0 10px 15px -3px rgba(0, 0, 0, 0.3));
+  animation: tx-toast-fade-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+}
+
+.tx-toast--success {
+  background: var(--success-bg, #10b981);
+  color: white;
+  border: 1px solid rgba(16, 185, 129, 0.5);
+}
+
+@keyframes tx-toast-fade-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 1rem);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
 /* Fallbacks for mobile devices - always show the button if unread */
 @media (hover: none) {
   .mark-read-btn {
     opacity: 1;
   }
+}
+
+/* RTL layout fixes */
+[dir="rtl"] .activity-meta {
+  align-items: flex-start;
 }

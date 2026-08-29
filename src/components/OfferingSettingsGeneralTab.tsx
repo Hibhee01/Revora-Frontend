@@ -30,6 +30,7 @@ export const OfferingSettingsGeneralTab: React.FC<OfferingSettingsGeneralTabProp
     reset,
   } = useForm<FormData>({
     resolver: zodResolver(schema),
+    mode: 'onBlur',
     defaultValues: initialData,
   });
 

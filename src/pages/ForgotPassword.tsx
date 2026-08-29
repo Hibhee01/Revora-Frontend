@@ -43,6 +43,7 @@ export const ForgotPassword: React.FC = () => {
         <ConfirmationNextSteps
           title="Reset link sent"
           email={email}
+          variant="transactionSuccess"
           message={
             <>
               If an account exists for <span className="text-main font-medium">{email}</span>, you'll receive an

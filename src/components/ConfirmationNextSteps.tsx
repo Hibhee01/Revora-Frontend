@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Mail, Repeat, ArrowLeft, Edit2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import {
+  SuccessFailureIllustration,
+  type SuccessFailureIllustrationVariant,
+} from './designSystem/SuccessFailureIllustration';
 
 type Props = {
   title?: string;
@@ -12,6 +16,12 @@ type Props = {
   onResend?: (email?: string) => Promise<void> | void;
   onChangeEmail?: () => void;
   icon?: React.ReactNode;
+  /**
+   * When provided, renders the matching success/failure illustration from the
+   * design system set instead of the default generic icon. Leave unset for the
+   * legacy generic-icon behavior.
+   */
+  variant?: SuccessFailureIllustrationVariant;
 };
 
 export const ConfirmationNextSteps: React.FC<Props> = ({
@@ -24,6 +34,7 @@ export const ConfirmationNextSteps: React.FC<Props> = ({
   onResend,
   onChangeEmail,
   icon,
+  variant,
 }) => {
   const [sending, setSending] = useState(false);
   const [sentMessage, setSentMessage] = useState<string | null>(null);
@@ -54,11 +65,18 @@ export const ConfirmationNextSteps: React.FC<Props> = ({
 
   return (
     <div className="text-center space-y-6">
-      <div className="flex justify-center">
-        <div className="w-16 h-16 rounded-full bg-[rgba(16,185,129,0.08)] flex items-center justify-center text-success border border-[rgba(16,185,129,0.12)]">
-          {icon ?? <Mail size={32} />}
+      {/* Use the paired success/failure illustration set when a variant is provided */}
+      {variant ? (
+        <div className="flex justify-center" data-testid="confirmation-illustration">
+          <SuccessFailureIllustration variant={variant} size={96} ariaHidden />
         </div>
-      </div>
+      ) : (
+        <div className="flex justify-center">
+          <div className="w-16 h-16 rounded-full bg-[rgba(16,185,129,0.08)] flex items-center justify-center text-success border border-[rgba(16,185,129,0.12)]">
+            {icon ?? <Mail size={32} />}
+          </div>
+        </div>
+      )}
 
       <h2 className="text-lg font-semibold text-main">{title}</h2>
 

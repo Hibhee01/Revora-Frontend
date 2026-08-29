@@ -58,7 +58,7 @@ describe('ForgotPassword', () => {
     await user.type(screen.getByLabelText('Email Address'), 'test@example.com');
     await user.click(screen.getByRole('button', { name: 'Send Reset Link' }));
 
-    await screen.findByText('Reset link sent', {}, { timeout: 3000 });
+    await screen.findByRole('heading', { level: 1, name: 'Reset link sent' }, { timeout: 3000 });
 
     expect(screen.getByText(/you'll receive an email/)).toBeInTheDocument();
   });
@@ -75,7 +75,7 @@ describe('ForgotPassword', () => {
     await user.type(screen.getByLabelText('Email Address'), 'test@example.com');
     await user.click(screen.getByRole('button', { name: 'Send Reset Link' }));
 
-    await screen.findByText('Reset link sent', {}, { timeout: 3000 });
+    await screen.findByRole('heading', { level: 1, name: 'Reset link sent' }, { timeout: 3000 });
     expect(screen.queryByText('Please enter a valid email address.')).not.toBeInTheDocument();
   });
 

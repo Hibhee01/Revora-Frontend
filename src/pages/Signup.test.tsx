@@ -77,7 +77,7 @@ describe('Signup', () => {
 
     await user.click(screen.getByText('Create Account'));
 
-    await screen.findByText('Check your inbox', {}, { timeout: 3000 });
+    await screen.findByRole('heading', { level: 1, name: 'Check your inbox' }, { timeout: 3000 });
   });
 
   it('shows error alert when form has errors', async () => {

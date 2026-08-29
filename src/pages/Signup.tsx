@@ -5,6 +5,7 @@ import { evaluatePasswordStrength } from '../utils/passwordStrength';
 import { Mail, Lock, User, Briefcase, TrendingUp, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import ConfirmationNextSteps from '../components/ConfirmationNextSteps';
+import { Button } from '../components/Button';
 
 type Step = 'persona' | 'form' | 'success';
 
@@ -57,6 +58,7 @@ export const Signup: React.FC = () => {
         <ConfirmationNextSteps
           email={email}
           title="Check your inbox"
+          variant="transactionSuccess"
           onResend={async (e) => {
             // mock resend -- wire to API
             console.log('Resend verification for:', e);

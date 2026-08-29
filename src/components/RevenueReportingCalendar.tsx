@@ -1181,6 +1181,59 @@ const BulkActionBar: React.FC<BulkActionBarProps> = ({
   );
 };
 
+/* ─── Agenda View ─────────────────────────────────────────────────── */
+
+interface AgendaViewProps {
+  reports: import('./RevenueReportingCalendar.types').RevenueReport[];
+  selectedDate: string | undefined;
+  locale: string;
+  onSelect: (date: string) => void;
+  onSubmitReport?: (date: string) => void;
+  viewMonth: string;
+}
+
+const AgendaView: React.FC<AgendaViewProps> = ({
+  reports,
+  selectedDate,
+  locale,
+  onSelect,
+  onSubmitReport,
+  viewMonth,
+}) => {
+  const monthReports = reports.filter((r) => r.date?.startsWith(viewMonth));
+  if (monthReports.length === 0) {
+    return (
+      <div className="rc-agenda-empty" role="status" aria-live="polite">
+        No reports for this month.
+      </div>
+    );
+  }
+  return (
+    <ul className="rc-agenda-list" aria-label="Agenda view">
+      {monthReports.map((report) => (
+        <li key={report.id} className="rc-agenda-item">
+          <button
+            className={`rc-agenda-btn${selectedDate === report.date ? " rc-agenda-btn--selected" : ""}`}
+            onClick={() => report.date && onSelect(report.date)}
+            aria-pressed={selectedDate === report.date}
+          >
+            <span className="rc-agenda-date">{report.date}</span>
+            <span className="rc-agenda-status">{report.status}</span>
+          </button>
+          {onSubmitReport && report.status === "due" && (
+            <button
+              className="rc-agenda-submit"
+              onClick={() => report.date && onSubmitReport(report.date)}
+            >
+              Submit Report
+            </button>
+          )}
+        </li>
+      ))}
+    </ul>
+  );
+};
+
 /* ─── Main Component ───────────────────────────────────────────────── */
 
 export const RevenueReportingCalendar: React.FC<

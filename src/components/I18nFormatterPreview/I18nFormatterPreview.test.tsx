@@ -117,4 +117,18 @@ describe("I18nFormatterPreview", () => {
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });
+
+  it("shows the copy-expansion sample for the selected locale", async () => {
+    render(<I18nFormatterPreview initialLocale="de-DE" />);
+    expect(screen.getByText(/Copy Expansion/i)).toBeInTheDocument();
+    expect(screen.getByText("Auszahlung bestätigen")).toBeInTheDocument();
+  });
+
+  it("falls back to the English baseline when a locale has no expansion sample", async () => {
+    render(<I18nFormatterPreview initialLocale="fr-FR" />);
+    expect(screen.getByText(/Copy Expansion/i)).toBeInTheDocument();
+    // The raw value column and the current-locale column both render the
+    // fallback baseline, so multiple matches are expected.
+    expect(screen.getAllByText("Confirm payout").length).toBeGreaterThan(0);
+  });
 });

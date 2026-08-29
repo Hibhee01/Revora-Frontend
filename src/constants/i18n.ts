@@ -135,8 +135,9 @@ export function buildTranslationKey(
   element: string,
 ): string {
   return [namespace, section, element]
-    .filter(Boolean)
-    .map((segment) => segment.trim().toLowerCase().replace(/\s+/g, "-"))
+    .map((segment) => segment.trim())
+    .filter((segment) => segment.length > 0)
+    .map((segment) => segment.toLowerCase().replace(/\s+/g, "-"))
     .join(TRANSLATION_KEY_CONVENTIONS.separator);
 }
 
@@ -181,10 +182,16 @@ export function formatDate(
   options: Intl.DateTimeFormatOptions = {},
 ): string {
   const setting = LOCALE_FORMAT_SETTINGS[locale]?.date ?? { year: "numeric", month: "short", day: "numeric" };
+  const date = new Date(value);
+  // Invalid dates must not throw into the caller (RangeError: Invalid time
+  // value); return the raw input so the failure is visible and diagnosable.
+  if (Number.isNaN(date.getTime())) {
+    return String(value);
+  }
   return new Intl.DateTimeFormat(locale, {
     ...setting,
     ...options,
-  }).format(new Date(value));
+  }).format(date);
 }
 
 export function formatPercent(
@@ -231,3 +238,95 @@ export const I18N_ACCESSIBILITY_GUIDELINES = {
   copyExpansion: "Design UI components to handle at least 40% copy expansion, especially for German compounds and Arabic RTL sentence structures.",
   numericAccessibility: "Use locale-aware currency, number, and date formatting. Provide visible labels for currency and date context, not just symbols.",
 };
+
+// ---------------------------------------------------------------------------
+// Copy expansion framework
+// ---------------------------------------------------------------------------
+
+/**
+ * Per-locale copy expansion samples used to validate the +40% layout budget
+ * and to give translators concrete before/after strings in the UI.
+ *
+ * `baseline` is the English (short) copy; `expanded` is the same semantic
+ * string in the target locale. The `note` explains the linguistic reason the
+ * string grows, so reviewers can see *why* the layout budget exists.
+ */
+export interface CopyExpansionSample {
+  locale: string;
+  baseline: string;
+  expanded: string;
+  note: string;
+}
+
+export const COPY_EXPANSION_SAMPLES: readonly CopyExpansionSample[] = [
+  {
+    locale: "en-US",
+    baseline: "Confirm payout",
+    expanded: "Confirm payout",
+    note: "Baseline reference (no expansion)",
+  },
+  {
+    locale: "de-DE",
+    baseline: "Confirm payout",
+    expanded: "Auszahlung bestätigen",
+    note: "German compounds can exceed the +40% budget; layouts must stay flexible",
+  },
+  {
+    locale: "ja-JP",
+    baseline: "Confirm payout",
+    expanded: "配当金のお支払いを確認する",
+    note: "Japanese uses no word separators",
+  },
+  {
+    locale: "ar-SA",
+    baseline: "Confirm payout",
+    expanded: "تأكيد تفاصيل الدفعة",
+    note: "Arabic RTL reorders and lengthens phrases",
+  },
+  {
+    locale: "zh-CN",
+    baseline: "Confirm payout",
+    expanded: "确认收益分配付款详情",
+    note: "CJK glyph density compresses horizontally",
+  },
+];
+
+/**
+ * Compute the growth ratio of `expanded` relative to `baseline`. A ratio of
+ * `1.4` means the localized string is 40% longer than the English baseline.
+ * An empty baseline yields `0` (nothing to compare against).
+ */
+export function copyExpansionRatio(expanded: string, baseline: string): number {
+  const baseLength = baseline.length;
+  if (baseLength === 0) return 0;
+  return expanded.length / baseLength;
+}
+
+/**
+ * Whether a localized string stays within the documented +40% layout budget.
+ * Returns `false` (with the actual ratio) when the copy would need more room
+ * than the design system guarantees.
+ */
+export function copyExpansionWithinBudget(
+  expanded: string,
+  baseline: string,
+  budgetRatio: number = I18N_COPY_EXPANSION_RATIO,
+): boolean {
+  return copyExpansionRatio(expanded, baseline) <= budgetRatio;
+}
+
+/**
+ * Replace `{name}` placeholders in a copy template with runtime values.
+ * Missing placeholders are left untouched so translators can preview the
+ * un-interpolated string. This is the single contract for inserting values
+ * into localized copy - never concatenate at the call site.
+ */
+export function interpolatePlaceholders(
+  template: string,
+  params: Record<string, string | number>,
+): string {
+  return template.replace(/\{(\w+)\}/g, (match, key: string) => {
+    const value = params[key];
+    return value === undefined ? match : String(value);
+  });
+}

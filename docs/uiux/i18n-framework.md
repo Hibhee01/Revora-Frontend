@@ -85,5 +85,18 @@ All numeric, date, and currency display should use `Intl`-based locale formattin
 - Provide a shared utility module for locale-specific formatting and plural selection
 - Document all supported locale behaviors in the design system
 
+## Copy expansion utilities (`src/constants/i18n.ts`)
+- `COPY_EXPANSION_SAMPLES` - per-locale baseline/expanded sample pairs (en-US, de-DE, ja-JP, ar-SA, zh-CN) with a note explaining why each string grows. These drive the translator-facing preview in `I18nFormatterPreview` and pin the edge cases the design system must tolerate: German compounds, Japanese no-space text, Arabic RTL reordering, CJK density.
+- `copyExpansionRatio(expanded, baseline)` - growth ratio of a localized string relative to its English baseline. `1.4` = 40% longer.
+- `copyExpansionWithinBudget(expanded, baseline, budgetRatio = 1.4)` - returns whether the string stays within the documented +40% layout budget.
+- `interpolatePlaceholders(template, params)` - the single contract for inserting runtime values into localized copy via `{name}` tokens; unknown tokens are left untouched so translators can preview them.
+
+### Boundary behavior
+- `buildTranslationKey` drops empty/whitespace-only segments (never emits `a..b`) and normalizes mixed case and internal whitespace to kebab-case.
+- All `Intl`-based formatters fall back to `en-US` defaults for unknown locales; `formatCurrency` falls back to the locale's default currency, then `USD`.
+- `formatDate` returns the raw input string for invalid dates instead of throwing `RangeError`.
+- `formatNumber` / `formatPercent` / `formatCompactNumber` tolerate `NaN` and negative values.
+- `selectPluralForm` falls back to the `other` form when the locale's plural category has no entry.
+
 ## Summary
 This framework enables Revora UI to support internationalized copy consistently, safely, and accessibly. It formalizes translation key naming, locale formatting, plural rules, and responsive copy expansion so new UX work can be reviewed against a single system.

@@ -17,3 +17,22 @@ global.ResizeObserver = class ResizeObserver {
 if (!Element.prototype.scrollIntoView) {
   Element.prototype.scrollIntoView = function () {};
 }
+
+// jsdom does not implement window.matchMedia — components that gate rendering
+// on a media query (e.g. useMediaQuery, responsive charts) crashed on mount.
+// Provide a minimal, always-matching stub.
+if (!window.matchMedia) {
+  Object.defineProperty(window, "matchMedia", {
+    writable: true,
+    value: (query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: () => {},
+      removeListener: () => {},
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => false,
+    }),
+  });
+}

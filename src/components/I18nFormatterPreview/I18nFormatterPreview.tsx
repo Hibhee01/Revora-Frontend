@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import { Search, RotateCcw, Globe, Check, X, Info } from "lucide-react";
 import {
+  COPY_EXPANSION_SAMPLES,
   LOCALE_FORMAT_SETTINGS,
   isRtlLocale,
   formatNumber,
@@ -220,10 +221,22 @@ export const I18nFormatterPreview: React.FC<I18nFormatterPreviewProps> = ({
         formatValue: (loc) => {
           const curr = formatCurrency(1234.56, undefined, loc);
           return isRtlLocale(loc)
-            ? `صافي التوزيع: ${curr}`
+            ? `O�OU?US OU,O�U^O�USO1: ${curr}`
             : `Net Distribution: ${curr}`;
         },
         diffNote: "Text directionality (LTR vs RTL isolate)",
+      },
+      {
+        id: "copy-expansion",
+        category: "copy-expansion",
+        categoryLabel: "Copy Expansion",
+        description: "Same English copy rendered in the selected locale against the +40% layout budget",
+        rawSample: "Confirm payout",
+        formatValue: (loc) => {
+          const sample = COPY_EXPANSION_SAMPLES.find((s) => s.locale === loc);
+          return sample ? sample.expanded : "Confirm payout";
+        },
+        diffNote: "Localized string growth vs. the +40% copy-expansion budget",
       },
     ];
   }, []);
@@ -277,7 +290,7 @@ export const I18nFormatterPreview: React.FC<I18nFormatterPreviewProps> = ({
                 }}
                 onKeyDown={handleKeyDown}
                 aria-autocomplete="list"
-                aria-controls="locale-options-list"
+                aria-controls={isOpen ? "locale-options-list" : undefined}
                 aria-activedescendant={
                   highlightedIndex >= 0 && highlightedIndex < filteredLocales.length
                     ? `locale-option-${filteredLocales[highlightedIndex].code}`

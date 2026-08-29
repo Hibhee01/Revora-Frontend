@@ -13,9 +13,12 @@
 
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { axe, toHaveNoViolations } from 'jest-axe';
 import {
   InvestorDiscovery,
 } from './InvestorDiscovery';
+
+expect.extend(toHaveNoViolations);
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -271,18 +274,18 @@ describe('InvestorDiscovery – loaded state', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('InvestorDiscovery – search filtering', () => {
-  it('filters offerings by name (case-insensitive)', () => {
+  it('filters offerings by name (case-insensitive)', async () => {
     renderLoaded();
     const search = screen.getByRole('searchbox', { name: /Search startup offerings/i });
-    userEvent.type(search, 'techflow');
+    await userEvent.type(search, 'techflow');
     expect(screen.getByText('TechFlow AI')).toBeInTheDocument();
     expect(screen.queryByText('Nexus Pay')).toBeNull();
   });
 
-  it('shows filtered-empty when search matches nothing', () => {
+  it('shows filtered-empty when search matches nothing', async () => {
     renderLoaded();
     const search = screen.getByRole('searchbox', { name: /Search startup offerings/i });
-    userEvent.type(search, 'zzzz-not-a-real-startup');
+    await userEvent.type(search, 'zzzz-not-a-real-startup');
     expect(screen.getByRole('heading', { level: 2, name: /No offerings match your search/i })).toBeInTheDocument();
   });
 
@@ -412,5 +415,78 @@ describe('InvestorDiscovery – result area accessibility', () => {
     const heading = document.getElementById(labelId!);
     expect(heading).not.toBeNull();
     expect(heading!.tagName.toLowerCase()).toBe('h2');
+  });
+});
+
+describe('InvestorDiscovery distribution dashboard', () => {
+  it('renders payout KPIs and a labelled chart for confirmed distribution history', () => {
+    renderLoaded();
+
+    expect(screen.getByRole('heading', { level: 2, name: /Distribution dashboard/i })).toBeInTheDocument();
+    expect(screen.getByText(/Total distributed/i)).toBeInTheDocument();
+    expect(screen.getByText(/Last payout/i)).toBeInTheDocument();
+    expect(screen.getByText(/Projected next payout/i)).toBeInTheDocument();
+    expect(screen.getByText('Jun 30, 2026')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: /Past distribution amounts and cumulative total/i })).toBeInTheDocument();
+  });
+
+  it('switches to the same payout data in an accessible table', async () => {
+    const user = userEvent.setup();
+    renderLoaded();
+
+    const toggle = screen.getByRole('button', { name: /View as table/i });
+    await user.click(toggle);
+
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('table', { name: /Distribution payout history/i })).toBeInTheDocument();
+    expect(screen.getByText('Jan 31, 2026')).toBeInTheDocument();
+  });
+
+  it('drops malformed and duplicate distribution records before computing KPI totals', () => {
+    render(
+      <InvestorDiscovery
+        __simulateState={{ kind: 'loaded', offerings: MOCK_OFFERINGS }}
+        __simulateDistributionState={{
+          kind: 'loaded',
+          distributions: [
+            { id: 'valid', date: '2026-02-01', amount: 100, currency: 'USD' },
+            { id: 'valid', date: '2026-02-02', amount: 900, currency: 'USD' },
+            { id: 'invalid-date', date: 'not-a-date', amount: 200, currency: 'USD' },
+            { id: 'negative', date: '2026-02-03', amount: -1, currency: 'USD' },
+          ],
+        }}
+      />,
+    );
+
+    expect(screen.getAllByText('$100')).toHaveLength(2);
+    expect(screen.queryByText('$1,000')).not.toBeInTheDocument();
+  });
+
+  it('makes empty and failure states explicit and retryable', async () => {
+    const user = userEvent.setup();
+    const { rerender } = render(
+      <InvestorDiscovery
+        __simulateState={{ kind: 'loaded', offerings: MOCK_OFFERINGS }}
+        __simulateDistributionState={{ kind: 'empty' }}
+      />,
+    );
+    expect(screen.getByText(/No distributions have been paid yet/i)).toBeInTheDocument();
+
+    rerender(
+      <InvestorDiscovery
+        __simulateState={{ kind: 'loaded', offerings: MOCK_OFFERINGS }}
+        __simulateDistributionState={{ kind: 'error' }}
+      />,
+    );
+    await user.click(screen.getByRole('button', { name: /Try again/i }));
+    expect(screen.getByTestId('distribution-dashboard')).toBeInTheDocument();
+  });
+
+  it('has no axe-detectable violations in chart and table views', async () => {
+    const chart = renderLoaded();
+    expect(await axe(chart.container)).toHaveNoViolations();
+
+    await userEvent.click(screen.getByRole('button', { name: /View as table/i }));
+    expect(await axe(chart.container)).toHaveNoViolations();
   });
 });

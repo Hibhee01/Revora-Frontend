@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { AuthLayout } from '../components/AuthLayout';
 import { PasswordStrength } from '../components/PasswordStrength';
 import { evaluatePasswordStrength } from '../utils/passwordStrength';
-import { Mail, Lock, User, Briefcase, TrendingUp, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { Mail, Lock, User, Briefcase, TrendingUp, Eye, EyeOff, AlertCircle, Wallet } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import ConfirmationNextSteps from '../components/ConfirmationNextSteps';
 import { Button } from '../components/Button';
@@ -115,6 +115,18 @@ export const Signup: React.FC = () => {
         </div>
       ) : (
         <form onSubmit={handleSubmit} className={`space-y-4 ${Object.keys(errors).length > 0 ? 'animate-shake' : ''}`} noValidate>
+          <button type="button" className="btn-primary w-full" disabled={isSubmitting}>
+            <Wallet size={18} />
+            Connect Stellar Wallet
+          </button>
+
+          <div className="relative my-6 py-2 flex items-center">
+            <div className="flex-grow border-t border-[rgba(148,163,184,0.1)]"></div>
+            <span className="flex-shrink mx-4 text-muted text-xs uppercase tracking-wider font-medium">
+              Or sign up with email
+            </span>
+            <div className="flex-grow border-t border-[rgba(148,163,184,0.1)]"></div>
+          </div>
           {Object.keys(errors).length > 0 && (
             <div 
               className="p-3 mb-4 rounded-lg bg-[rgba(239,68,68,0.1)] border border-[rgba(239,68,68,0.2)] text-error text-sm flex items-start"
@@ -195,7 +207,7 @@ export const Signup: React.FC = () => {
             {errors.password && <p id="password-error" className="mt-1 text-xs text-error">{errors.password}</p>}
           </div>
 
-          <Button type="submit" loading={isSubmitting} success={isSuccess} className="mt-4">
+          <Button type="submit" loading={isSubmitting} success={isSuccess} variant="secondary" className="mt-4 w-full">
             Create Account
           </Button>
           

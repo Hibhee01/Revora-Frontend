@@ -57,6 +57,19 @@ export const Login: React.FC = () => {
         className={`space-y-4 ${error ? "animate-shake" : ""}`}
         noValidate
       >
+        <button type="button" className="btn-primary w-full" disabled={isSubmitting}>
+          <Wallet size={18} />
+          Connect Stellar Wallet
+        </button>
+
+        <div className="relative my-6 py-2 flex items-center">
+          <div className="flex-grow border-t border-[rgba(148,163,184,0.1)]"></div>
+          <span className="flex-shrink mx-4 text-muted text-xs uppercase tracking-wider font-medium">
+            Or continue with email
+          </span>
+          <div className="flex-grow border-t border-[rgba(148,163,184,0.1)]"></div>
+        </div>
+
         <FormError message={error} id="login-error" />
 
         <div className="input-group">
@@ -126,7 +139,7 @@ export const Login: React.FC = () => {
           </div>
         </div>
 
-        <Button type="submit" loading={isSubmitting} success={isSuccess} className="mt-2">
+        <Button type="submit" loading={isSubmitting} success={isSuccess} variant="secondary" className="mt-2 w-full">
           {isSuccess ? 'Signed In!' : 'Sign In'}
         </Button>
 
@@ -139,19 +152,6 @@ export const Login: React.FC = () => {
             Set up two-factor authentication
           </button>
         </p>
-
-        <div className="relative my-6 py-2 flex items-center">
-          <div className="flex-grow border-t border-[rgba(148,163,184,0.1)]"></div>
-          <span className="flex-shrink mx-4 text-muted text-xs uppercase tracking-wider font-medium">
-            Or continue with
-          </span>
-          <div className="flex-grow border-t border-[rgba(148,163,184,0.1)]"></div>
-        </div>
-
-        <button type="button" className="btn-secondary" disabled={isSubmitting}>
-          <Wallet size={18} />
-          Connect Stellar Wallet
-        </button>
 
         <p className="mt-8 text-center text-sm text-muted">
           Don't have an account?{" "}

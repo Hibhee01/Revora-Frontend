@@ -8,6 +8,8 @@ import {
   SupportedLocale,
 } from "../constants/i18n";
 import { TERMINOLOGY } from "../constants/terminology";
+import { RevenueReportUpload } from "./RevenueReportUpload";
+import type { UploadableFile } from "./RevenueReportUpload";
 
 const currencyOptions = [
   { value: "USD", label: "USD - US Dollar" },
@@ -34,6 +36,7 @@ export function RevenueReportForm() {
   const [currency, setCurrency] = useState("USD");
   const [locale, setLocale] = useState<SupportedLocale>(localeOptions[0].value);
   const [notes, setNotes] = useState("");
+  const [attachedFiles, setAttachedFiles] = useState<UploadableFile[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionState, setSubmissionState] = useState<"idle" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
@@ -48,6 +51,8 @@ export function RevenueReportForm() {
     return Math.round(revenueValue * 0.08);
   }, [revenueError, revenueValue]);
 
+  const hasUploadingFiles = attachedFiles.some((f) => f.status === "uploading");
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSubmissionState("idle");
@@ -55,6 +60,12 @@ export function RevenueReportForm() {
 
     if (revenueError) {
       setErrorMessage("Please enter a valid gross revenue amount greater than zero.");
+      setSubmissionState("error");
+      return;
+    }
+
+    if (hasUploadingFiles) {
+      setErrorMessage("Please wait for all file uploads to complete before submitting.");
       setSubmissionState("error");
       return;
     }
@@ -175,15 +186,11 @@ export function RevenueReportForm() {
                 </div>
 
                 <div className="input-group">
-                  <label htmlFor="notes" className="input-label">
-                    Notes or attachments
-                  </label>
-                  <textarea
-                    id="notes"
-                    className="input-field min-h-[140px] resize-none"
-                    value={notes}
-                    onChange={(event) => setNotes(event.target.value)}
-                    placeholder="Optional: add context, links to invoices, or notes for the accounting team"
+                  <RevenueReportUpload
+                    notes={notes}
+                    onNotesChange={setNotes}
+                    onFilesChange={setAttachedFiles}
+                    disabled={isSubmitting}
                   />
                 </div>
 
@@ -200,9 +207,9 @@ export function RevenueReportForm() {
                   <button
                     type="submit"
                     className="btn-primary sm:w-auto px-8"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || hasUploadingFiles}
                   >
-                    {isSubmitting ? "Submitting…" : "Submit report"}
+                    {isSubmitting ? "Submitting…" : hasUploadingFiles ? "Uploading files…" : "Submit report"}
                   </button>
                 </div>
               </form>
@@ -271,6 +278,12 @@ export function RevenueReportForm() {
                   <p className="text-xs text-muted uppercase tracking-[0.18em]">Payout estimate</p>
                   <p className="mt-2 font-semibold text-success">{formatCurrency(payoutEstimate, currency)}</p>
                 </div>
+                {attachedFiles.length > 0 && (
+                  <div className="rounded-2xl bg-slate-950/80 p-4">
+                    <p className="text-xs text-muted uppercase tracking-[0.18em]">Attachments</p>
+                    <p className="mt-2 font-semibold">{attachedFiles.filter(f => f.status === "completed").length} file{attachedFiles.filter(f => f.status === "completed").length !== 1 ? "s" : ""} uploaded</p>
+                  </div>
+                )}
               </div>
             </div>
           )}

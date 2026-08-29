@@ -1,0 +1,101 @@
+/**
+ * RevenueReportUpload.css
+ *
+ * Layout styles for the RevenueReportUpload section within RevenueReportForm.
+ * Uses design tokens from src/index.css :root — no hard-coded colours or
+ * spacing values.  Visual styles for the inner DocumentUploader (dropzone,
+ * tiles, progress bars) are owned by DocumentUploader.css.
+ */
+
+/* ─── Section wrapper ────────────────────────────────────────────────────── */
+
+.rrv-upload {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md, 1rem);
+}
+
+/* ─── Heading ────────────────────────────────────────────────────────────── */
+
+.rrv-upload__heading {
+  font-size: var(--font-size-base, 1rem);
+  font-weight: var(--font-weight-semibold, 600);
+  color: var(--text-main, #f1f5f9);
+  margin: 0;
+  /* Matches the .input-label typographic style used elsewhere in the form */
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+/* ─── Description ────────────────────────────────────────────────────────── */
+
+.rrv-upload__description {
+  font-size: var(--font-size-sm, 0.875rem);
+  color: var(--text-muted, #94a3b8);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ─── Dropzone spacer ────────────────────────────────────────────────────── */
+
+.rrv-upload__dropzone {
+  /* No extra decoration needed — DocumentUploader.css handles the visuals.
+     Adding a small top margin to separate from the description. */
+  margin-top: var(--spacing-2xs, 0.25rem);
+}
+
+/* ─── Notes group ────────────────────────────────────────────────────────── */
+
+.rrv-upload__notes-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs, 0.5rem);
+}
+
+.rrv-upload__notes-label {
+  font-size: var(--font-size-sm, 0.875rem);
+  font-weight: var(--font-weight-medium, 500);
+  color: var(--text-main, #f1f5f9);
+}
+
+.rrv-upload__optional {
+  font-weight: var(--font-weight-normal, 400);
+  color: var(--text-muted, #94a3b8);
+  font-size: var(--font-size-xs, 0.75rem);
+}
+
+.rrv-upload__notes-textarea {
+  /* Inherits .input-field styles from src/index.css when that class is applied
+     alongside this one in the component.  We override only the resize axis. */
+  resize: vertical;
+  min-height: 6rem;
+}
+
+.rrv-upload__notes-help {
+  font-size: var(--font-size-xs, 0.75rem);
+  color: var(--text-muted, #94a3b8);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* ─── Screen-reader-only live region ─────────────────────────────────────── */
+
+.rrv-upload__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ─── Reduced-motion: disable DocumentUploader shimmer/spin inside section ── */
+
+@media (prefers-reduced-motion: reduce) {
+  .rrv-upload .doc-uploader-tile-progress .progress-bar-indeterminate {
+    animation: none;
+  }
+}

@@ -7,6 +7,11 @@ import {
   ShieldCheck,
   X,
   SlidersHorizontal,
+  Clock,
+  Calendar,
+  CheckCircle,
+  AlertCircle,
+  ArrowRight
 } from "lucide-react";
 import { EmptyState } from "./designSystem/EmptyState";
 
@@ -29,6 +34,127 @@ const SkeletonCard: React.FC = () => (
     <div className="skeleton-pulse skeleton-button" />
   </div>
 );
+
+// ─── Payout Schedule Types & Components ───────────────────────────────────────
+
+export type PayoutStatus = 'Upcoming' | 'Processing' | 'Paid' | 'Missed';
+
+export interface Payout {
+  id: string;
+  date: string;
+  amount: number;
+  status: PayoutStatus;
+}
+
+export interface PayoutScheduleProps {
+  payouts: Payout[];
+}
+
+const getStatusIcon = (status: PayoutStatus) => {
+  switch (status) {
+    case 'Upcoming': return <Calendar size={14} aria-hidden="true" />;
+    case 'Processing': return <Clock size={14} aria-hidden="true" />;
+    case 'Paid': return <CheckCircle size={14} aria-hidden="true" />;
+    case 'Missed': return <AlertCircle size={14} aria-hidden="true" />;
+  }
+};
+
+const getStatusColor = (status: PayoutStatus) => {
+  switch (status) {
+    case 'Upcoming': return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
+    case 'Processing': return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20';
+    case 'Paid': return 'bg-green-500/10 text-green-400 border-green-500/20';
+    case 'Missed': return 'bg-red-500/10 text-red-400 border-red-500/20';
+    default: return 'bg-gray-500/10 text-gray-400 border-gray-500/20';
+  }
+};
+
+export const PayoutSchedule: React.FC<PayoutScheduleProps> = ({ payouts }) => {
+  if (!payouts || payouts.length === 0) {
+    return (
+      <div className="glass-card p-8 text-center" role="region" aria-label="Payout Schedule">
+        <h3 className="text-lg font-semibold mb-2">No Payouts Yet</h3>
+        <p className="text-muted text-sm">When you invest in offerings, your expected payouts will appear here.</p>
+      </div>
+    );
+  }
+
+  // Sort payouts chronologically
+  const sortedPayouts = [...payouts].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  
+  // Find next payout
+  const nextPayout = sortedPayouts.find(p => p.status === 'Upcoming' || p.status === 'Processing');
+  
+  // Group by month/year
+  const groupedPayouts = sortedPayouts.reduce((acc, payout) => {
+    const d = new Date(payout.date);
+    const monthYear = d.toLocaleString('default', { month: 'long', year: 'numeric' });
+    if (!acc[monthYear]) acc[monthYear] = [];
+    acc[monthYear].push(payout);
+    return acc;
+  }, {} as Record<string, Payout[]>);
+
+  return (
+    <section aria-labelledby="payout-schedule-heading" className="space-y-6">
+      <h2 id="payout-schedule-heading" className="text-2xl font-bold tracking-tight">Payout Schedule</h2>
+      
+      {nextPayout && (
+        <div className="glass-card p-6 bg-gradient-to-r from-primary/10 to-transparent border-primary/20" aria-label="Next expected payout">
+          <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+            <div>
+              <h3 className="text-sm font-medium text-primary mb-1">Next Expected Payout</h3>
+              <p className="text-3xl font-bold">${nextPayout.amount.toLocaleString()}</p>
+              <div className="flex items-center gap-2 mt-2 text-sm text-muted">
+                <Calendar size={16} aria-hidden="true" />
+                <span>{new Date(nextPayout.date).toLocaleDateString()}</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className={`px-3 py-1 rounded-full text-xs font-medium border flex items-center gap-1.5 ${getStatusColor(nextPayout.status)}`}>
+                {getStatusIcon(nextPayout.status)}
+                {nextPayout.status}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="space-y-8 relative">
+        {Object.entries(groupedPayouts).map(([monthYear, monthPayouts]) => (
+          <div key={monthYear} className="space-y-4">
+            <h3 className="text-sm font-semibold text-muted sticky top-0 bg-background/80 backdrop-blur py-2 z-10">
+              {monthYear}
+            </h3>
+            <ul className="space-y-3" aria-label={`Payouts for ${monthYear}`}>
+              {monthPayouts.map(payout => (
+                <li key={payout.id} className="glass-card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-white/5 transition-colors" tabIndex={0}>
+                  <div className="flex items-center gap-4">
+                    <div className="h-10 w-10 rounded-full bg-slate-800 flex items-center justify-center">
+                      <Clock size={18} className="text-muted" aria-hidden="true" />
+                    </div>
+                    <div>
+                      <p className="font-medium">${payout.amount.toLocaleString()}</p>
+                      <p className="text-xs text-muted">{new Date(payout.date).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-medium border flex items-center gap-1.5 ${getStatusColor(payout.status)}`}>
+                      {getStatusIcon(payout.status)}
+                      {payout.status}
+                    </span>
+                    <button className="btn btn--icon btn--sm text-muted hover:text-white" aria-label={`View details for payout ${payout.id}`}>
+                      <ArrowRight size={16} aria-hidden="true" />
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+};
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -355,6 +481,11 @@ export const InvestorDiscovery: React.FC<InvestorDiscoveryProps> = ({
             </button>
           </div>
         </div>
+      )}
+
+      {/* ── Payout Schedule ── */}
+      {!isLoading && state.kind === 'loaded' && (
+        <PayoutSchedule payouts={effectiveSimState?.kind === 'loaded' ? (effectiveSimState as any).payouts || [] : []} />
       )}
     </div>
   );

@@ -14,9 +14,7 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe, toHaveNoViolations } from 'jest-axe';
-import {
-  InvestorDiscovery,
-} from './InvestorDiscovery';
+import { InvestorDiscovery, PayoutSchedule, type Payout } from './InvestorDiscovery';
 
 expect.extend(toHaveNoViolations);
 
@@ -488,5 +486,41 @@ describe('InvestorDiscovery distribution dashboard', () => {
 
     await userEvent.click(screen.getByRole('button', { name: /View as table/i }));
     expect(await axe(chart.container)).toHaveNoViolations();
+  });
+});
+
+describe('PayoutSchedule', () => {
+  const mockPayouts: Payout[] = [
+    { id: '1', date: '2026-09-01T00:00:00Z', amount: 1500, status: 'Upcoming' },
+    { id: '2', date: '2026-10-01T00:00:00Z', amount: 2000, status: 'Upcoming' },
+    { id: '3', date: '2026-08-01T00:00:00Z', amount: 1200, status: 'Processing' },
+    { id: '4', date: '2026-07-01T00:00:00Z', amount: 1000, status: 'Paid' },
+    { id: '5', date: '2026-06-01T00:00:00Z', amount: 500, status: 'Missed' },
+  ];
+
+  it('renders empty state when no payouts', () => {
+    render(<PayoutSchedule payouts={[]} />);
+    expect(screen.getByText('No Payouts Yet')).toBeInTheDocument();
+  });
+
+  it('renders next expected payout hero card', () => {
+    render(<PayoutSchedule payouts={mockPayouts} />);
+    const nextPayout = screen.getByLabelText('Next expected payout');
+    expect(within(nextPayout).getByText('Next Expected Payout')).toBeInTheDocument();
+    expect(within(nextPayout).getByText('$1,200')).toBeInTheDocument();
+  });
+
+  it('groups payouts by month and year', () => {
+    render(<PayoutSchedule payouts={mockPayouts} />);
+    expect(screen.getByText('August 2026')).toBeInTheDocument();
+    expect(screen.getByText('September 2026')).toBeInTheDocument();
+  });
+
+  it('renders all payout statuses', () => {
+    render(<PayoutSchedule payouts={mockPayouts} />);
+    expect(screen.getAllByText('Upcoming').length).toBe(2);
+    expect(screen.getAllByText('Processing')).toHaveLength(2);
+    expect(screen.getByText('Paid')).toBeInTheDocument();
+    expect(screen.getByText('Missed')).toBeInTheDocument();
   });
 });

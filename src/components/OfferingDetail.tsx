@@ -1,15 +1,15 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
+  AlertTriangle,
   ArrowLeft,
-  Rocket,
-  TrendingUp,
-  Percent,
-  Calendar,
-  Target,
-  CheckCircle,
+  ChevronDown,
+  FileText,
+  Landmark,
+  ShieldAlert,
+  SlidersHorizontal,
+  Trash2,
 } from "lucide-react";
-import { PayoutSettingsTab } from "./PayoutSettingsTab";
 import { OfferingSettingsGeneralTab } from "./OfferingSettingsGeneralTab";
 
 interface OfferingData {
@@ -26,7 +26,6 @@ interface OfferingData {
   minInvestment: number;
 }
 
-// Mock data - replace with API call
 const mockOfferings: Record<string, OfferingData> = {
   "1": {
     id: "1",
@@ -49,271 +48,365 @@ const mockOfferings: Record<string, OfferingData> = {
   },
 };
 
+type SettingsTabId = "general" | "distributions" | "compliance" | "documents" | "danger";
+
+const SETTINGS_TABS: Array<{ id: SettingsTabId; label: string; description: string }> = [
+  { id: "general", label: "General", description: "Basics and profile metadata" },
+  { id: "distributions", label: "Distributions", description: "Payout cadence and treasury" },
+  { id: "compliance", label: "Compliance", description: "Verification and sanctions" },
+  { id: "documents", label: "Documents", description: "Investor materials and files" },
+  { id: "danger", label: "Danger zone", description: "Sensitive operational actions" },
+];
+
+const getTabFromHash = (): SettingsTabId => {
+  if (typeof window === "undefined") {
+    return "general";
+  }
+
+  const hashValue = window.location.hash.replace("#", "").trim().toLowerCase();
+  if (SETTINGS_TABS.some((tab) => tab.id === hashValue)) {
+    return hashValue as SettingsTabId;
+  }
+
+  return "general";
+};
+
 export const OfferingDetail: React.FC = () => {
   const navigate = useNavigate();
   const { id = "1" } = useParams<{ id: string }>();
   const offering = mockOfferings[id] || mockOfferings["1"];
-  const [isInvesting, setIsInvesting] = useState(false);
-  const [activeTab, setActiveTab] = useState<'overview' | 'payouts' | 'general'>('overview');
+  const [activeTab, setActiveTab] = useState<SettingsTabId>(getTabFromHash);
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth < 1024 : false,
+  );
+  const [dangerInput, setDangerInput] = useState("");
+  const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
-  const handleSaveGeneral = (data: any) => {
-    console.log('Saving general settings:', data);
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 1024);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      setActiveTab(getTabFromHash());
+    };
+
+    window.addEventListener("hashchange", handleHashChange);
+    return () => window.removeEventListener("hashchange", handleHashChange);
+  }, []);
+
+  const handleTabChange = (tabId: SettingsTabId) => {
+    setActiveTab(tabId);
+    window.history.replaceState(null, "", `#${tabId}`);
   };
-  
-  const handleInvest = () => {};
-  const handleBack = () => {};
 
-  const fundingPercentage = (offering.fundedAmount / offering.targetAmount) * 100;
-  const fundingRemaining = offering.targetAmount - offering.fundedAmount;
+  const handleTabKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>, tabIndex: number) => {
+    const keyMap: Record<string, number> = {
+      ArrowRight: 1,
+      ArrowLeft: -1,
+      ArrowDown: 1,
+      ArrowUp: -1,
+    };
 
-  return (
-    <div className="p-6">
-      <button onClick={handleBack} className="flex items-center gap-2 text-muted hover:text-white mb-6">
-        <ArrowLeft size={16} /> Back
-      </button>
-      
-      {/* Tabs */}
-      <div className="flex gap-6 border-b border-slate-800 mb-6">
-        <button 
-          onClick={() => setActiveTab('overview')}
-          className={`pb-3 text-sm font-medium transition-colors relative ${activeTab === 'overview' ? 'text-primary' : 'text-muted hover:text-main'}`}
-        >
-          Overview
-          {activeTab === 'overview' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full" />}
-        </button>
-        <button 
-          onClick={() => setActiveTab('payouts')}
-          className={`pb-3 text-sm font-medium transition-colors relative ${activeTab === 'payouts' ? 'text-primary' : 'text-muted hover:text-main'}`}
-        >
-          Payouts
-          {activeTab === 'payouts' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full" />}
-        </button>
-        <button 
-          onClick={() => setActiveTab('general')}
-          className={`pb-3 text-sm font-medium transition-colors relative ${activeTab === 'general' ? 'text-primary' : 'text-muted hover:text-main'}`}
-        >
-          General
-          {activeTab === 'general' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full" />}
-        </button>
-      </div>
+    const nextDirection = keyMap[event.key];
+    if (!nextDirection) {
+      return;
+    }
 
-      {activeTab === 'compliance' ? (
-        <ComplianceSettingsTab />
-      ) : activeTab === 'payouts' ? (
-        <PayoutSettingsTab />
-      ) : activeTab === 'general' ? (
-        <OfferingSettingsGeneralTab 
-          initialData={{ name: offering.name, description: offering.description }}
+    event.preventDefault();
+    const nextIndex = (tabIndex + nextDirection + SETTINGS_TABS.length) % SETTINGS_TABS.length;
+    const nextTab = SETTINGS_TABS[nextIndex].id;
+    handleTabChange(nextTab);
+    tabRefs.current[nextIndex]?.focus();
+  };
+
+  const handleSaveGeneral = (data: Record<string, unknown>) => {
+    console.log("Saving general settings:", data);
+  };
+
+  const handleBack = () => {
+    navigate(-1);
+  };
+
+  const canDeleteOffering = dangerInput.trim().toLowerCase() === "delete";
+
+  const handleDeleteOffering = () => {
+    if (!canDeleteOffering) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Delete ${offering.name}? This will remove the offering from issuer settings and cannot be undone.`,
+    );
+
+    if (confirmed) {
+      console.warn(`Offering ${offering.id} deleted by issuer admin.`);
+    }
+  };
+
+  const renderPanelContent = (tabId: SettingsTabId) => {
+    if (tabId === "general") {
+      return (
+        <OfferingSettingsGeneralTab
+          initialData={{
+            name: offering.name,
+            description: offering.description,
+            metadata: "Series A",
+          }}
           onSave={handleSaveGeneral}
         />
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column: Offering Overview */}
-          <div className="lg:col-span-2 space-y-6">
-          {/* Offering Header Card */}
-          <div className="glass-card p-8 space-y-6">
-            <div className="flex items-start gap-4">
-              <div className="h-16 w-16 bg-primary/10 rounded-lg flex items-center justify-center text-primary flex-shrink-0">
-                <Rocket size={32} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
-                  <h2 className="text-lg font-semibold">{offering.category}</h2>
-                  <span
-                    className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                      offering.riskLevel === "low"
-                        ? "bg-green-500/20 text-green-300"
-                        : offering.riskLevel === "medium"
-                          ? "bg-yellow-500/20 text-yellow-300"
-                          : "bg-red-500/20 text-red-300"
-                    }`}
-                    aria-label={`Risk level: ${offering.riskLevel}`}
-                  >
-                    {offering.riskLevel.charAt(0).toUpperCase() +
-                      offering.riskLevel.slice(1)}{" "}
-                    Risk
-                  </span>
-                </div>
-                <p className="text-muted text-sm">{offering.description}</p>
-              </div>
-            </div>
-          </div>
+      );
+    }
 
-          {/* Key Metrics Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            <div className="glass-card p-6 space-y-2">
-              <div className="flex items-center gap-2 text-accent">
-                <Percent size={18} />
-                <span className="text-xs text-muted uppercase tracking-wide">
-                  Revenue Share
-                </span>
+    if (tabId === "distributions") {
+      return (
+        <div className="space-y-5">
+          <div className="glass-card p-6">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-xs uppercase tracking-[0.16em] text-muted">Distribution schedule</p>
+                <h3 className="mt-2 text-xl font-semibold text-main">Quarterly payout cadence</h3>
               </div>
-              <div className="text-3xl font-bold">{offering.revenueShare}%</div>
-            </div>
-
-            <div className="glass-card p-6 space-y-2">
-              <div className="flex items-center gap-2 text-accent">
-                <Calendar size={18} />
-                <span className="text-xs text-muted uppercase tracking-wide">
-                  Term Length
-                </span>
-              </div>
-              <div className="text-3xl font-bold">
-                {offering.termLength}
-                <span className="text-lg font-normal text-muted"> mo</span>
-              </div>
-            </div>
-
-            <div className="glass-card p-6 space-y-2">
-              <div className="flex items-center gap-2 text-accent">
-                <Target size={18} />
-                <span className="text-xs text-muted uppercase tracking-wide">
-                  Min Investment
-                </span>
-              </div>
-              <div className="text-3xl font-bold">
-                ${(offering.minInvestment / 1000).toFixed(0)}k
-              </div>
-            </div>
-          </div>
-
-          {/* Funding Progress */}
-          <div className="glass-card p-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold flex items-center gap-2">
-                <TrendingUp size={18} className="text-accent" />
-                Funding Progress
-              </h3>
-              <span className="text-sm text-muted">
-                {fundingPercentage.toFixed(0)}% funded
+              <span className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                Active
               </span>
             </div>
-
-            <div className="space-y-2">
-              <div className="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
-                <div
-                  className="bg-gradient-to-r from-primary to-accent h-2.5 rounded-full transition-all duration-500"
-                  style={{ width: `${fundingPercentage}%` }}
-                  role="progressbar"
-                  aria-valuenow={Math.round(fundingPercentage)}
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                  aria-label={`Funding progress: ${fundingPercentage.toFixed(0)}% of $${offering.targetAmount.toLocaleString()} raised`}
-                ></div>
+            <div className="mt-6 grid gap-4 md:grid-cols-3">
+              <div className="rounded-xl border border-slate-700 bg-slate-900/60 p-4">
+                <p className="text-xs uppercase tracking-[0.14em] text-muted">Next payout</p>
+                <p className="mt-2 text-2xl font-bold text-main">$58,400</p>
               </div>
-              <div className="flex justify-between text-xs text-muted">
-                <span>
-                  ${offering.fundedAmount.toLocaleString()} raised
-                </span>
-                <span>
-                  ${fundingRemaining.toLocaleString()} remaining
-                </span>
+              <div className="rounded-xl border border-slate-700 bg-slate-900/60 p-4">
+                <p className="text-xs uppercase tracking-[0.14em] text-muted">Treasury wallet</p>
+                <p className="mt-2 text-lg font-semibold text-main">USDC Vault A</p>
               </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 pt-2 border-t border-slate-700">
-              <div>
-                <span className="text-xs text-muted uppercase tracking-wide">
-                  Target Amount
-                </span>
-                <div className="text-lg font-semibold">
-                  ${offering.targetAmount.toLocaleString()} USDC
-                </div>
-              </div>
-              <div>
-                <span className="text-xs text-muted uppercase tracking-wide">
-                  Currency
-                </span>
-                <div className="text-lg font-semibold">Stellar (USDC)</div>
+              <div className="rounded-xl border border-slate-700 bg-slate-900/60 p-4">
+                <p className="text-xs uppercase tracking-[0.14em] text-muted">Approval flow</p>
+                <p className="mt-2 text-lg font-semibold text-main">Dual approval</p>
               </div>
             </div>
           </div>
 
-          {/* Terms & Highlights */}
-          <div className="glass-card p-6 space-y-4">
-            <h3 className="font-semibold flex items-center gap-2">
-              <CheckCircle size={18} className="text-accent" />
-              Why Invest
-            </h3>
-            <ul className="space-y-3">
-              {offering.highlights.map((highlight, idx) => (
-                <li key={idx} className="flex gap-3 text-sm">
-                  <div className="w-1.5 h-1.5 bg-accent rounded-full flex-shrink-0 mt-2"></div>
-                  <span className="text-muted">{highlight}</span>
-                </li>
-              ))}
+          <div className="glass-card p-6">
+            <div className="flex items-center gap-3 text-main">
+              <Landmark className="text-primary" size={18} />
+              <h3 className="text-lg font-semibold">Distribution controls</h3>
+            </div>
+            <ul className="mt-4 space-y-3 text-sm text-muted">
+              <li>• Payouts are scheduled on the last business day of each quarter.</li>
+              <li>• Treasury settlement is routed through the configured USDC wallet.</li>
+              <li>• Post-distribution notifications are sent to all relevant stakeholders.</li>
             </ul>
           </div>
+        </div>
+      );
+    }
 
-          {/* Disclaimer */}
-          <div className="glass-card p-4 bg-slate-900/50 border-slate-700">
-            <p className="text-xs text-muted leading-relaxed">
-              <strong>Risk Disclosure:</strong> Revenue-share investments carry
-              risk. Returns depend on company performance and are distributed
-              automatically via Soroban smart contracts. Past performance does
-              not guarantee future results. Please review the full prospectus
-              before investing.
-            </p>
+    if (tabId === "compliance") {
+      return (
+        <div className="glass-card p-6">
+          <div className="flex items-center gap-3 text-main">
+            <ShieldAlert className="text-primary" size={18} />
+            <h3 className="text-lg font-semibold">Compliance controls</h3>
+          </div>
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <div className="rounded-xl border border-slate-700 bg-slate-900/60 p-4">
+              <p className="text-xs uppercase tracking-[0.14em] text-muted">KYC status</p>
+              <p className="mt-2 text-xl font-semibold text-main">Verified</p>
+            </div>
+            <div className="rounded-xl border border-slate-700 bg-slate-900/60 p-4">
+              <p className="text-xs uppercase tracking-[0.14em] text-muted">Sanctions review</p>
+              <p className="mt-2 text-xl font-semibold text-main">Clear</p>
+            </div>
+          </div>
+          <div className="mt-5 rounded-xl border border-amber-500/30 bg-amber-500/8 p-4 text-sm text-amber-200">
+            <div className="flex items-center gap-2 font-semibold">
+              <AlertTriangle size={16} />
+              Review required before entering restricted geographies.
+            </div>
           </div>
         </div>
+      );
+    }
 
-        {/* Right Column: Investment Card */}
-        <div className="lg:col-span-1">
-          <div className="glass-card p-6 space-y-6 sticky top-6">
-            <div className="space-y-2">
-              <h3 className="font-semibold text-lg">Ready to Invest?</h3>
-              <p className="text-sm text-muted">
-                Secure your share of {offering.revenueShare}% revenue from{" "}
-                {offering.name}.
-              </p>
+    if (tabId === "documents") {
+      return (
+        <div className="glass-card p-6">
+          <div className="flex items-center gap-3 text-main">
+            <FileText className="text-primary" size={18} />
+            <h3 className="text-lg font-semibold">Offering documents</h3>
+          </div>
+          <div className="mt-5 space-y-3">
+            {[
+              ["Prospectus", "Signed and published"],
+              ["Operating agreement", "Reviewed"],
+              ["Investor deck", "Needs final approval"],
+            ].map(([name, status]) => (
+              <div key={name} className="flex items-center justify-between rounded-xl border border-slate-700 bg-slate-900/60 p-4">
+                <span className="font-medium text-main">{name}</span>
+                <span className="text-sm text-muted">{status}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="glass-card border border-red-500/30 bg-red-500/5 p-6">
+        <div className="flex items-center gap-3 text-red-200">
+          <Trash2 size={18} />
+          <h3 className="text-lg font-semibold">Danger zone</h3>
+        </div>
+
+        <div className="mt-6 space-y-4 rounded-xl border border-red-500/30 bg-slate-900/70 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="font-semibold text-main">Suspend raises</p>
+              <p className="text-sm text-muted">Temporarily pause investment onboarding.</p>
             </div>
-
-            <div className="space-y-3 p-4 bg-slate-900/50 rounded-lg border border-slate-700">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted">Investment amount</span>
-                <span className="font-semibold">
-                  ${(offering.minInvestment / 1000).toFixed(0)}k+ USDC
-                </span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted">Annual return*</span>
-                <span className="font-semibold text-accent">
-                  {offering.revenueShare}% pro-rata
-                </span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted">Lock-up period</span>
-                <span className="font-semibold">
-                  {offering.termLength} months
-                </span>
-              </div>
-            </div>
-
-            <button
-              onClick={handleInvest}
-              disabled={isInvesting}
-              className="btn-primary py-3 text-base font-semibold"
-              aria-label={`Invest $${offering.minInvestment / 1000}k or more in ${offering.name}`}
-            >
-              {isInvesting ? "Processing..." : "Invest Now"}
+            <button type="button" className="rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm font-medium text-red-200">
+              Suspend raises
             </button>
+          </div>
 
-            <button
-              onClick={handleBack}
-              className="btn-secondary py-2 text-sm"
-              aria-label={`Back to discover more offerings`}
-            >
-              Back to Discovery
-            </button>
-
-            <p className="text-xs text-muted text-center leading-relaxed">
-              *Returns distributed monthly via automated smart contracts.
-              Subject to company revenue.
+          <div className="border-t border-slate-700 pt-4">
+            <p className="font-semibold text-main">Delete offering</p>
+            <p className="mt-1 text-sm text-muted">
+              This permanently removes the offering from the issuer dashboard and related investor access.
             </p>
+
+            <label htmlFor="danger-confirmation" className="mt-4 block text-sm font-medium text-main">
+              Type DELETE to confirm
+            </label>
+            <input
+              id="danger-confirmation"
+              type="text"
+              value={dangerInput}
+              onChange={(event) => setDangerInput(event.target.value)}
+              placeholder="DELETE"
+              aria-label="Type DELETE to confirm"
+              className="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-main placeholder:text-muted focus:border-red-400 focus:outline-none"
+            />
+
+            <button
+              type="button"
+              onClick={handleDeleteOffering}
+              disabled={!canDeleteOffering}
+              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-500 disabled:cursor-not-allowed disabled:bg-red-900/60 disabled:text-red-200/70"
+              aria-label="Delete offering"
+            >
+              <Trash2 size={16} />
+              Delete offering
+            </button>
           </div>
         </div>
       </div>
-      </>
+    );
+  };
+
+  return (
+    <div className="max-w-6xl mx-auto p-4 sm:p-6">
+      <button
+        type="button"
+        onClick={handleBack}
+        className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-muted transition hover:text-main"
+      >
+        <ArrowLeft size={16} />
+        Back
+      </button>
+
+      <div className="mb-6 flex items-center justify-between gap-3">
+        <div>
+          <p className="text-xs uppercase tracking-[0.18em] text-muted">Offering</p>
+          <h1 className="mt-2 text-3xl font-bold text-main">{offering.name}</h1>
+        </div>
+        <div className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+          Issuer admin
+        </div>
+      </div>
+
+      {isMobile ? (
+        <div className="space-y-3" role="tablist" aria-label="Offering settings">
+          {SETTINGS_TABS.map((tab, index) => {
+            const isSelected = activeTab === tab.id;
+            return (
+              <div key={tab.id} className="glass-card overflow-hidden">
+                <button
+                  type="button"
+                  role="tab"
+                  id={`tab-${tab.id}`}
+                  aria-selected={isSelected}
+                  aria-controls={`panel-${tab.id}`}
+                  tabIndex={isSelected ? 0 : -1}
+                  onClick={() => handleTabChange(tab.id)}
+                  className={`flex w-full items-center justify-between px-4 py-3 text-left ${
+                    isSelected ? "text-primary" : "text-main"
+                  }`}
+                >
+                  <span className="flex items-center gap-3">
+                    <SlidersHorizontal size={16} />
+                    <span className="font-semibold">{tab.label}</span>
+                  </span>
+                  <ChevronDown className={`transition ${isSelected ? "rotate-180" : ""}`} size={16} />
+                </button>
+                {isSelected && (
+                  <div id={`panel-${tab.id}`} role="tabpanel" aria-labelledby={`tab-${tab.id}`} className="border-t border-slate-700 px-4 py-4">
+                    {renderPanelContent(tab.id)}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
+          <nav aria-label="Offering settings" role="tablist" className="glass-card flex flex-col p-3" aria-orientation="vertical">
+            {SETTINGS_TABS.map((tab, index) => {
+              const isSelected = activeTab === tab.id;
+
+              return (
+                <button
+                  key={tab.id}
+                  ref={(element) => {
+                    tabRefs.current[index] = element;
+                  }}
+                  type="button"
+                  role="tab"
+                  id={`tab-${tab.id}`}
+                  aria-selected={isSelected}
+                  aria-controls={`panel-${tab.id}`}
+                  tabIndex={isSelected ? 0 : -1}
+                  onClick={() => handleTabChange(tab.id)}
+                  onKeyDown={(event) => handleTabKeyDown(event, index)}
+                  className={`rounded-xl px-4 py-3 text-left transition ${
+                    isSelected
+                      ? "border border-primary/50 bg-primary/10 text-primary shadow-[0_0_0_1px_rgba(59,130,246,0.25)]"
+                      : "border border-transparent text-muted hover:border-slate-700 hover:bg-slate-900/50 hover:text-main"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="font-semibold">{tab.label}</span>
+                    <SlidersHorizontal size={16} className={isSelected ? "text-primary" : "text-muted"} />
+                  </div>
+                  <p className="mt-1 text-xs text-muted">{tab.description}</p>
+                </button>
+              );
+            })}
+          </nav>
+
+          <main>
+            {SETTINGS_TABS.map((tab) =>
+              activeTab === tab.id ? (
+                <div key={tab.id} id={`panel-${tab.id}`} role="tabpanel" aria-labelledby={`tab-${tab.id}`}>
+                  {renderPanelContent(tab.id)}
+                </div>
+              ) : null,
+            )}
+          </main>
+        </div>
       )}
     </div>
   );

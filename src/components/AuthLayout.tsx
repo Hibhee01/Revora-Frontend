@@ -40,19 +40,47 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
   const titleId = useId();
 
   return (
-    <main role="main" aria-labelledby={titleId} className="auth-layout-outer animate-fade-in">
-      <div className="auth-card glass-card">
-        <header className="auth-header">
-          <h1 id={titleId} className="auth-title">
-            {title}
-          </h1>
-          {subtitle && <p className="auth-subtitle">{subtitle}</p>}
-          {helperText && <p className="auth-helper">{helperText}</p>}
-        </header>
-        <div className="auth-body">
-          {children}
+    <div className="auth-page-container">
+      <aside className="auth-marketing-panel animate-fade-in">
+        <div className="auth-marketing-content">
+          <h2 className="auth-marketing-title">
+            Revora on <span className="text-primary">Stellar</span>
+          </h2>
+          <p className="auth-marketing-description">
+            Tokenized revenue-sharing infrastructure. Bridge the gap between visionaries and supporters with secure, on-chain execution.
+          </p>
+          <ul className="auth-marketing-list">
+            <li>
+              <span className="auth-marketing-icon">✓</span>
+              Instant USDC payouts
+            </li>
+            <li>
+              <span className="auth-marketing-icon">✓</span>
+              Transparent on-chain ledger
+            </li>
+            <li>
+              <span className="auth-marketing-icon">✓</span>
+              Automated compliance
+            </li>
+          </ul>
         </div>
-      </div>
-    </main>
+        <div className="auth-marketing-glow"></div>
+      </aside>
+
+      <main role="main" aria-labelledby={titleId} className="auth-layout-outer animate-fade-in">
+        <div className="auth-card glass-card">
+          <header className="auth-header">
+            <h1 id={titleId} className="auth-title">
+              {title}
+            </h1>
+            {subtitle && <p className="auth-subtitle">{subtitle}</p>}
+            {helperText && <p className="auth-helper">{helperText}</p>}
+          </header>
+          <div className="auth-body">
+            {children}
+          </div>
+        </div>
+      </main>
+    </div>
   );
 };
